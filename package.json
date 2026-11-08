@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Tài liệu ôn luyện VMO Đà Nẵng 2026-2027",
   "type": "module",
+  "packageManager": "npm@11.20.0",
   "scripts": {
     "dev": "node --env-file-if-exists=.env server.js",
     "start": "node --env-file-if-exists=.env server.js",
