@@ -97,10 +97,13 @@ window.VMODataService = {
   }]
 };
 const detailRequests = [];
-window.VMODataService.getExamCatalogSummary = async category =>
-  (await window.VMODataService.getExamCatalog(category)).map(({ problems, ...exam }) => ({
+const summaryRequests = [];
+window.VMODataService.getExamCatalogSummary = async category => {
+  summaryRequests.push(category);
+  return (await window.VMODataService.getExamCatalog(category)).map(({ problems, ...exam }) => ({
     ...exam, problemCount: problems.length
   }));
+};
 window.VMODataService.getExamCatalogDetail = async (category, anchor) => {
   detailRequests.push(`${category}:${anchor}`);
   return (await window.VMODataService.getExamCatalog(category)).filter(exam => exam.targetAnchor === anchor);
@@ -370,6 +373,7 @@ await window.deleteManagedExam('aaaaaaaaaaaaaaaaaaaaaaaa');
 assert.equal(deletedExam, 'aaaaaaaaaaaaaaaaaaaaaaaa');
 window.switchHubTab('exams');
 await new Promise(resolve => setTimeout(resolve, 20));
+assert.ok(summaryRequests.includes('vmo-mock'), 'Admin mock-exam list uses the lightweight catalog summary endpoint');
 assert.ok(window.document.querySelector('#hubExamsList button[onclick*="editManagedExam"]'),
   'Admin có nút quản lý bộ đề thi thử');
 const mockFilter = window.document.getElementById('hubMockExamFilter');

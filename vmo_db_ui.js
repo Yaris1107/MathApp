@@ -4616,7 +4616,7 @@ Vậy giới hạn cần tìm là $\\sqrt{2}$.`;
     const el = document.getElementById('hubExamsList');
     if (!el) return;
     try {
-      const exams = await window.VMODataService.getExams('vmo-mock');
+      const exams = await window.VMODataService.getExamCatalogSummary('vmo-mock');
       exams.forEach(exam => managedExams.set(exam.id || exam._id, exam));
       if (!exams || exams.length === 0) {
         el.innerHTML = '<div style="padding:14px; text-align:center; color:#94a3b8; font-style:italic;">Chưa có đề thi nào trong cơ sở dữ liệu. Nhấn "➕ Thêm đề thi mới" để bắt đầu!</div>';
