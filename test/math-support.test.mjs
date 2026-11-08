@@ -176,11 +176,18 @@ window.confirm = () => true; window.alert = () => {};
 window.matchMedia = () => ({ matches: false, addEventListener() {} });
 window.scrollTo = () => {};
 let clientOcrTopic = MATH_SUPPORT_TOPICS[6];
+const guideData = { knowledge: 'Kiến thức kiểm tra $a^2+b^2\\ge2ab$.', intuition: 'Ý tưởng dùng bình phương không âm.',
+  solution: 'Ta có $(a-b)^2\\ge0$, suy ra $a^2+b^2\\ge2ab$.', pitfalls: 'Kiểm tra trường hợp đẳng thức.' };
+let guideRequest;
 window.fetch = async (url, options = {}) => {
   let res;
   if (String(url).startsWith('/api/ai-ocr-math')) {
     assert.equal(JSON.parse(options.body).image, image);
     return { ok: true, headers: { get: () => 'application/json' }, json: async () => ({ success: true, data: { latexText: payload.content, confidence: 'high', topic: clientOcrTopic } }) };
+  }
+  if (String(url).startsWith('/api/ai-guide')) {
+    guideRequest = JSON.parse(options.body);
+    return { ok: true, json: async () => ({ success: true, data: guideData }) };
   }
   const parsed = new URL(url, window.location.href);
   res = await call(options.method === 'POST' ? JSON.parse(options.body) : { query: Object.fromEntries(parsed.searchParams) });
@@ -250,6 +257,12 @@ window.prepareMathSupportImage = async () => image;
 window.document.getElementById('supportOcrButton').click(); await tick();
 assert.equal(window.document.getElementById('supportContent').value, payload.content);
 assert.equal(window.document.getElementById('supportOcrEditor').hidden, false);
+assert.equal(window.document.getElementById('supportSolveButton').disabled, false);
+window.document.getElementById('supportSolveButton').click(); await tick(); await tick();
+assert.equal(guideRequest.problemContent, payload.content, 'AI solving uses the checked OCR text');
+assert.equal(guideRequest.contentKey.startsWith('math_support:draft:'), true, `Unexpected draft key: ${guideRequest.contentKey}`);
+assert.match(window.document.getElementById('supportSolveResult').textContent, /Ta có/);
+assert.match(window.document.getElementById('supportSolveStatus').textContent, /Đã tạo lời giải/);
 const topicSelect = window.document.getElementById('supportTopic');
 assert.equal(topicSelect.value, clientOcrTopic, 'OCR automatically selects a canonical topic');
 clientOcrTopic = 'Đại số';
@@ -262,6 +275,9 @@ window.document.getElementById('supportOcrButton').click(); await tick();
 assert.equal(topicSelect.value, MATH_SUPPORT_TOPICS[2]);
 topicSelect.value = MATH_SUPPORT_TOPICS[6]; // User can correct the OCR suggestion.
 window.document.getElementById('supportContent').value = 'Đề đã được kiểm tra $a+b$.';
+window.document.getElementById('supportContent').dispatchEvent(new window.Event('input'));
+assert.equal(window.document.getElementById('supportSolveResult').childElementCount, 0,
+  'Editing OCR text clears a stale AI solution');
 assert.equal(window.document.getElementById('mathSupportForm').checkValidity(), true, 'Pasted draft passes native form validation');
 window.document.getElementById('mathSupportForm').dispatchEvent(new window.Event('submit', { cancelable: true })); await tick(); await tick();
 assert.match(window.document.getElementById('supportUploadStatus').textContent, /Đã lưu bài toán/);

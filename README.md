@@ -51,8 +51,7 @@ Khi cần cập nhật nội dung, **thầy cô/lập trình viên không cần 
 
 ### Quy trình chạy:
 - **Biên dịch thủ công:** Chạy lệnh `node build.js` hoặc `npm run build`.
-- **Chạy môi trường phát triển (Dev/Server):** Chạy `npm run dev` hoặc `node --env-file-if-exists=.env server.js`. Máy chủ sẽ tự động gọi `build()` khi khởi động và tự động cập nhật ngay lập tức.
-- **Chạy local với MongoDB:** Cấu hình `MONGODB_URI` và `JWT_SECRET` trong `.env`, sau đó chạy `npm run dev`. Tệp `.env` không được đưa vào Git.
+- **Chạy môi trường phát triển (Dev/Server):** Chạy `node server.js` hoặc `npm run dev`. Máy chủ sẽ tự động gọi `build()` khi khởi động và tự động cập nhật ngay lập tức.
 
 ### Tối ưu hiệu năng
 
@@ -65,9 +64,6 @@ Khi cần cập nhật nội dung, **thầy cô/lập trình viên không cần 
 ## MongoDB Atlas và phân quyền dữ liệu
 
 Vercel phải có hai biến môi trường bắt buộc: `MONGODB_URI` và `JWT_SECRET` (tối thiểu 32 ký tự). Không đưa giá trị thật của hai biến này vào GitHub.
-Các lệnh cài đặt/build trong `vercel.json` loại biến npm cũ `npm_config_cache_dir` khỏi môi trường trước khi chạy npm để tránh cảnh báo `Unknown env config "cache-dir"`; biến này có thể được thiết lập trong môi trường build của Vercel, không nhất thiết nằm trong `.env`.
-`vercel.json` đặt Framework Preset là `Other` có chủ ý: Vercel phục vụ các route API và rewrite đã khai báo trực tiếp, tránh đưa rewrite bảo vệ trang/tài liệu qua bộ định tuyến của backend framework được tự động nhận diện từ Express.
-Build tạo thư mục `public/` chỉ gồm trang đăng nhập và JS/CSS mà giao diện tham chiếu; không xuất toàn bộ mã nguồn hoặc tài liệu cần bảo vệ thành static files. `index.html` vẫn được API xác thực phục vụ từ file build ở thư mục gốc.
 
 Database mặc định là `vmo_tst`. Ứng dụng sử dụng các collection:
 
@@ -128,6 +124,8 @@ Cấp học độc lập với vai trò Admin/Giáo viên/Thành viên. Admin ch
 | Đại học (`university`) | 10 kho học phần: MTH 141, MTH 142, CSE 191, MTH 309, EAS 305, STA 301, CSE 496, MTH 411, MTH 435, MTH 311 |
 
 **Hỗ trợ giải toán** dùng chung cho mọi cấp đã được cấp quyền, vẫn giữ quyền sở hữu bài toán riêng lẻ. Chọn THCS + THPT mở hợp của hai danh mục. Không có cấp nào (`[]`) nghĩa là chờ Admin cấp quyền; không tự mở nội dung khi tự đăng ký. Tài khoản cũ chưa có trường `educationLevels` tiếp tục được THCS + THPT, giữ quyền hiện tại; không cần sửa hàng loạt dữ liệu. Nội dung tương lai có thể gắn `educationLevel` rõ ràng; dữ liệu cũ phân loại từ category/sourceGroup/group, mặc định THPT, riêng tuyển sinh chuyên là THCS.
+
+Trong tab **Hỗ trợ giải toán**, tải lên hoặc dán ảnh để OCR, kiểm tra/chỉnh sửa văn bản nhận diện, rồi bấm **Giải bài toán bằng AI** để xem lời giải ngay mà không cần lưu đề trước. Có thể lưu đề riêng để quay lại sau; lời giải AI dùng cùng quy trình kiểm định chất lượng và lưu lời giải hiện có.
 
 Phiên ký chứa danh sách cấp học chuẩn hóa; mỗi yêu cầu đối chiếu bản ghi tài khoản. Thay đổi quyền hoặc cấp học từ chối phiên cũ; người dùng đăng nhập lại. Cookie cũ chưa có danh sách cấp học dùng phạm vi hiện tại từ DB. Giao diện kiểm tra lại phiên khi mở trang, không tin phạm vi trong localStorage làm căn cứ cho API.
 

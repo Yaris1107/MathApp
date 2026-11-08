@@ -9,11 +9,29 @@ import trendsHandler from './api/ai-exam-trends.js';
 import trendTheoryHandler from './api/ai-trend-theory.js';
 import express from 'express';
 import path from 'path';
+import fs from 'node:fs';
 import compression from 'compression';
 import { fileURLToPath } from 'url';
 import { build } from './build.js';
 import translateContentHandler from './api/translate-content.js';
 import predictExamHandler from './api/ai-predict-exam.js';
+
+// Tự động nạp biến môi trường từ .env nếu chạy local
+if (typeof process.loadEnvFile === 'function') {
+  if (fs.existsSync('.env')) {
+    try {
+      process.loadEnvFile('.env');
+    } catch (err) {
+      console.warn('[Env] Không thể load file .env:', err.message);
+    }
+  } else if (fs.existsSync('.env.local')) {
+    try {
+      process.loadEnvFile('.env.local');
+    } catch (err) {
+      console.warn('[Env] Không thể load file .env.local:', err.message);
+    }
+  }
+}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

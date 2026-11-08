@@ -4,9 +4,12 @@
   const status = (id, message) => { if (byId(id)) byId(id).textContent = message; };
   function busy(value, message = '') {
     state.busy = value;
-    for (const id of ['supportImage', 'supportOcrButton', 'supportSaveButton']) if (byId(id)) byId(id).disabled = value;
+    for (const id of ['supportImage', 'supportTitle', 'supportTopic', 'supportContent', 'supportOcrButton', 'supportSolveButton', 'supportSaveButton']) {
+      if (byId(id)) byId(id).disabled = value;
+    }
     if (!value) {
       byId('supportOcrButton').disabled = !state.image;
+      byId('supportSolveButton').disabled = !state.image || !byId('supportContent').value.trim();
       byId('supportSaveButton').disabled = !state.image || !byId('supportContent').value.trim();
     }
     if (message) status('supportUploadStatus', message);
@@ -29,10 +32,68 @@
       status('supportTopicHint', topicSelect.value ? 'Đã tự động phân loại chuyên đề. Bạn có thể điều chỉnh trước khi lưu.' : 'Chưa xác định được chuyên đề trong bảy nhóm. Vui lòng chọn chuyên đề phù hợp trước khi lưu.');
       byId('supportContent').value = content;
       byId('supportOcrEditor').hidden = false;
+      byId('supportSolveResult').replaceChildren();
+      status('supportSolveStatus', '');
       preview();
       status('supportUploadStatus', 'OCR hoàn tất. Hãy kiểm tra đề bài và công thức, sau đó lưu.');
     } catch (error) { status('supportUploadStatus', error.message || 'Không OCR được ảnh. Vui lòng thử lại.'); }
     finally { busy(false); }
+  }
+  async function solve() {
+    const content = byId('supportContent').value.trim();
+    if (!state.image || state.busy || !content) return;
+    if (typeof window.openAIGuide !== 'function') {
+      status('supportSolveStatus', 'Chức năng giải toán AI chưa sẵn sàng. Vui lòng tải lại trang.');
+      return;
+    }
+
+    busy(true);
+    status('supportSolveStatus', 'Gia sư AI đang phân tích và giải bài toán...');
+    const card = document.createElement('article');
+    card.className = 'exam-card math-support-card support-draft-solution';
+
+    const heading = document.createElement('h3');
+    heading.className = 'exam-title';
+    heading.textContent = byId('supportTitle').value.trim() || 'Bài toán từ ảnh';
+    const item = document.createElement('div');
+    item.className = 'problem-item';
+    item.id = `support-draft-${state.uploadKey}`;
+    item.dataset.contentKey = `math_support:draft:${state.uploadKey}`;
+    item.dataset.sourceGroup = 'math_support';
+    item.dataset.sourceType = 'standalone_question';
+    item.dataset.setTitle = 'Hỗ trợ giải toán';
+    item.dataset.topic = byId('supportTopic').value || 'Toán Olympic';
+    const problemHeader = document.createElement('div');
+    problemHeader.className = 'problem-header';
+    const identity = document.createElement('div');
+    identity.className = 'problem-id';
+    const label = document.createElement('span');
+    label.textContent = heading.textContent;
+    const topic = document.createElement('span');
+    topic.className = 'badge-topic';
+    topic.textContent = item.dataset.topic;
+    identity.append(label, topic);
+    const contentNode = document.createElement('div');
+    contentNode.className = 'problem-content';
+    contentNode.dataset.noI18n = 'true';
+    contentNode.textContent = content;
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'btn-ai-guide';
+    button.textContent = '🧠 Giải bài toán bằng AI';
+    problemHeader.append(identity, button);
+    item.append(problemHeader, contentNode);
+    card.append(heading, item);
+    byId('supportSolveResult').replaceChildren(card);
+    try {
+      await window.openAIGuide(button);
+      const failed = card.querySelector('.ai-guide-panel')?.dataset.guideError === 'true';
+      status('supportSolveStatus', failed
+        ? 'AI chưa tạo được lời giải đạt chuẩn. Bạn có thể bấm nút thử lại trong khung kết quả.'
+        : 'Đã tạo lời giải. Hãy đọc và kiểm tra các bước lập luận.');
+    } catch (error) {
+      status('supportSolveStatus', error.message || 'Chưa giải được bài toán. Vui lòng thử lại.');
+    } finally { busy(false); }
   }
   async function save(event) {
     event.preventDefault();
@@ -45,6 +106,7 @@
       window.invalidateVMODataCache?.();
       byId('mathSupportForm').reset(); byId('supportOcrEditor').hidden = true;
       byId('supportContent').value = ''; byId('supportMathPreview').replaceChildren();
+      byId('supportSolveResult').replaceChildren(); status('supportSolveStatus', '');
       byId('supportImagePreview').hidden = true; byId('supportImagePreview').removeAttribute('src');
       state.image = ''; state.uploadKey = ''; state.confidence = '';
       byId('supportSearch').value = '';
@@ -111,6 +173,7 @@
       byId('supportTopic').value = '';
       byId('supportContent').value = ''; byId('supportOcrEditor').hidden = true;
       byId('supportMathPreview').replaceChildren();
+      byId('supportSolveResult').replaceChildren(); status('supportSolveStatus', '');
       byId('supportImagePreview').hidden = !image;
       if (image) byId('supportImagePreview').src = image;
       else byId('supportImagePreview').removeAttribute('src');
@@ -133,9 +196,18 @@
       loadImage(file);
     });
     byId('supportOcrButton').addEventListener('click', ocr);
+    byId('supportSolveButton').addEventListener('click', solve);
     byId('mathSupportForm').addEventListener('submit', save);
     byId('supportPreviewButton').addEventListener('click', preview);
-    byId('supportContent').addEventListener('input', () => { byId('supportSaveButton').disabled = state.busy || !state.image || !byId('supportContent').value.trim(); });
+    byId('supportContent').addEventListener('input', () => {
+      const hasContent = Boolean(byId('supportContent').value.trim());
+      byId('supportSolveButton').disabled = state.busy || !state.image || !hasContent;
+      byId('supportSaveButton').disabled = state.busy || !state.image || !hasContent;
+      if (byId('supportSolveResult').childElementCount) {
+        byId('supportSolveResult').replaceChildren();
+        status('supportSolveStatus', 'Nội dung đã thay đổi. Hãy giải lại để dùng đề bài mới.');
+      }
+    });
     byId('supportReload').addEventListener('click', () => window.loadMathSupportProblems(1, true));
     byId('supportPrevious').addEventListener('click', () => window.loadMathSupportProblems(state.page - 1, true));
     byId('supportNext').addEventListener('click', () => window.loadMathSupportProblems(state.page + 1, true));
