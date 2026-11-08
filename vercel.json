@@ -1,5 +1,6 @@
 {
   "version": 2,
+  "framework": null,
   "installCommand": "env -u npm_config_cache_dir -u NPM_CONFIG_CACHE_DIR -u npm_config_cache-dir -u NPM_CONFIG_CACHE-DIR npm ci",
   "buildCommand": "env -u npm_config_cache_dir -u NPM_CONFIG_CACHE_DIR -u npm_config_cache-dir -u NPM_CONFIG_CACHE-DIR npm run build",
   "functions": {

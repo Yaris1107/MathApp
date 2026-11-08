@@ -66,6 +66,7 @@ Khi cần cập nhật nội dung, **thầy cô/lập trình viên không cần 
 
 Vercel phải có hai biến môi trường bắt buộc: `MONGODB_URI` và `JWT_SECRET` (tối thiểu 32 ký tự). Không đưa giá trị thật của hai biến này vào GitHub.
 Các lệnh cài đặt/build trong `vercel.json` loại biến npm cũ `npm_config_cache_dir` khỏi môi trường trước khi chạy npm để tránh cảnh báo `Unknown env config "cache-dir"`; biến này có thể được thiết lập trong môi trường build của Vercel, không nhất thiết nằm trong `.env`.
+`vercel.json` đặt Framework Preset là `Other` có chủ ý: Vercel phục vụ các route API và rewrite đã khai báo trực tiếp, tránh đưa rewrite bảo vệ trang/tài liệu qua bộ định tuyến của backend framework được tự động nhận diện từ Express.
 
 Database mặc định là `vmo_tst`. Ứng dụng sử dụng các collection:
 

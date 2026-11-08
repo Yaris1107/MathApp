@@ -17,6 +17,14 @@ const count = await countJavaScriptFiles(apiDirectory);
 assert.ok(count <= 12, `Vercel Hobby chỉ cho phép 12 Serverless Functions; thư mục api hiện có ${count} file JavaScript.`);
 const projectRoot = new URL('../', import.meta.url);
 const vercelConfig = JSON.parse(await readFile(new URL('vercel.json', projectRoot), 'utf8'));
+assert.equal(vercelConfig.framework, null,
+  'Use Vercel Other preset so protected internal rewrites are handled by Vercel routing, not backend framework routing');
+assert.ok(vercelConfig.rewrites?.some(rule =>
+  rule.source === '/' && rule.destination === '/api/data?resource=app_shell'),
+'The home page must be rewritten to the authenticated app-shell API');
+assert.ok(vercelConfig.rewrites?.some(rule =>
+  rule.source === '/assets/:file*' && rule.destination === '/api/data?resource=protected_asset&file=:file*'),
+'Assets must stay behind the authenticated protected-asset API');
 assert.ok(vercelConfig.functions?.['api/ai-ocr-exam.js']?.maxDuration >= 120,
   'OCR đề thi cần đủ thời gian xử lý ảnh và sinh JSON nhiều câu');
 const examOcrSource = await readFile(new URL('api/ai-ocr-exam.js', projectRoot), 'utf8');
