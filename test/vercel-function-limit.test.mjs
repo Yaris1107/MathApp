@@ -19,11 +19,13 @@ const projectRoot = new URL('../', import.meta.url);
 const vercelConfig = JSON.parse(await readFile(new URL('vercel.json', projectRoot), 'utf8'));
 assert.equal(vercelConfig.framework, null,
   'Use Vercel Other preset so protected internal rewrites are handled by Vercel routing, not backend framework routing');
+assert.equal(vercelConfig.outputDirectory, 'public',
+  'Publish only the explicit static frontend assets instead of exposing the repository root');
 assert.ok(vercelConfig.rewrites?.some(rule =>
   rule.source === '/' && rule.destination === '/api/data?resource=app_shell'),
 'The home page must be rewritten to the authenticated app-shell API');
 assert.ok(vercelConfig.rewrites?.some(rule =>
-  rule.source === '/assets/:file*' && rule.destination === '/api/data?resource=protected_asset&file=:file*'),
+  rule.source === '/assets/(.*)' && rule.destination === '/api/data?resource=protected_asset&file=$1'),
 'Assets must stay behind the authenticated protected-asset API');
 assert.ok(vercelConfig.functions?.['api/ai-ocr-exam.js']?.maxDuration >= 120,
   'OCR đề thi cần đủ thời gian xử lý ảnh và sinh JSON nhiều câu');

@@ -78,6 +78,32 @@ export function build() {
   const outputPath = path.join(rootDir, 'index.html');
   fs.writeFileSync(outputPath, html, 'utf8');
 
+  const publicDir = path.join(rootDir, 'public');
+  fs.mkdirSync(publicDir, { recursive: true });
+  const loginPath = path.join(rootDir, 'login.html');
+  const loginHtml = fs.readFileSync(loginPath, 'utf8');
+  fs.copyFileSync(loginPath, path.join(publicDir, 'login.html'));
+
+  const publicAssets = new Set();
+  for (const page of [html, loginHtml]) {
+    for (const tag of page.matchAll(/<(script|link)\b[^>]*>/gi)) {
+      const attribute = tag[1].toLowerCase() === 'script' ? 'src' : 'href';
+      const reference = tag[0].match(new RegExp(`\\s${attribute}\\s*=\\s*["']([^"']+)["']`, 'i'))?.[1];
+      if (!reference || reference.startsWith('/') || /^[a-z][a-z\d+.-]*:/i.test(reference)) continue;
+      const relativePath = decodeURIComponent(reference.split(/[?#]/, 1)[0]);
+      if (path.dirname(relativePath) !== '.' || !/\.(js|css)$/i.test(relativePath)) continue;
+      publicAssets.add(relativePath);
+    }
+  }
+
+  for (const asset of publicAssets) {
+    const sourcePath = path.join(rootDir, asset);
+    if (!fs.existsSync(sourcePath) || !fs.statSync(sourcePath).isFile()) {
+      throw new Error(`Không tìm thấy tài nguyên frontend: ${asset}`);
+    }
+    fs.copyFileSync(sourcePath, path.join(publicDir, asset));
+  }
+
   const elapsed = Date.now() - startTime;
   const stats = fs.statSync(outputPath);
   const sizeKB = (stats.size / 1024).toFixed(1);

@@ -1,6 +1,7 @@
 {
   "version": 2,
   "framework": null,
+  "outputDirectory": "public",
   "installCommand": "env -u npm_config_cache_dir -u NPM_CONFIG_CACHE_DIR -u npm_config_cache-dir -u NPM_CONFIG_CACHE-DIR npm ci",
   "buildCommand": "env -u npm_config_cache_dir -u NPM_CONFIG_CACHE_DIR -u npm_config_cache-dir -u NPM_CONFIG_CACHE-DIR npm run build",
   "functions": {
@@ -79,8 +80,8 @@
       "destination": "/api/data?resource=blocked_static"
     },
     {
-      "source": "/assets/:file*",
-      "destination": "/api/data?resource=protected_asset&file=:file*"
+      "source": "/assets/(.*)",
+      "destination": "/api/data?resource=protected_asset&file=$1"
     },
     {
       "source": "/((?!api/|assets/|.*\\..*).*)",
