@@ -29,6 +29,8 @@ const EXAM_TREND_TOPICS = [
   'Hình học phẳng', 'Đa thức', 'Tổ hợp'
 ];
 const MAX_SOLUTION_IMAGE_CHARS = 3_000_000;
+const MAX_EXAM_IMAGE_BATCH_CHARS = 3_500_000;
+const MAX_EXAM_IMAGE_PAGES = 20;
 
 function parseBody(req) {
   if (typeof req.body !== 'string') return req.body || {};
@@ -1666,28 +1668,70 @@ export default async function handler(req, res) {
       });
     }
 
-    if (action === 'save_exam_image') {
+    if (action === 'save_exam_image' || action === 'save_exam_images') {
       const examId = objectId(cleanText(payload.examId, 80));
-      const pageNumber = Math.max(1, Math.min(20, Number(payload.pageNumber) || 1));
-      const image = cleanSolutionImage(payload.image);
-      if (!examId || !image) {
-        return res.status(image === null ? 413 : 400).json({ success: false, error: 'Ảnh đề thi không hợp lệ hoặc vượt quá 3 MB' });
+      const batch = action === 'save_exam_images';
+      const submittedImages = batch
+        ? (Array.isArray(payload.images) ? payload.images : [])
+        : [{ pageNumber: payload.pageNumber, image: payload.image }];
+      if (!examId || submittedImages.length < 1 || submittedImages.length > MAX_EXAM_IMAGE_PAGES) {
+        return res.status(400).json({ success: false, error: 'Mã đề hoặc danh sách ảnh đề thi không hợp lệ' });
       }
+
+      let totalImageChars = 0;
+      const pageNumbers = new Set();
+      const images = [];
+      for (const submitted of submittedImages) {
+        const pageNumber = batch
+          ? Number(submitted?.pageNumber)
+          : Math.max(1, Math.min(MAX_EXAM_IMAGE_PAGES, Number(submitted?.pageNumber) || 1));
+        if (!Number.isInteger(pageNumber) || pageNumber < 1 || pageNumber > MAX_EXAM_IMAGE_PAGES || pageNumbers.has(pageNumber)) {
+          return res.status(400).json({ success: false, error: 'Số trang ảnh đề thi không hợp lệ hoặc bị trùng' });
+        }
+        const image = cleanSolutionImage(submitted?.image);
+        if (!image) {
+          return res.status(image === null ? 413 : 400).json({ success: false, error: 'Ảnh đề thi không hợp lệ hoặc vượt quá 3 MB' });
+        }
+        totalImageChars += image.length;
+        if (totalImageChars > MAX_EXAM_IMAGE_BATCH_CHARS) {
+          return res.status(413).json({ success: false, error: 'Tổng dung lượng ảnh trong một lô vượt quá giới hạn' });
+        }
+        pageNumbers.add(pageNumber);
+        images.push({ pageNumber, image });
+      }
+
       const exam = await db.collection('exams').findOne({ _id: examId });
       if (!exam) return res.status(404).json({ success: false, error: 'Không tìm thấy đề thi' });
-      const mimeType = image.slice(5, image.indexOf(';'));
-      await db.collection('exam_images').updateOne(
-        { examId, pageNumber },
-        { $set: { image, mimeType, updatedBy: session.username, updatedAt: now }, $setOnInsert: { createdAt: now } },
-        { upsert: true }
-      );
-      await db.collection('exams').updateOne(
-        { _id: examId },
-        { $set: { hasImages: true, sourceImageCount: Math.max(Number(exam.sourceImageCount) || 0, pageNumber), updatedAt: now } }
-      );
-      await db.collection('exam_images').createIndex({ examId: 1, pageNumber: 1 }, { unique: true });
-      await recordActivity(db, session, 'exam.image_saved', { itemTitle: `${exam.title || 'Đề thi'} – trang ${pageNumber}` });
-      return res.status(200).json({ success: true, item: { examId: String(examId), pageNumber, hasImage: true } });
+      const maxPageNumber = Math.max(...images.map(({ pageNumber }) => pageNumber));
+      await Promise.all([
+        db.collection('exam_images').bulkWrite(images.map(({ pageNumber, image }) => ({
+          updateOne: {
+            filter: { examId, pageNumber },
+            update: {
+              $set: {
+                image, mimeType: image.slice(5, image.indexOf(';')),
+                updatedBy: session.username, updatedAt: now
+              },
+              $setOnInsert: { createdAt: now }
+            },
+            upsert: true
+          }
+        })), { ordered: false }),
+        db.collection('exams').updateOne(
+          { _id: examId },
+          { $set: { hasImages: true, updatedAt: now }, $max: { sourceImageCount: maxPageNumber } }
+        ),
+        db.collection('exam_images').createIndex({ examId: 1, pageNumber: 1 }, { unique: true }),
+        recordActivity(db, session, 'exam.image_saved', {
+          itemTitle: `${exam.title || 'Đề thi'} – ${images.length} trang`
+        })
+      ]);
+      return res.status(200).json({
+        success: true,
+        item: batch
+          ? { examId: String(examId), pageNumbers: images.map(({ pageNumber }) => pageNumber), hasImage: true }
+          : { examId: String(examId), pageNumber: images[0].pageNumber, hasImage: true }
+      });
     }
 
     if (action === 'save_problem') {

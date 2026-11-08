@@ -30,6 +30,28 @@ const db = { collection(name) {
       Object.assign(row, update.$set);
       return row;
     },
+    async bulkWrite(operations) {
+      for (const { updateOne } of operations) {
+        const { filter, update, upsert } = updateOne;
+        let row = rows.find(item => matches(item, filter));
+        if (!row && upsert) {
+          row = { _id: new ObjectId(), ...update.$setOnInsert, ...filter };
+          rows.push(row);
+        }
+        if (row) Object.assign(row, update.$set);
+      }
+      return { ok: 1 };
+    },
+    async updateOne(query, update) {
+      const row = rows.find(item => matches(item, query));
+      if (row) {
+        Object.assign(row, update.$set);
+        for (const [key, value] of Object.entries(update.$max || {})) {
+          row[key] = Math.max(Number(row[key]) || 0, value);
+        }
+      }
+      return { matchedCount: row ? 1 : 0 };
+    },
     async deleteMany() {}, async createIndex() {},
     find(query, options = {}) {
       return { sort() { return this; }, limit() { return this; }, async toArray() {
@@ -47,9 +69,9 @@ const source = fs.readFileSync(new URL('../api/data.js', import.meta.url), 'utf8
   .replace(/^import .*;\n/gm, '').replace('export default async function handler', 'async function handler');
 const handler = new Function('educationDb', 'allows', 'handleMathSupport', 'canAccessProblem', 'supportVisibility', 'specializedSchool', 'getDb', 'getSession', 'ObjectId', 'recordActivity', `${source}\nreturn handler;`)(
   educationDb, allows,   handleMathSupport, canAccessProblem, supportVisibility, specializedSchool, async () => db, () => ({ role, username: 'tester' }), ObjectId, async () => {});
-async function call(payload, query) {
+async function call(payload, query, action = 'create_exam_from_ocr') {
   const res = { code: 0, setHeader() {}, status(code) { this.code = code; return this; }, json(body) { this.body = body; return this; } };
-  await handler({ method: query ? 'GET' : 'POST', query, body: { action: 'create_exam_from_ocr', payload } }, res);
+  await handler({ method: query ? 'GET' : 'POST', query, body: { action, payload } }, res);
   return res;
 }
 const directory = JSON.parse(fs.readFileSync(new URL('../data/specialized-schools.json', import.meta.url)));
@@ -157,7 +179,7 @@ assert.equal(window.document.getElementById('docRegion').value, 'TRUNG');
 
 // Admin image upload -> real UI OCR request -> reviewed editor -> real create route -> saved image.
 window.document.getElementById('docYear').value = '2024-2025';
-let ocrRequest, savedImage;
+let ocrRequest, savedImages;
 window.Image = class { width = 100; height = 100; set src(value) { this.onload(); } };
 window.HTMLCanvasElement.prototype.getContext = () => ({ drawImage() {} });
 window.HTMLCanvasElement.prototype.toDataURL = () => 'data:image/jpeg;base64,YQ==';
@@ -170,16 +192,43 @@ window.VMODataService.createExamFromOcr = async payload => {
   const response = await call(payload);
   assert.equal(response.code, 201); return response.body.item;
 };
-window.VMODataService.saveExamImage = async (...args) => { savedImage = args; };
+window.VMODataService.saveExamImages = async (examId, images) => {
+  const imagePages = images.map((image, index) => ({ pageNumber: index + 1, image }));
+  const response = await call({ examId, images: imagePages }, null, 'save_exam_images');
+  assert.equal(response.code, 200);
+  savedImages = [examId, imagePages];
+};
 await window.runExamOcr('doc');
 assert.equal(ocrRequest.destination, 'admission'); assert.equal(ocrRequest.schoolName, dn[1].name);
 assert.equal(window.document.getElementById('docSaveButton').disabled, false);
 await window.handleCreateDocument({preventDefault(){},target:window.document.getElementById('formAddDoc')});
 const savedExam = stores.get('exams').find(exam => exam.schoolId === dn[1].id && exam.year === '2024-2025');
-assert.ok(savedExam); assert.equal(String(savedImage[0]), String(savedExam._id));
-assert.equal(savedImage[1], 1); assert.equal(savedImage[2], 'data:image/jpeg;base64,YQ==');
+assert.ok(savedExam); assert.equal(String(savedImages[0]), String(savedExam._id));
+assert.deepEqual(savedImages[1].map(item => item.pageNumber), [1]);
+assert.equal(savedImages[1][0].image, 'data:image/jpeg;base64,YQ==');
+assert.equal(stores.get('exam_images').filter(item => String(item.examId) === String(savedExam._id)).length, 1);
 assert.ok(window.document.getElementById(savedExam.targetAnchor), 'Fresh upload appears in the new tab after refresh');
 assert.ok(detailRequests.every(request => request.category === 'specialized-admission'));
+
+const imageBatches = [];
+window.fetch = async (url, options) => {
+  assert.ok(url.startsWith('/api/data'));
+  if (options.method === 'POST') imageBatches.push(JSON.parse(options.body));
+  return {
+    ok: true,
+    headers: { get: () => 'application/json' },
+    json: async () => ({ success: true, item: { hasImage: true }, items: [] })
+  };
+};
+const dispatchEvent = window.dispatchEvent.bind(window);
+window.dispatchEvent = event => ['vmo:data-changed', 'vmo:data-service-ready'].includes(event.type)
+  ? true
+  : dispatchEvent(event);
+window.eval(fs.readFileSync(new URL('../vmo_data_service.js', import.meta.url), 'utf8').replace(/^export /gm, ''));
+const largeImage = `data:image/jpeg;base64,${'A'.repeat(1_200_000)}`;
+await window.VMODataService.saveExamImages('exam-id', [largeImage, largeImage, largeImage, largeImage]);
+assert.equal(imageBatches.length, 2, 'Source image pages are grouped into size-limited requests');
+assert.deepEqual(imageBatches.map(batch => batch.payload.images.map(item => item.pageNumber)), [[1, 2], [3, 4]]);
 
 window.close();
 console.log('Specialized grade-10 admissions: 34 provinces/81 schools, scoped API, school/year/day identities, sidebar, actions and admin upload: OK');

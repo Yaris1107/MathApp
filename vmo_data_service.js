@@ -9,6 +9,7 @@
 const DATA_API_URL = '/api/data';
 const REQUEST_TIMEOUT_MS = 30_000;
 const READ_CACHE_TTL_MS = 5 * 60_000;
+const MAX_EXAM_IMAGE_BATCH_CHARS = 3_500_000;
 const readCache = new Map();
 const inflightReads = new Map();
 
@@ -279,6 +280,34 @@ export async function getHomeStats() {
 
 export async function saveExamImage(examId, pageNumber, image) {
   return normalize(await mutate('save_exam_image', { examId: normalizeId(examId), pageNumber, image }));
+}
+
+export async function saveExamImages(examId, images) {
+  const batches = [];
+  let batch = [];
+  let batchChars = 0;
+
+  images.forEach((image, index) => {
+    if (batch.length && batchChars + image.length > MAX_EXAM_IMAGE_BATCH_CHARS) {
+      batches.push(batch);
+      batch = [];
+      batchChars = 0;
+    }
+    batch.push({ pageNumber: index + 1, image });
+    batchChars += image.length;
+  });
+  if (batch.length) batches.push(batch);
+
+  let nextBatch = 0;
+  const workers = Array.from({ length: Math.min(3, batches.length) }, async () => {
+    while (nextBatch < batches.length) {
+      const currentBatch = batches[nextBatch++];
+      await mutate('save_exam_images', { examId: normalizeId(examId), images: currentBatch });
+    }
+  });
+  const results = await Promise.allSettled(workers);
+  const failure = results.find(result => result.status === 'rejected');
+  if (failure) throw failure.reason;
 }
 
 export async function getExamImage(examId, pageNumber = 1) {
@@ -602,6 +631,7 @@ const VMODataService = Object.freeze({
   searchExamCatalog,
   getHomeStats,
   saveExamImage,
+  saveExamImages,
   getExamImage,
   getProblemsByExam,
   updateExamQuestionMetadata,

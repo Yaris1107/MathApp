@@ -5007,22 +5007,24 @@ Vậy giới hạn cần tìm là $\\sqrt{2}$.`;
             question[field] === state.prediction.verifiedQuestions[index][field]))
       } : undefined
     };
+    let saved = null;
+    let imagesSaved = false;
     try {
       if (prediction && !confirm(state.prediction.quality.verified
         ? 'Đây là đề DỰ ĐOÁN do AI soạn. Xác nhận lưu bản đã biên tập trong Bộ đề thi thử VMO?'
         : 'Gia sư Toán AI đã bác ít nhất một câu. Vẫn lưu đề vào cơ sở dữ liệu; các câu chưa duyệt sẽ ẩn với thành viên và chờ admin chỉnh sửa trong ⚙️ Quản lý nguồn. Xác nhận lưu?')) return;
       if (saveButton) { saveButton.disabled = true; saveButton.textContent = 'Đang lưu đề thi...'; }
-      let saved;
       try { saved = await window.VMODataService.createExamFromOcr(payload); }
       catch (error) {
         if (error?.status !== 409) throw error;
         if (!confirm(`${error.message}\n\nBạn có muốn thay thế nội dung của đúng đề/ngày này không? Lịch sử bài nộp vẫn được giữ nguyên.`)) return;
         saved = await window.VMODataService.createExamFromOcr({ ...payload, replaceExisting: true });
       }
-      for (let index = 0; index < sourceImages.length; index += 1) {
-        if (saveButton) saveButton.textContent = `Đang lưu ảnh ${index + 1}/${sourceImages.length}...`;
-        await window.VMODataService.saveExamImage(saved.id || saved._id, index + 1, sourceImages[index]);
+      if (sourceImages.length) {
+        if (saveButton) saveButton.textContent = `Đang lưu ${sourceImages.length} ảnh đề...`;
+        await window.VMODataService.saveExamImages(saved.id || saved._id, sourceImages);
       }
+      imagesSaved = true;
       const savedType = { tst: 'đề TST', regional: 'đề Đà Nẵng–Quảng Nam', vmo: 'đề VMO', olympic: 'đề IMO–Olympic', olympic30: 'đề Olympic 30/4', duyenhai: 'đề Duyên hải miền Bắc', admission: 'đề thi vào lớp 10 chuyên', university: 'đề Đại học', mock: 'đề thi thử' }[destination];
       showToast(`Đã lưu ${savedType} và ${saved?.problemCount || questions.length} câu hỏi vào cơ sở dữ liệu!`, true);
       e.target.reset();
@@ -5038,7 +5040,12 @@ Vậy giới hạn cần tìm là $\\sqrt{2}$.`;
       if(university) window.selectUniversityCourse?.(payload.courseId,payload.sectionId);
       if (tst) await loadHubDocs();
       else await loadHubExams();
-    } catch (error) { showToast('Lỗi lưu đề thi: ' + (error?.message || 'Không xác định'), false); }
+    } catch (error) {
+      const message = error?.message || 'Không xác định';
+      showToast(saved && !imagesSaved
+        ? `Đề và câu hỏi đã lưu, nhưng ảnh nguồn chưa lưu đầy đủ: ${message}`
+        : 'Lỗi lưu đề thi: ' + message, false);
+    }
     finally {
       if (saveButton && document.body.contains(saveButton)) {
         saveButton.disabled = !state.questions.length;
