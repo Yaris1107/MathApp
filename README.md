@@ -65,6 +65,7 @@ Khi cần cập nhật nội dung, **thầy cô/lập trình viên không cần 
 ## MongoDB Atlas và phân quyền dữ liệu
 
 Vercel phải có hai biến môi trường bắt buộc: `MONGODB_URI` và `JWT_SECRET` (tối thiểu 32 ký tự). Không đưa giá trị thật của hai biến này vào GitHub.
+Các lệnh cài đặt/build trong `vercel.json` loại biến npm cũ `npm_config_cache_dir` khỏi môi trường trước khi chạy npm để tránh cảnh báo `Unknown env config "cache-dir"`; biến này có thể được thiết lập trong môi trường build của Vercel, không nhất thiết nằm trong `.env`.
 
 Database mặc định là `vmo_tst`. Ứng dụng sử dụng các collection:
 
