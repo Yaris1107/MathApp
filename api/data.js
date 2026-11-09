@@ -7,7 +7,7 @@ import { allows } from '../lib/education-access.js';
 import { educationDb } from '../lib/education-db.js';
 import { getCatalogTotals } from '../lib/home-stats.js';
 import { cleanGeometryDiagram } from '../lib/geometry-diagram.js';
-import { canAccessProblem, supportVisibility } from '../lib/problem-access.js';
+import { canAccessProblem, hideUnverifiedReferenceSolution, supportVisibility } from '../lib/problem-access.js';
 import { handleMathSupport } from '../lib/math-support.js';
 import { specializedSchool } from '../lib/specialized-schools.js';
 import { runBenchmarkCase, validateBenchmarkCase } from '../lib/rag-benchmark.js';
@@ -521,7 +521,8 @@ export default async function handler(req, res) {
             byExam.get(key).push(problem);
           });
           return res.status(200).json({ success: true, items: exams.map(exam => ({
-            ...exam, problems: byExam.get(String(exam._id)) || []
+            ...exam, problems: (byExam.get(String(exam._id)) || [])
+              .map(problem => hideUnverifiedReferenceSolution(problem, session))
           })) });
         }
         if (view === 'search') {
@@ -558,7 +559,8 @@ export default async function handler(req, res) {
         });
         return res.status(200).json({
           success: true,
-          items: exams.map(exam => ({ ...exam, problems: grouped.get(String(exam._id)) || [] }))
+          items: exams.map(exam => ({ ...exam, problems: (grouped.get(String(exam._id)) || [])
+            .map(problem => hideUnverifiedReferenceSolution(problem, session)) }))
         });
       }
 
@@ -728,7 +730,9 @@ export default async function handler(req, res) {
         .sort(sort)
         .limit(req.query?.latest === '1' ? 1 : 500)
         .toArray();
-      return res.status(200).json({ success: true, items });
+      return res.status(200).json({ success: true, items: resource === 'problems'
+        ? items.map(problem => hideUnverifiedReferenceSolution(problem, session))
+        : items });
     }
 
     if (req.method !== 'POST') return res.status(405).json({ success: false, error: 'Method not allowed' });
