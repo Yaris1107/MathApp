@@ -1555,13 +1555,6 @@ export default async function handler(req, res) {
         updatedBy: session.username,
         updatedAt: now
       };
-      const savedExam = await db.collection('exams').findOneAndUpdate(
-        { examKey },
-        { $set: examDoc, $setOnInsert: { createdBy: session.username, createdAt: now } },
-        { upsert: true, returnDocument: 'after' }
-      );
-      if (!savedExam?._id) return res.status(500).json({ success: false, error: 'Không thể tạo đề thi' });
-
       const setDoc = {
         ...gradeMetadata,
         key: setKey,
@@ -1577,15 +1570,22 @@ export default async function handler(req, res) {
         updatedBy: session.username,
         updatedAt: now
       };
-      const savedSet = await db.collection('content_sets').findOneAndUpdate(
-        { key: setKey },
-        { $set: setDoc, $setOnInsert: { createdAt: now } },
-        { upsert: true, returnDocument: 'after' }
-      );
+      const [savedExam, savedSet] = await Promise.all([
+        db.collection('exams').findOneAndUpdate(
+          { examKey },
+          { $set: examDoc, $setOnInsert: { createdBy: session.username, createdAt: now } },
+          { upsert: true, returnDocument: 'after' }
+        ),
+        db.collection('content_sets').findOneAndUpdate(
+          { key: setKey },
+          { $set: setDoc, $setOnInsert: { createdAt: now } },
+          { upsert: true, returnDocument: 'after' }
+        )
+      ]);
+      if (!savedExam?._id) return res.status(500).json({ success: false, error: 'Không thể tạo đề thi' });
       if (!savedSet?._id) return res.status(500).json({ success: false, error: 'Không thể tạo nhóm nội dung đề thi' });
 
-      const savedQuestions = [];
-      for (const { raw, questionNumber, content } of normalizedQuestions) {
+      const questionOperations = normalizedQuestions.map(({ raw, questionNumber, content }) => {
         const contentKey = `${setKey}:question-${questionNumber}`;
         const review = isPrediction ? {
           status: raw?.predictionReview?.approved === true ? 'gpt_approved' : 'gpt_rejected',
@@ -1630,18 +1630,27 @@ export default async function handler(req, res) {
           updatedBy: session.username,
           updatedAt: now
         };
-        const saved = await db.collection('problems').findOneAndUpdate(
-          { contentKey },
-          { $set: problemDoc, $setOnInsert: { createdAt: now, referenceLinks: [] } },
-          { upsert: true, returnDocument: 'after' }
-        );
-        if (saved?._id) savedQuestions.push(saved);
-      }
-      if (!savedQuestions.length) return res.status(500).json({ success: false, error: 'Không thể lưu câu hỏi của đề thi' });
+        return {
+          updateOne: {
+            filter: { contentKey },
+            update: { $set: problemDoc, $setOnInsert: { createdAt: now, referenceLinks: [] } },
+            upsert: true
+          }
+        };
+      });
+      await db.collection('problems').bulkWrite(questionOperations, { ordered: false });
 
-      // Khi admin OCR lại đúng đề/ngày, loại các câu cũ không còn trong bản
-      // đã duyệt. Không đụng tới đề của ngày khác và không xóa submissions.
-      const keptContentKeys = savedQuestions.map(item => item.contentKey);
+      const allContentKeys = normalizedQuestions.map(({ questionNumber }) => `${setKey}:question-${questionNumber}`);
+      const savedQuestions = await db.collection('problems')
+        .find({ contentKey: { $in: allContentKeys } })
+        .toArray();
+      if (savedQuestions.length !== allContentKeys.length) {
+        return res.status(500).json({ success: false, error: 'Không thể lưu đầy đủ câu hỏi của đề thi' });
+      }
+      const questionsByContentKey = new Map(savedQuestions.map(question => [question.contentKey, question]));
+      const orderedQuestions = allContentKeys.map(contentKey => questionsByContentKey.get(contentKey));
+
+      const keptContentKeys = allContentKeys;
       await db.collection('problems').deleteMany({
         examId: String(savedExam._id),
         contentKey: { $nin: keptContentKeys }
@@ -1664,7 +1673,7 @@ export default async function handler(req, res) {
       await recordActivity(db, session, 'exam.added', { itemTitle: title });
       return res.status(201).json({
         success: true,
-        item: { ...savedExam, problems: savedQuestions, problemCount: savedQuestions.length }
+        item: { ...savedExam, problems: orderedQuestions, problemCount: orderedQuestions.length }
       });
     }
 

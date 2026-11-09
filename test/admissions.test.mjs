@@ -204,7 +204,7 @@ assert.equal(window.document.getElementById('docSaveButton').disabled, false);
 await window.handleCreateDocument({preventDefault(){},target:window.document.getElementById('formAddDoc')});
 const savedExam = stores.get('exams').find(exam => exam.schoolId === dn[1].id && exam.year === '2024-2025');
 assert.ok(savedExam); assert.equal(String(savedImages[0]), String(savedExam._id));
-assert.deepEqual(savedImages[1].map(item => item.pageNumber), [1]);
+assert.deepEqual(Array.from(savedImages[1], item => item.pageNumber), [1]);
 assert.equal(savedImages[1][0].image, 'data:image/jpeg;base64,YQ==');
 assert.equal(stores.get('exam_images').filter(item => String(item.examId) === String(savedExam._id)).length, 1);
 assert.ok(window.document.getElementById(savedExam.targetAnchor), 'Fresh upload appears in the new tab after refresh');

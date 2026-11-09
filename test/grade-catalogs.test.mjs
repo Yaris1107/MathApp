@@ -13,6 +13,7 @@ import { JSDOM } from 'jsdom';
 const stores = new Map();
 let role = 'admin';
 let educationLevels;
+const problemBulkWriteSizes = [];
 const matches = (doc, query) => Object.entries(query).every(([key, value]) => {
   if (key === '$and') return value.every(part => matches(doc, part));
   if (key === '$or') return value.some(part => matches(doc, part));
@@ -35,6 +36,19 @@ const db = { collection(name) {
       if (!row) { row = { _id: new ObjectId(), ...update.$setOnInsert, ...query }; rows.push(row); }
       Object.assign(row, update.$set);
       return row;
+    },
+    async bulkWrite(operations) {
+      if (name === 'problems') problemBulkWriteSizes.push(operations.length);
+      for (const { updateOne } of operations) {
+        const { filter, update, upsert } = updateOne;
+        let row = rows.find(item => matches(item, filter));
+        if (!row && upsert) {
+          row = { _id: new ObjectId(), ...update.$setOnInsert, ...filter };
+          rows.push(row);
+        }
+        if (row) Object.assign(row, update.$set);
+      }
+      return { ok: 1 };
     },
     async deleteMany() {}, async createIndex() {},
     async updateOne(query, update) { const row=rows.find(row=>matches(row,query));if(row)Object.assign(row,update.$set);return{matchedCount:row?1:0}; },
@@ -273,7 +287,7 @@ assert.equal(ocrRequest.courseId,firstCourse.id);assert.equal(ocrRequest.section
 assert.equal(documentNode.querySelectorAll('#docOcrPreview .exam-ocr-question').length,1);
 let savePayload;
 window.VMODataService.createExamFromOcr=async payload=>{savePayload=payload;const result=await call(payload);assert.equal(result.code,201);universityResults.push(result.body.item);return result.body.item;};
-window.VMODataService.saveExamImage=async()=>{};
+window.VMODataService.saveExamImages=async()=>{};
 await window.handleCreateDocument({preventDefault(){},target:documentNode.getElementById('formAddDoc')});
 assert.equal(savePayload.sectionId,firstCourse.sections[1].id);assert.equal(savePayload.dayNumber,2);
 assert.equal(savePayload.targetAnchor,`university-${firstCourse.id}-${firstCourse.sections[1].id}-2028-2029`);
@@ -313,6 +327,7 @@ const extended={destination:'university',courseId:added.courseId,sectionId:topic
  questions:Array.from({length:120},(_,i)=>({questionNumber:i+1,content:`Compute $${i}+1$.`}))};
 role='admin';educationLevels=undefined;
 const extendedResult=await call(extended);assert.equal(extendedResult.code,201);assert.equal(extendedResult.body.item.problems.length,120);
+assert.equal(problemBulkWriteSizes.at(-1),120,'OCR questions are upserted in one bulk database operation');
 assert.equal(extendedResult.body.item.region,'OTHER');assert.equal(extendedResult.body.item.regionName,'Quốc tế');assert.equal(extendedResult.body.item.status,'draft');
 assert.match(extendedResult.body.item.problems.at(-1).contentKey,/question-120$/);
 for(const dayNumber of [6,999]){const res=await call({...extended,dayNumber});assert.equal(res.code,201);assert.notEqual(res.body.item.examKey,extendedResult.body.item.examKey);}

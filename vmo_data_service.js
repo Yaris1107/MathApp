@@ -8,6 +8,7 @@
 
 const DATA_API_URL = '/api/data';
 const REQUEST_TIMEOUT_MS = 30_000;
+const EXAM_SAVE_TIMEOUT_MS = 105_000;
 const READ_CACHE_TTL_MS = 5 * 60_000;
 const MAX_EXAM_IMAGE_BATCH_CHARS = 3_500_000;
 const readCache = new Map();
@@ -59,9 +60,9 @@ async function parseResponse(response) {
   return data;
 }
 
-async function apiFetch(url, options = {}) {
+async function apiFetch(url, options = {}, timeoutMs = REQUEST_TIMEOUT_MS) {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
     const response = await fetch(url, {
@@ -143,12 +144,12 @@ async function requestPage(resource, params = {}) {
   };
 }
 
-async function mutate(action, payload = {}) {
+async function mutate(action, payload = {}, timeoutMs = REQUEST_TIMEOUT_MS) {
   const data = await apiFetch(DATA_API_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ action, payload })
-  });
+  }, timeoutMs);
 
   // Mutation thành công có thể làm thay đổi catalog hoặc dữ liệu quản trị.
   invalidateReadCache();
@@ -247,7 +248,7 @@ export async function deleteExamQuestion(examId, problemId) {
 }
 
 export async function createExamFromOcr(examData) {
-  return normalize(await mutate('create_exam_from_ocr', examData));
+  return normalize(await mutate('create_exam_from_ocr', examData, EXAM_SAVE_TIMEOUT_MS));
 }
 
 export async function getExamCatalog(category = 'tst-national') {
@@ -279,7 +280,7 @@ export async function getHomeStats() {
 }
 
 export async function saveExamImage(examId, pageNumber, image) {
-  return normalize(await mutate('save_exam_image', { examId: normalizeId(examId), pageNumber, image }));
+  return normalize(await mutate('save_exam_image', { examId: normalizeId(examId), pageNumber, image }, EXAM_SAVE_TIMEOUT_MS));
 }
 
 export async function saveExamImages(examId, images) {
@@ -302,7 +303,7 @@ export async function saveExamImages(examId, images) {
   const workers = Array.from({ length: Math.min(3, batches.length) }, async () => {
     while (nextBatch < batches.length) {
       const currentBatch = batches[nextBatch++];
-      await mutate('save_exam_images', { examId: normalizeId(examId), images: currentBatch });
+      await mutate('save_exam_images', { examId: normalizeId(examId), images: currentBatch }, EXAM_SAVE_TIMEOUT_MS);
     }
   });
   const results = await Promise.allSettled(workers);
