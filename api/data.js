@@ -21,6 +21,7 @@ import { getSession } from '../lib/session.js';
 import { deleteAiGuideRecord, learningScope, recordActivity, summarizeLearning } from '../lib/learning.js';
 import { cleanTrendTheory } from '../lib/trend-theory-storage.js';
 import { buildSubmissionContentUpdate, buildSubmissionVerificationUpdate } from '../lib/submission-verification.js';
+import { importCatalogExam } from '../lib/catalog-import.js';
 
 const ALLOWED_RESOURCES = new Set(['book_asset', 'books', 'university_catalog', 'university_materials', 'math_support', 'math_support_image', 'documents', 'exams', 'exam_catalog', 'home_stats', 'exam_image', 'content_sets', 'content_blocks', 'problems', 'content_revisions', 'submissions', 'submission_image', 'events', 'activity_feed', 'learning_overview', 'exam_trend_reports', 'trend_theories', 'rag_status', 'rag_logs']);
 const TST_REGIONS = new Set(['BAC', 'TRUNG', 'NAM']);
@@ -738,6 +739,25 @@ export default async function handler(req, res) {
     if (/trend|^rag_|^migrate_tst/.test(action) && !allows(session, 'upper_secondary')) return res.status(403).json({ success: false, error: 'Nội dung thuộc cấp Trung học phổ thông' });
     const now = new Date();
     if (await handleMathSupport({ db, req, res, session, action, payload })) return;
+    if (action === 'import_catalog_exam') {
+      if (session.role !== 'admin') return res.status(403).json({ success: false, error: 'Chỉ Admin được nhập dữ liệu đề thi hàng loạt' });
+      if (!checkRateLimit(`${session.username}:catalog-import`, 60)) {
+        return res.status(429).json({ success: false, error: 'Đã đạt giới hạn nhập dữ liệu. Vui lòng tiếp tục sau.' });
+      }
+      if (Buffer.byteLength(JSON.stringify(payload?.exam || {}), 'utf8') > 1_000_000) {
+        return res.status(413).json({ success: false, error: 'Mỗi đề nhập không được vượt quá 1 MB' });
+      }
+      try {
+        const result = await importCatalogExam(db, payload, session.username, now);
+        await recordActivity(db, session, 'exam.imported', {
+          itemTitle: result.examKey, examId: result.examId
+        });
+        return res.status(200).json({ success: true, item: result });
+      } catch (error) {
+        if (error.status) return res.status(error.status).json({ success: false, error: error.message });
+        throw error;
+      }
+    }
     if(typeof action==='string' && action.startsWith('books_')) {
       try{return res.status(200).json({success:true,item:await mutateBooks(db,session,action,payload)});}
       catch(error){if(error.status)return res.status(error.status).json({success:false,error:error.message});throw error;}

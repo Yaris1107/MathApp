@@ -1,0 +1,76 @@
+import assert from 'node:assert/strict';
+import { importCatalogExam } from '../lib/catalog-import.js';
+
+class Collection {
+  constructor(key) { this.key = key; this.items = []; this.nextId = 1; }
+  async findOne(filter) { return this.items.find(item => Object.entries(filter).every(([key, value]) => item[key] === value)) || null; }
+  find(filter) {
+    const keys = filter.contentKey.$in;
+    return { toArray: async () => this.items.filter(item => keys.includes(item.contentKey)) };
+  }
+  async findOneAndUpdate(filter, update) {
+    let item = await this.findOne(filter);
+    if (!item) {
+      item = { _id: `id-${this.nextId++}`, ...update.$setOnInsert };
+      this.items.push(item);
+    }
+    Object.assign(item, update.$set);
+    return item;
+  }
+  async bulkWrite(operations) {
+    for (const { updateOne } of operations) {
+      let item = await this.findOne(updateOne.filter);
+      if (!item) {
+        item = { _id: `id-${this.nextId++}`, ...updateOne.update.$setOnInsert };
+        this.items.push(item);
+      }
+      Object.assign(item, updateOne.update.$set);
+    }
+  }
+}
+
+const collections = new Map();
+const db = { collection(name) {
+  if (!collections.has(name)) collections.set(name, new Collection(name));
+  return collections.get(name);
+} };
+const exam = {
+  examKey: 'mock-2026-01', category: 'vmo-mock', targetAnchor: 'mock',
+  title: 'Mock exam 2026', year: '2026', status: 'draft', dayNumber: 1,
+  problems: [
+    { contentKey: 'mock-2026-01-q1', questionNumber: 1, content: '<p>Find x.</p>',
+      referenceSolution: '<p>x = 2</p>', referenceSolutionVerified: true },
+    { contentKey: 'mock-2026-01-q2', questionNumber: 2, content: '<p>Prove the claim.</p>',
+      referenceSolution: '<p>Proof</p>', referenceSolutionVerified: false }
+  ]
+};
+const now = new Date('2026-01-01T00:00:00.000Z');
+
+const result = await importCatalogExam(db, { exam }, 'admin-user', now);
+assert.deepEqual(
+  { examKey: result.examKey, problemCount: result.problemCount, verified: result.verifiedSolutionCount, status: result.status },
+  { examKey: 'mock-2026-01', problemCount: 2, verified: 1, status: 'draft' }
+);
+const storedProblems = db.collection('problems').items;
+assert.equal(storedProblems[0].referenceSolution, '<p>x = 2</p>');
+assert.equal(storedProblems[0].referenceSolutionVerified, true);
+assert.equal(storedProblems[0].status, 'draft');
+assert.equal(storedProblems[1].referenceSolutionVerified, false);
+assert.equal(storedProblems.some(problem => 'userId' in problem), false);
+
+await importCatalogExam(db, { exam }, 'admin-user', now);
+assert.equal(db.collection('exams').items.length, 1);
+assert.equal(db.collection('content_sets').items.length, 1);
+assert.equal(db.collection('problems').items.length, 2);
+
+const conflictingExam = {
+  ...exam, examKey: 'another-exam',
+  problems: [{ ...exam.problems[0], contentKey: 'mock-2026-01-q1' }]
+};
+await assert.rejects(importCatalogExam(db, { exam: conflictingExam }, 'admin-user', now), { status: 409 });
+
+await assert.rejects(importCatalogExam(db, {
+  exam: { ...exam, category: 'untrusted-category' }
+}, 'admin-user', now), { status: 400 });
+
+console.log('catalog import tests passed');
