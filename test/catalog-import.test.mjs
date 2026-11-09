@@ -73,6 +73,27 @@ await assert.rejects(importCatalogExam(db, {
   exam: { ...exam, category: 'untrusted-category' }
 }, 'admin-user', now), { status: 400 });
 
+const legacyCollections = new Map();
+const legacyDb = { collection(name) {
+  if (!legacyCollections.has(name)) legacyCollections.set(name, new Collection(name));
+  return legacyCollections.get(name);
+} };
+legacyDb.collection('exams').items.push({
+  _id: 'legacy-exam', examKey: exam.examKey, category: exam.category,
+  targetAnchor: exam.targetAnchor, title: exam.title
+});
+legacyDb.collection('content_sets').items.push({
+  _id: 'legacy-set', key: exam.examKey, group: 'mock_exam', title: exam.title, origin: 'ocr'
+});
+legacyDb.collection('problems').items.push({
+  _id: 'legacy-question', contentKey: 'mock-2026-01-q5', examKey: exam.examKey,
+  examId: 'legacy-exam', content: 'Keep existing content'
+});
+await importCatalogExam(legacyDb, { exam }, 'admin-user', now);
+assert.equal(legacyDb.collection('problems').items.length, 3);
+assert.equal(legacyDb.collection('problems').items.find(problem => problem.contentKey === 'mock-2026-01-q5').content,
+  'Keep existing content');
+
 const emptyExam = {
   examKey: 'tst-empty-2026', category: 'tst-national', targetAnchor: 'tst-empty',
   title: 'Exam without questions yet', year: '2026-2027', problems: []
