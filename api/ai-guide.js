@@ -45,9 +45,9 @@ function partCount(statement) {
   return Math.max(1, new Set(matches.map(item => item.trim().toLowerCase())).size);
 }
 
-function substantive(solution, finalAnswers, requiredParts) {
+export function substantive(solution, finalAnswers, requiredParts) {
   const body = text(solution, 100000);
-  return body.length >= 700 && Array.isArray(finalAnswers) && finalAnswers.length >= requiredParts && !genericPatterns.some(pattern => pattern.test(body));
+  return body.length >= 260 && Array.isArray(finalAnswers) && finalAnswers.length >= requiredParts && !genericPatterns.some(pattern => pattern.test(body));
 }
 
 export function accepted(data, corrected = false) {
@@ -96,14 +96,14 @@ export default async function handler(req, res) {
     const solved = await generateJson({
       contents: withBookImages(`Produce a complete ${academicContext} solution in ${outputLanguage}.\n${common}\n${mathematicalAuditInstruction}\n${geometryInstruction} First enumerate every requested part. Give exact final results and every equality case. Check boundary cases, indices, signs and quantifiers. The reference is evidence, not permission to copy an error. ${mathFormat} Use Markdown and MathJax $...$ or $$...$$; do not use itemize, enumerate, align or textbf.`,bookImages),
       schema: guideSchema,
-      systemInstruction: `You are the primary solver for ${academicContext}. Be explicit and rigorous. Never replace proof steps with generic advice. Write entirely in ${outputLanguage}.`,
+      systemInstruction: `You are the primary solver for ${academicContext}. Be explicit and rigorous. For discrete toggle/reachability problems, identify a preserved invariant, prove the necessary condition, then give an explicit sequence proving sufficiency; state any domain assumptions and edge cases. A concise complete proof is preferable to filler. Never replace proof steps with generic advice. Write entirely in ${outputLanguage}.`,
       models: [process.env.GEMINI_SOLVER_MODEL || 'gemini-3.5-flash'], timeoutMs: 130_000, totalTimeoutMs: 130_000, temperature: 1
     });
     const diagramCheck = solved.data.geometry?.isGeometry === true ? inspectGeometryDiagram(solved.data.geometry) : { geometry: null, issues: [] };
     if (diagramCheck.geometry) solved.data.geometry = diagramCheck.geometry;
     const verified = await generateOpenAIJson({
       imageDataUrls:bookImages,
-      input: `${mathematicalAuditInstruction}\nIndependently solve and audit the candidate below. ${geometryInstruction} Independently check the candidate geometry against EVERY statement hypothesis and every depicted auxiliary construction in the selected proof, labels, coordinates and constraints. Set geometryApproved=true only if faithful and complete. Supply a correctedGeometry and correctedGeometryApproved for the corrected proof; never reuse a diagram incompatible with that proof. Diagram failure alone must not reject a valid proof. Score 0.0-5.0. Approval requires every requested part correct, a rigorous derivation, no unstated assumptions, and all extremal/equality cases proved. When no EXACT reference exists (including SIMILAR-only sources), matchesVerifiedReference means independent cross-check passed. Never require the new answer to equal the answer of a similar problem. If anything is weak, provide a fully corrected guide in the corrected* fields. Leave no generic placeholders. ${mathFormat}\n\n${common}\n\nDIAGRAM NUMERICAL VALIDATION:\n${JSON.stringify(diagramCheck.issues)}\nGEMINI CANDIDATE JSON:\n${JSON.stringify(solved.data)}`,
+      input: `${mathematicalAuditInstruction}\nIndependently solve and audit the candidate below. ${geometryInstruction} Independently check the candidate geometry against EVERY statement hypothesis and every depicted auxiliary construction in the selected proof, labels, coordinates and constraints. Set geometryApproved=true only if faithful and complete. Supply a correctedGeometry and correctedGeometryApproved for the corrected proof; never reuse a diagram incompatible with that proof. Diagram failure alone must not reject a valid proof. For discrete-operation problems, independently verify the invariant and the constructive sufficiency proof. Do not reject a complete proof merely for being concise; reject unsupported claims, not brevity. Score 0.0-5.0. Approval requires every requested part correct, a rigorous derivation, no unstated assumptions, and all extremal/equality cases proved. When no EXACT reference exists (including SIMILAR-only sources), matchesVerifiedReference means independent cross-check passed. Never require the new answer to equal the answer of a similar problem. If anything is weak, provide a fully corrected guide in the corrected* fields. Leave no generic placeholders. ${mathFormat}\n\n${common}\n\nDIAGRAM NUMERICAL VALIDATION:\n${JSON.stringify(diagramCheck.issues)}\nGEMINI CANDIDATE JSON:\n${JSON.stringify(solved.data)}`,
       schema: verifierSchema,
       systemInstruction: `You are an independent adversarial reviewer for ${academicContext}. Recompute the problem instead of trusting Gemini. Correct the guide in ${outputLanguage} when needed. A score of 5.0 means publication-ready and fully rigorous. Return only the required structured result.`,
       timeoutMs: 140_000,
@@ -118,7 +118,11 @@ export default async function handler(req, res) {
       repaired = true; score = scoreOf(verified.data.correctedScore);
       data = { knowledge: verified.data.correctedKnowledge, intuition: verified.data.correctedIntuition, solution: verified.data.correctedSolution, pitfalls: verified.data.correctedPitfalls, finalAnswers: verified.data.correctedFinalAnswers, equalityCases: verified.data.correctedEqualityCases, verificationChecks: verified.data.correctedVerificationChecks, degeneracyChecks: verified.data.correctedDegeneracyChecks };
     } else {
-      return res.status(422).json({ success: false, error: 'AI chưa tạo được lời giải đạt chuẩn kiểm định. Vui lòng thử lại; hệ thống không hiển thị lời giải chung chung hoặc chưa chắc chắn.', quality: { score: Math.max(scoreOf(verified.data.score), scoreOf(verified.data.correctedScore)), summary: text(verified.data.summary, 1000) } });
+      const score = Math.max(scoreOf(verified.data.score), scoreOf(verified.data.correctedScore));
+      const summary = text(verified.data.summary, 1000);
+      return res.status(422).json({ success: false,
+        error: `AI chưa tạo được lời giải đạt chuẩn kiểm định (điểm ${score.toFixed(1)}/5.0).${summary ? ` Lý do: ${summary}` : ' Vui lòng thử lại.'}`,
+        quality: { score, summary } });
     }
     Object.assign(data, selectGuideGeometry(solved.data, verified.data, repaired, reference.topic || body.topic));
     data.quality = { degeneracyChecks: repaired ? verified.data.correctedDegeneracyChecks : verified.data.degeneracyChecks, verified: true, score: `${score.toFixed(1)}/5.0`, repaired, solverProvider: 'google', verifierProvider: 'openai', usedTrustedReference: Boolean(reference?.content), referenceOrigin: reference?.origin || '', retrieval: reference.retrieval, summary: text(verified.data.summary, 1000) };
@@ -133,13 +137,19 @@ export default async function handler(req, res) {
     console.error('[AI GUIDE]', error);
     const openAiMissing = error?.code === 'OPENAI_NOT_CONFIGURED';
     const geminiMissing = error?.code === 'AI_NOT_CONFIGURED';
+    const timeout = error?.code === 'AI_TIMEOUT' || error?.code === 'OPENAI_TIMEOUT' || error?.code === 'GEOMETRY_TIMEOUT';
     const openAiTimeout = error?.code === 'OPENAI_TIMEOUT' || error?.code === 'GEOMETRY_TIMEOUT';
-    return res.status(openAiTimeout ? 504 : (openAiMissing || geminiMissing ? 503 : 502)).json({
+    return res.status(timeout ? 504 : (openAiMissing || geminiMissing ? 503 : 502)).json({
       success: false,
-      error: openAiTimeout
-        ? (body.mode === 'diagram' ? 'Gia sư Toán AI chưa hoàn tất dựng và kiểm tra hình trong thời gian cho phép. Vui lòng thử lại.' : 'Gia sư Toán AI chưa hoàn tất kiểm định lời giải trong thời gian cho phép. Vui lòng thử lại.')
+      error: timeout
+        ? body.mode === 'diagram'
+          ? 'Gia sư Toán AI chưa hoàn tất dựng và kiểm tra hình trong thời gian cho phép. Vui lòng thử lại.'
+          : openAiTimeout
+            ? 'Gia sư Toán AI chưa hoàn tất kiểm định lời giải trong thời gian cho phép. Vui lòng thử lại.'
+            : 'Gemini chưa hoàn tất tạo lời giải trong thời gian cho phép. Vui lòng thử lại.'
         : 'Gia sư Toán AI tạm thời không phản hồi. Vui lòng thử lại sau.',
-      code: text(error?.code, 80) || 'AI_PIPELINE_ERROR'
+      code: text(error?.code, 80) || 'AI_PIPELINE_ERROR',
+      stage: timeout ? (openAiTimeout ? 'verifier' : 'solver') : undefined
     });
   }
 }
