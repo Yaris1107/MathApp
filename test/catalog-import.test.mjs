@@ -73,4 +73,12 @@ await assert.rejects(importCatalogExam(db, {
   exam: { ...exam, category: 'untrusted-category' }
 }, 'admin-user', now), { status: 400 });
 
+const emptyExam = {
+  examKey: 'tst-empty-2026', category: 'tst-national', targetAnchor: 'tst-empty',
+  title: 'Exam without questions yet', year: '2026-2027', problems: []
+};
+const emptyResult = await importCatalogExam(db, { exam: emptyExam }, 'admin-user', now);
+assert.equal(emptyResult.problemCount, 0);
+assert.equal(db.collection('exams').items.length, 2);
+
 console.log('catalog import tests passed');
