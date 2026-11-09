@@ -29,7 +29,11 @@ assert.ok(vercelConfig.rewrites?.some(rule =>
 'Assets must stay behind the authenticated protected-asset API');
 assert.ok(vercelConfig.functions?.['api/ai-ocr-exam.js']?.maxDuration >= 120,
   'OCR đề thi cần đủ thời gian xử lý ảnh và sinh JSON nhiều câu');
+assert.ok(vercelConfig.functions?.['api/ai-ocr-math.js']?.maxDuration >= 120,
+  'OCR Hỗ trợ giải toán cần đủ ngân sách cho Gemini và OCR dự phòng');
 const examOcrSource = await readFile(new URL('api/ai-ocr-exam.js', projectRoot), 'utf8');
+const mathOcrSource = await readFile(new URL('api/ai-ocr-math.js', projectRoot), 'utf8');
+const dataServiceSource = await readFile(new URL('vmo_data_service.js', projectRoot), 'utf8');
 const databaseUiSource = await readFile(new URL('vmo_db_ui.js', projectRoot), 'utf8');
 const aiSource = await readFile(new URL('lib/ai.js', projectRoot), 'utf8');
 const openAiSource = await readFile(new URL('lib/openai.js', projectRoot), 'utf8');
@@ -53,4 +57,10 @@ assert.match(examOcrSource, /\['tst', 'regional', 'vmo', 'olympic', 'olympic30',
   'TST, VMO, IMO–Olympic và Đà Nẵng–Quảng Nam phải cùng hỗ trợ tối đa bốn ngày thi');
 assert.match(databaseUiSource, /document\.getElementById\('docDestination'\)\?\.value \|\| 'tst'/,
   'Frontend phải gửi đúng kho đích khi OCR đề Đà Nẵng–Quảng Nam');
+assert.match(mathOcrSource, /OCR_GEMINI_TIMEOUT_MS = 45_000/);
+assert.match(mathOcrSource, /OCR_OPENAI_TIMEOUT_MS = 60_000/);
+assert.match(mathOcrSource, /generateOpenAIJson\([\s\S]*imageDataUrl: image/,
+  'Math-support OCR must fall back to an independent image-capable provider');
+assert.match(dataServiceSource, /MATH_OCR_TIMEOUT_MS = 110_000/,
+  'The browser must wait for Gemini and the OCR fallback without aborting at the generic API timeout');
 console.log(`Vercel function limit: OK (${count}/12)`);

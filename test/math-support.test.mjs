@@ -13,6 +13,7 @@ import { retrieveVerifiedContext } from '../lib/rag-retrieval.js';
 import { sourceFresh } from '../lib/rag-core.js';
 import { getCatalogTotals } from '../lib/home-stats.js';
 import { cleanGeometryDiagram } from '../lib/geometry-diagram.js';
+import { handleAiError } from '../lib/ai.js';
 
 const malformedLiveOcr = String.raw`BÀI TOÁN KIỂM THỬ MATHAPP\\\\Cho hai số thực a và b. Chứng minh rằng:\$$a^2 + b^2 \ge 2ab.$-\\\-Khi nào đẳng thức xảy ra?`;
 const repairedOcr = normalizeStandaloneMath(malformedLiveOcr);
@@ -27,13 +28,23 @@ for (const statement of [String.raw`$x$$y$`, String.raw`Cho $a,b\in\mathbb R$. C
 
 const ocrSource = fs.readFileSync(new URL('../api/ai-ocr-math.js', import.meta.url), 'utf8')
   .replace(/^import .*;\n/gm, '').replace('export default async function handler', 'async function handler');
-let ocrTopic = MATH_SUPPORT_TOPICS[0], ocrOptions;
-const ocrRoute = new Function('allows', 'MATH_SUPPORT_TOPICS', 'normalizeStandaloneMath', 'getSession', 'checkRateLimit', 'prepare', 'parseBody', 'text', 'generateJson', 'handleAiError', `${ocrSource}\nreturn handler;`)(
+let ocrTopic = MATH_SUPPORT_TOPICS[0], ocrOptions, openAiOcrOptions, failGeminiOcr = false, failOpenAiOcr = false;
+const ocrRoute = new Function('allows', 'MATH_SUPPORT_TOPICS', 'normalizeStandaloneMath', 'getSession', 'checkRateLimit', 'prepare', 'parseBody', 'text', 'generateJson', 'generateOpenAIJson', 'handleAiError', `${ocrSource}\nreturn handler;`)(
   allows,   MATH_SUPPORT_TOPICS, normalizeStandaloneMath, () => ({ username: 'tester' }), () => true, () => {}, req => req.body,
-  value => String(value || ''), async options => { ocrOptions = options; return { model: 'fixture', data: { latexText: malformedLiveOcr, summary: 'test', confidence: 'high', topic: ocrTopic } }; }, () => { throw new Error('Unexpected OCR error'); });
+  value => String(value || ''), async options => {
+    ocrOptions = options;
+    if (failGeminiOcr) { const error = new Error('AI_TIMEOUT'); error.code = 'AI_TIMEOUT'; throw error; }
+    return { model: 'fixture', data: { latexText: malformedLiveOcr, summary: 'test', confidence: 'high', topic: ocrTopic } };
+  }, async options => {
+    openAiOcrOptions = options;
+    if (failOpenAiOcr) { const error = new Error('OPENAI_HTTP_429'); error.code = 'OPENAI_HTTP_429'; error.status = 429; throw error; }
+    return { model: 'openai-fixture', data: { latexText: malformedLiveOcr, summary: 'fallback', confidence: 'medium', topic: ocrTopic } };
+  }, handleAiError);
 const ocrResponse = { status(n) { this.code = n; return this; }, json(body) { this.body = body; return this; } };
 await ocrRoute({ method: 'POST', body: { image: 'data:image/png;base64,iVBORw0KGgo=', purpose: 'standalone_problem' } }, ocrResponse);
 assert.equal(ocrResponse.code, 200); assert.equal(ocrResponse.body.data.latexText, repairedOcr);
+assert.equal(ocrOptions.timeoutMs, 45_000, 'Handwritten math OCR gets a realistic Gemini request budget');
+assert.equal(ocrOptions.totalTimeoutMs, 45_000);
 
 for (const topic of [...MATH_SUPPORT_TOPICS, 'Đại số', undefined]) {
   ocrTopic = topic;
@@ -46,6 +57,19 @@ for (const topic of [...MATH_SUPPORT_TOPICS, 'Đại số', undefined]) {
 }
 await ocrRoute({ method: 'POST', body: { image: 'data:image/png;base64,iVBORw0KGgo=' } }, ocrResponse);
 assert.equal(ocrOptions.schema.properties.topic, undefined, 'Submission OCR keeps its original response schema');
+failGeminiOcr = true;
+await ocrRoute({ method: 'POST', body: { image: 'data:image/png;base64,iVBORw0KGgo=', purpose: 'standalone_problem' } }, ocrResponse);
+assert.equal(ocrResponse.code, 200, 'A failed Gemini OCR attempt falls back to vision OCR');
+assert.equal(ocrResponse.body.source, 'openai-fallback');
+assert.equal(openAiOcrOptions.imageDataUrl, 'data:image/png;base64,iVBORw0KGgo=');
+assert.equal(openAiOcrOptions.timeoutMs, 60_000);
+assert.equal(ocrResponse.body.data.latexText, repairedOcr);
+failOpenAiOcr = true;
+await ocrRoute({ method: 'POST', body: { image: 'data:image/png;base64,iVBORw0KGgo=', purpose: 'standalone_problem' } }, ocrResponse);
+assert.equal(ocrResponse.code, 503);
+assert.match(ocrResponse.body.error, /quá tải hoặc hết hạn mức/);
+assert.equal(ocrResponse.body.code, 'OPENAI_HTTP_429');
+failGeminiOcr = false; failOpenAiOcr = false;
 
 // Isolated database with real BSON identities and the operators used by the routes.
 const rows = new Map();
@@ -178,7 +202,7 @@ window.scrollTo = () => {};
 let clientOcrTopic = MATH_SUPPORT_TOPICS[6];
 const guideData = { knowledge: 'Kiến thức kiểm tra $a^2+b^2\\ge2ab$.', intuition: 'Ý tưởng dùng bình phương không âm.',
   solution: 'Ta có $(a-b)^2\\ge0$, suy ra $a^2+b^2\\ge2ab$.', pitfalls: 'Kiểm tra trường hợp đẳng thức.' };
-let guideRequest;
+let guideRequest, failGuideMessage = '';
 window.fetch = async (url, options = {}) => {
   let res;
   if (String(url).startsWith('/api/ai-ocr-math')) {
@@ -187,6 +211,7 @@ window.fetch = async (url, options = {}) => {
   }
   if (String(url).startsWith('/api/ai-guide')) {
     guideRequest = JSON.parse(options.body);
+    if (failGuideMessage) return { ok: false, status: 502, json: async () => ({ success: false, error: failGuideMessage, code: 'OPENAI_HTTP_401' }) };
     return { ok: true, json: async () => ({ success: true, data: guideData }) };
   }
   const parsed = new URL(url, window.location.href);
@@ -263,6 +288,12 @@ assert.equal(guideRequest.problemContent, payload.content, 'AI solving uses the 
 assert.equal(guideRequest.contentKey.startsWith('math_support:draft:'), true, `Unexpected draft key: ${guideRequest.contentKey}`);
 assert.match(window.document.getElementById('supportSolveResult').textContent, /Ta có/);
 assert.match(window.document.getElementById('supportSolveStatus').textContent, /Đã tạo lời giải/);
+failGuideMessage = 'OpenAI từ chối xác thực hoặc quyền truy cập model kiểm định.';
+window.document.getElementById('supportSolveButton').click(); await tick(); await tick();
+assert.match(window.document.getElementById('supportSolveStatus').textContent, /OpenAI từ chối xác thực/,
+  'Math support displays the actionable AI error instead of replacing it with a generic quality message');
+assert.match(window.document.querySelector('#supportSolveResult [data-guide-error-message]').textContent, /OpenAI từ chối xác thực/);
+failGuideMessage = '';
 const topicSelect = window.document.getElementById('supportTopic');
 assert.equal(topicSelect.value, clientOcrTopic, 'OCR automatically selects a canonical topic');
 clientOcrTopic = 'Đại số';

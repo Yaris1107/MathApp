@@ -8,6 +8,9 @@
     "api/ai-ocr-exam.js": {
       "maxDuration": 120
     },
+    "api/ai-ocr-math.js": {
+      "maxDuration": 120
+    },
     "api/ai-predict-exam.js": {
       "maxDuration": 300
     },

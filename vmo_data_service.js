@@ -9,6 +9,7 @@
 const DATA_API_URL = '/api/data';
 const REQUEST_TIMEOUT_MS = 30_000;
 const EXAM_SAVE_TIMEOUT_MS = 105_000;
+const MATH_OCR_TIMEOUT_MS = 110_000;
 const READ_CACHE_TTL_MS = 5 * 60_000;
 const MAX_EXAM_IMAGE_BATCH_CHARS = 3_500_000;
 const readCache = new Map();
@@ -368,7 +369,7 @@ export async function getMathSupportImage(problemId) {
   return data.item;
 }
 export async function ocrMathSupport(image) {
-  const data = await apiFetch('/api/ai-ocr-math', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ image, purpose: 'standalone_problem' }) });
+  const data = await apiFetch('/api/ai-ocr-math', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ image, purpose: 'standalone_problem' }) }, MATH_OCR_TIMEOUT_MS);
   return data.data;
 }
 

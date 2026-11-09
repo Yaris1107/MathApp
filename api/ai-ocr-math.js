@@ -3,6 +3,10 @@ import { MATH_SUPPORT_TOPICS } from '../lib/math-support-topics.js';
 import { normalizeStandaloneMath } from '../lib/ocr-normalization.js';
 import { getSession } from '../lib/session.js';
 import { checkRateLimit, generateJson, handleAiError, parseBody, prepare, text } from '../lib/ai.js';
+import { generateOpenAIJson } from '../lib/openai.js';
+
+const OCR_GEMINI_TIMEOUT_MS = 45_000;
+const OCR_OPENAI_TIMEOUT_MS = 60_000;
 
 const schema = {
   type: 'object',
@@ -72,9 +76,27 @@ export default async function handler(req, res) {
   const prompt = `Đọc chính xác toàn bộ bài toán/bài giải viết tay trong ảnh. Trả về latexText để hiển thị trực tiếp bằng MathJax.
 Quy tắc bắt buộc: công thức nội dòng phải đặt trong $...$; công thức riêng dòng phải đặt trong $$...$$; không được để \\boxed, \\frac, chỉ số, số mũ hoặc lệnh LaTeX trần ngoài delimiter; không dùng align/align* (dùng aligned); dùng \\le, \\ge, \\in, \\ne, \\to; chữ tiếng Việt nằm ngoài công thức hoặc trong \\text{...}. Giữ nguyên nội dung nhìn thấy, không tự suy diễn. Trả summary ngắn và confidence.${standalone ? ' Đây là ảnh một đề bài riêng lẻ, không giải bài toán. Văn bản tiếng Việt đặt ngoài công thức. Dùng ký tự xuống dòng thật giữa các đoạn; không dùng lệnh LaTeX xuống dòng trong văn bản, không thêm gạch đầu dòng ngoài ảnh. Mỗi công thức phải có cặp delimiter cân bằng: $...$ hoặc $$...$$.' + topicPrompt : ''}`;
   try {
-    const result = await generateJson({ contents: { parts: [{ inlineData: { mimeType: match[1], data: match[2] } }, { text: prompt }] }, schema: ocrSchema, systemInstruction: 'Bạn là chuyên gia OCR công thức toán tiếng Việt.' });
+    const contents = { parts: [{ inlineData: { mimeType: match[1], data: match[2] } }, { text: prompt }] };
+    let result;
+    let source = 'gemini';
+    try {
+      result = await generateJson({
+        contents, schema: ocrSchema, timeoutMs: OCR_GEMINI_TIMEOUT_MS, totalTimeoutMs: OCR_GEMINI_TIMEOUT_MS,
+        models: [process.env.GEMINI_OCR_MODEL || 'gemini-3.5-flash-lite'],
+        systemInstruction: 'Bạn là chuyên gia OCR công thức toán tiếng Việt.'
+      });
+    } catch (geminiError) {
+      console.warn('[Math support OCR Gemini fallback]', { code: geminiError?.code || 'UNKNOWN' });
+      result = await generateOpenAIJson({
+        input: prompt, imageDataUrl: image, schema: ocrSchema,
+        model: process.env.OPENAI_OCR_MODEL || process.env.OPENAI_VERIFY_MODEL || 'gpt-5.6-terra',
+        timeoutMs: OCR_OPENAI_TIMEOUT_MS, maxOutputTokens: 8_000, reasoningEffort: 'low',
+        systemInstruction: 'Bạn là chuyên gia OCR công thức toán tiếng Việt. Chỉ chép nội dung nhìn thấy, không giải hoặc tự suy diễn.'
+      });
+      source = 'openai-fallback';
+    }
     const data = { ...result.data, latexText: normalizeOcrLatex(standalone ? normalizeStandaloneMath(result.data?.latexText) : result.data?.latexText) };
     if (standalone) data.topic = MATH_SUPPORT_TOPICS.includes(data.topic) ? data.topic : '';
-    return res.status(200).json({ success: true, source: 'gemini', model: result.model, data });
+    return res.status(200).json({ success: true, source, model: result.model, data });
   } catch (error) { return handleAiError(res, error); }
 }

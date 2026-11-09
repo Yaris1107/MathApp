@@ -5,7 +5,7 @@ import { queryEmbedding } from '../lib/rag-query-cache.js';
 import { retrieveVerifiedContext } from '../lib/rag-retrieval.js';
 import { queueSource, processRagJobs } from '../lib/rag-store.js';
 import { runBenchmarkCase, benchmarkMetrics, validateBenchmarkCase } from '../lib/rag-benchmark.js';
-import { accepted, substantive } from '../api/ai-guide.js';
+import { accepted, describeGuideError, substantive } from '../api/ai-guide.js';
 import { verifierChecks, verifierApproved } from '../api/ai-evaluate-solution.js';
 import { FakeDb, fixtures, embedStub } from './fixtures/rag-fixtures.mjs';
 
@@ -103,6 +103,9 @@ assert.equal(changed.metrics.baseline.noSourceAccuracy, 0); assert.equal(changed
 const approval = { approved:true,score:5,allPartsCorrect:true,rigorous:true,noExtraAssumptions:true,equalityCasesChecked:true,matchesVerifiedReference:true };
 assert.equal(accepted(approval), false, 'Không được xuất bản khi thiếu kiểm tra suy biến');
 assert.equal(accepted({ ...approval, degeneraciesChecked: true, degeneracyChecks: ['Đã tách P là điểm đối diện A; các góc có cạnh không xác định được thay bằng chứng minh trực tiếp.'] }), true);
+assert.equal(describeGuideError({ code: 'OPENAI_HTTP_401' }).error.includes('không phản hồi'), false);
+assert.equal(describeGuideError({ code: 'OPENAI_TIMEOUT' }).stage, 'verifier');
+assert.equal(describeGuideError({ code: 'AI_TIMEOUT' }).stage, 'solver');
 const conciseInvariantProof = 'Xét số bóng đang bật modulo 2. Mỗi thao tác đổi trạng thái đúng hai bóng nên số bóng bật thay đổi −2, 0 hoặc 2; tính chẵn lẻ vì thế được bảo toàn và ban đầu bằng 0. Do đó, muốn bật cả n bóng thì n phải chẵn. Ngược lại, nếu n chẵn, chia các bóng thành n/2 cặp rồi thực hiện thao tác một lần trên mỗi cặp. Khi kết thúc, mỗi bóng đã được đổi đúng một lần nên tất cả đều bật. Vậy điều kiện cần và đủ là n chẵn.';
 assert.equal(substantive(conciseInvariantProof, ['n chẵn'], 1), true, 'A complete concise invariant proof passes without filler');
 assert.equal(substantive('Hãy thực hiện các phép thế thích hợp.', ['n chẵn'], 1), false, 'Generic advice is still rejected');

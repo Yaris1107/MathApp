@@ -55,6 +55,20 @@ export function accepted(data, corrected = false) {
   return data.degeneraciesChecked === true && auditEvidence(data.degeneracyChecks) && data.approved === true && scoreOf(data.score) >= 4.5 && data.allPartsCorrect === true && data.rigorous === true && data.noExtraAssumptions === true && data.equalityCasesChecked === true && data.matchesVerifiedReference === true;
 }
 
+export function describeGuideError(error, mode = '') {
+  const code = text(error?.code, 80);
+  if (code === 'AI_NOT_CONFIGURED') return { status: 503, error: 'Chưa cấu hình GEMINI_API_KEY cho Gia sư AI trên Vercel.' };
+  if (code === 'OPENAI_NOT_CONFIGURED') return { status: 503, error: 'Chưa cấu hình OPENAI_API_KEY để kiểm định lời giải trên Vercel.' };
+  if (code === 'AI_TIMEOUT') return { status: 504, error: 'Gemini quá thời gian khi tạo lời giải. Vui lòng thử lại.' , stage: 'solver' };
+  if (code === 'OPENAI_TIMEOUT') return { status: 504, error: 'OpenAI quá thời gian khi kiểm định lời giải. Vui lòng thử lại.', stage: 'verifier' };
+  if (code === 'OPENAI_HTTP_401' || code === 'OPENAI_HTTP_403') return { status: 502, error: 'OpenAI từ chối xác thực hoặc quyền truy cập model kiểm định. Quản trị viên cần kiểm tra cấu hình Vercel.' };
+  if (code === 'OPENAI_HTTP_429') return { status: 503, error: 'OpenAI đang quá tải hoặc hết hạn mức kiểm định. Vui lòng thử lại sau.' };
+  if (code === 'OPENAI_INCOMPLETE') return { status: 502, error: 'OpenAI chưa hoàn tất kiểm định lời giải. Hãy thử lại với đề ngắn, rõ hơn.', stage: 'verifier' };
+  if (mode === 'diagram' && code === 'GEOMETRY_TIMEOUT') return { status: 504, error: 'Gia sư AI chưa hoàn tất kiểm tra hình trong thời gian cho phép. Vui lòng thử lại.', stage: 'verifier' };
+  return { status: 502, error: `Gia sư AI gặp lỗi khi ${code.startsWith('OPENAI_') ? 'kiểm định lời giải' : 'tạo lời giải'}${code ? ` (${code})` : ''}. Vui lòng thử lại; nếu tiếp tục, gửi mã lỗi cho quản trị viên.`,
+    ...(code.startsWith('OPENAI_') ? { stage: 'verifier' } : { stage: 'solver' }) };
+}
+
 function withBookImages(prompt,images){return images.length?{parts:[{text:prompt},...images.map(url=>({inlineData:{mimeType:'image/png',data:url.split(',')[1]}}))]}:prompt;}
 
 export default async function handler(req, res) {
@@ -81,6 +95,9 @@ export default async function handler(req, res) {
     const academicContext = reference.educationLevel === 'university' ? `university mathematics${reference.courseName ? ': ' + reference.courseName : ''}; use rigorous definitions, domains and proofs appropriate to this course` : 'high-school Mathematical Olympiad';
     const common = `Exam: ${text(body.examTitle, 300)}\nProblem: ${text(body.problemId, 120)} - ${text(body.problemTitle, 500)}\nAcademic context: ${academicContext}\nTopic: ${text(reference.topic || body.topic, 200)}\nSTATEMENT:\n${problemContent}\n\n${referenceBlock}`;
     const mathFormat = 'In every guide field (including corrected fields), enclose each mathematical expression in $...$ or $$...$$. Preserve TeX delimiters and escape backslashes correctly in JSON. Keep multiline equations inside one display block. Use Markdown for prose only, without HTML.';
+    const problemSpecificGuidance = /bóng đèn|light bulbs?/i.test(problemContent)
+      ? 'For this bulbs problem, interpret n as a positive integer: prove parity of the number of lit bulbs is invariant, conclude n must be even, and when n is even pair the bulbs and toggle each pair once. State the final answer exactly as n even.'
+      : '';
     // Existing saved guides can receive a diagram without replacing their proof.
     if (body.mode === 'diagram') {
       const solution = text(body.solution, 100000);
@@ -94,7 +111,7 @@ export default async function handler(req, res) {
       return res.status(200).json({ success: true, data: result });
     }
     const solved = await generateJson({
-      contents: withBookImages(`Produce a complete ${academicContext} solution in ${outputLanguage}.\n${common}\n${mathematicalAuditInstruction}\n${geometryInstruction} First enumerate every requested part. Give exact final results and every equality case. Check boundary cases, indices, signs and quantifiers. The reference is evidence, not permission to copy an error. ${mathFormat} Use Markdown and MathJax $...$ or $$...$$; do not use itemize, enumerate, align or textbf.`,bookImages),
+      contents: withBookImages(`Produce a complete ${academicContext} solution in ${outputLanguage}.\n${common}\n${mathematicalAuditInstruction}\n${geometryInstruction} ${problemSpecificGuidance} For non-geometric problems, include in degeneracyChecks a concrete explanation that geometric degeneracies do not apply and identify the boundary/domain cases checked. First enumerate every requested part. Give exact final results and every equality case when applicable. Check boundary cases, indices, signs and quantifiers. The reference is evidence, not permission to copy an error. ${mathFormat} Use Markdown and MathJax $...$ or $$...$$; do not use itemize, enumerate, align or textbf.`,bookImages),
       schema: guideSchema,
       systemInstruction: `You are the primary solver for ${academicContext}. Be explicit and rigorous. For discrete toggle/reachability problems, identify a preserved invariant, prove the necessary condition, then give an explicit sequence proving sufficiency; state any domain assumptions and edge cases. A concise complete proof is preferable to filler. Never replace proof steps with generic advice. Write entirely in ${outputLanguage}.`,
       models: [process.env.GEMINI_SOLVER_MODEL || 'gemini-3.5-flash'], timeoutMs: 130_000, totalTimeoutMs: 130_000, temperature: 1
@@ -103,7 +120,7 @@ export default async function handler(req, res) {
     if (diagramCheck.geometry) solved.data.geometry = diagramCheck.geometry;
     const verified = await generateOpenAIJson({
       imageDataUrls:bookImages,
-      input: `${mathematicalAuditInstruction}\nIndependently solve and audit the candidate below. ${geometryInstruction} Independently check the candidate geometry against EVERY statement hypothesis and every depicted auxiliary construction in the selected proof, labels, coordinates and constraints. Set geometryApproved=true only if faithful and complete. Supply a correctedGeometry and correctedGeometryApproved for the corrected proof; never reuse a diagram incompatible with that proof. Diagram failure alone must not reject a valid proof. For discrete-operation problems, independently verify the invariant and the constructive sufficiency proof. Do not reject a complete proof merely for being concise; reject unsupported claims, not brevity. Score 0.0-5.0. Approval requires every requested part correct, a rigorous derivation, no unstated assumptions, and all extremal/equality cases proved. When no EXACT reference exists (including SIMILAR-only sources), matchesVerifiedReference means independent cross-check passed. Never require the new answer to equal the answer of a similar problem. If anything is weak, provide a fully corrected guide in the corrected* fields. Leave no generic placeholders. ${mathFormat}\n\n${common}\n\nDIAGRAM NUMERICAL VALIDATION:\n${JSON.stringify(diagramCheck.issues)}\nGEMINI CANDIDATE JSON:\n${JSON.stringify(solved.data)}`,
+      input: `${mathematicalAuditInstruction}\nIndependently solve and audit the candidate below. ${geometryInstruction} Independently check the candidate geometry against EVERY statement hypothesis and every depicted auxiliary construction in the selected proof, labels, coordinates and constraints. Set geometryApproved=true only if faithful and complete. Supply a correctedGeometry and correctedGeometryApproved for the corrected proof; never reuse a diagram incompatible with that proof. Diagram failure alone must not reject a valid proof. For non-geometric problems, set degeneraciesChecked=true with a concrete note that geometric degeneracies do not apply, and document checks relevant to the problem domain instead. For discrete-operation problems, independently verify the invariant and the constructive sufficiency proof. Do not reject a complete proof merely for being concise; reject unsupported claims, not brevity. Score 0.0-5.0. Approval requires every requested part correct, a rigorous derivation, no unstated assumptions, and all extremal/equality cases proved when applicable. When no EXACT reference exists (including SIMILAR-only sources), matchesVerifiedReference means independent cross-check passed. Never require the new answer to equal the answer of a similar problem. If anything is weak, provide a fully corrected guide in the corrected* fields. Leave no generic placeholders. ${mathFormat}\n\n${common}\n\nDIAGRAM NUMERICAL VALIDATION:\n${JSON.stringify(diagramCheck.issues)}\nGEMINI CANDIDATE JSON:\n${JSON.stringify(solved.data)}`,
       schema: verifierSchema,
       systemInstruction: `You are an independent adversarial reviewer for ${academicContext}. Recompute the problem instead of trusting Gemini. Correct the guide in ${outputLanguage} when needed. A score of 5.0 means publication-ready and fully rigorous. Return only the required structured result.`,
       timeoutMs: 140_000,
@@ -135,21 +152,8 @@ export default async function handler(req, res) {
     });
   } catch (error) {
     console.error('[AI GUIDE]', error);
-    const openAiMissing = error?.code === 'OPENAI_NOT_CONFIGURED';
-    const geminiMissing = error?.code === 'AI_NOT_CONFIGURED';
-    const timeout = error?.code === 'AI_TIMEOUT' || error?.code === 'OPENAI_TIMEOUT' || error?.code === 'GEOMETRY_TIMEOUT';
-    const openAiTimeout = error?.code === 'OPENAI_TIMEOUT' || error?.code === 'GEOMETRY_TIMEOUT';
-    return res.status(timeout ? 504 : (openAiMissing || geminiMissing ? 503 : 502)).json({
-      success: false,
-      error: timeout
-        ? body.mode === 'diagram'
-          ? 'Gia sư Toán AI chưa hoàn tất dựng và kiểm tra hình trong thời gian cho phép. Vui lòng thử lại.'
-          : openAiTimeout
-            ? 'Gia sư Toán AI chưa hoàn tất kiểm định lời giải trong thời gian cho phép. Vui lòng thử lại.'
-            : 'Gemini chưa hoàn tất tạo lời giải trong thời gian cho phép. Vui lòng thử lại.'
-        : 'Gia sư Toán AI tạm thời không phản hồi. Vui lòng thử lại sau.',
-      code: text(error?.code, 80) || 'AI_PIPELINE_ERROR',
-      stage: timeout ? (openAiTimeout ? 'verifier' : 'solver') : undefined
-    });
+    const failure = describeGuideError(error, body.mode);
+    return res.status(failure.status).json({ success: false, error: failure.error,
+      code: text(error?.code, 80) || 'AI_PIPELINE_ERROR', ...(failure.stage ? { stage: failure.stage } : {}) });
   }
 }

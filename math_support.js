@@ -87,9 +87,10 @@
     byId('supportSolveResult').replaceChildren(card);
     try {
       await window.openAIGuide(button);
-      const failed = card.querySelector('.ai-guide-panel')?.dataset.guideError === 'true';
+      const guidePanel = card.querySelector('.ai-guide-panel');
+      const failed = guidePanel?.dataset.guideError === 'true';
       status('supportSolveStatus', failed
-        ? 'AI chưa tạo được lời giải đạt chuẩn. Bạn có thể bấm nút thử lại trong khung kết quả.'
+        ? guidePanel.querySelector('[data-guide-error-message]')?.textContent.trim() || 'AI chưa tạo được lời giải đạt chuẩn. Bạn có thể bấm nút thử lại trong khung kết quả.'
         : 'Đã tạo lời giải. Hãy đọc và kiểm tra các bước lập luận.');
     } catch (error) {
       status('supportSolveStatus', error.message || 'Chưa giải được bài toán. Vui lòng thử lại.');
