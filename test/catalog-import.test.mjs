@@ -34,6 +34,7 @@ const db = { collection(name) {
   if (!collections.has(name)) collections.set(name, new Collection(name));
   return collections.get(name);
 } };
+const now = new Date('2026-01-01T00:00:00.000Z');
 const exam = {
   examKey: 'mock-2026-01', category: 'vmo-mock', targetAnchor: 'mock',
   title: 'Mock exam 2026', year: '2026', status: 'draft', dayNumber: 1,
@@ -41,10 +42,18 @@ const exam = {
     { contentKey: 'mock-2026-01-q1', questionNumber: 1, content: '<p>Find x.</p>',
       referenceSolution: '<p>x = 2</p>', referenceSolutionVerified: true },
     { contentKey: 'mock-2026-01-q2', questionNumber: 2, content: '<p>Prove the claim.</p>',
-      referenceSolution: '<p>Proof</p>', referenceSolutionVerified: false }
+      referenceSolution: '<p>Proof</p>', referenceSolutionVerified: false,
+      generatedGuide: {
+        success: true, model: 'gemini+openai', providers: { solver: 'google', verifier: 'openai' },
+        generatedAt: now.toISOString(),
+        guide: {
+          solution: '<p>Proof</p>',
+          quality: { verified: true, score: '5.0/5.0', summary: 'Automated review passed.' }
+        }
+      }
+    }
   ]
 };
-const now = new Date('2026-01-01T00:00:00.000Z');
 
 const result = await importCatalogExam(db, { exam }, 'admin-user', now);
 assert.deepEqual(
@@ -56,6 +65,8 @@ assert.equal(storedProblems[0].referenceSolution, '<p>x = 2</p>');
 assert.equal(storedProblems[0].referenceSolutionVerified, true);
 assert.equal(storedProblems[0].status, 'draft');
 assert.equal(storedProblems[1].referenceSolutionVerified, false);
+assert.equal(storedProblems[1].referenceSolutionOrigin, 'vmo-ai-guide');
+assert.equal(storedProblems[1].referenceSolutionReview.automatedReviewPassed, true);
 assert.equal(storedProblems.some(problem => 'userId' in problem), false);
 
 await importCatalogExam(db, { exam }, 'admin-user', now);
