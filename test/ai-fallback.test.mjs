@@ -87,11 +87,12 @@ try {
     ok: false,
     status: 429,
     headers: { get: () => 'req_mock' },
-    json: async () => ({ error: { type: 'insufficient_quota', code: 'insufficient_quota' } })
+    json: async () => ({ error: { type: 'insufficient_quota', code: 'credit_balance_exhausted' } })
   });
   await assert.rejects(
     generateOpenAIJson({ input: 'test', schema }),
-    error => error.code === 'OPENAI_HTTP_429' && error.openaiCode === 'insufficient_quota' && error.requestId === 'req_mock'
+    error => error.code === 'OPENAI_HTTP_429' && error.openaiType === 'insufficient_quota'
+      && error.openaiCode === 'credit_balance_exhausted' && error.requestId === 'req_mock'
   );
 
   const [guide, evaluation, prediction, translation] = await Promise.all([

@@ -66,7 +66,9 @@ export function describeGuideError(error, mode = '') {
   if (code === 'OPENAI_HTTP_401' || code === 'OPENAI_HTTP_403') return { status: 502, error: 'OpenAI từ chối xác thực hoặc quyền truy cập model kiểm định. Quản trị viên cần kiểm tra cấu hình Vercel.' };
   if (code === 'OPENAI_HTTP_429') {
     const stage = error?.aiStage || 'verifier';
-    const errorMessage = error?.openaiCode === 'insufficient_quota'
+    const exhaustedQuota = error?.openaiType === 'insufficient_quota'
+      || ['insufficient_quota', 'credit_balance_exhausted'].includes(error?.openaiCode);
+    const errorMessage = exhaustedQuota
       ? 'OpenAI API đã hết hạn mức khả dụng. Quản trị viên cần kiểm tra Billing/Usage và giới hạn chi tiêu của Project trên OpenAI.'
       : `OpenAI đang giới hạn yêu cầu khi ${stage === 'solver' ? 'tạo lời giải' : 'kiểm định lời giải'}. Vui lòng thử lại sau hoặc kiểm tra Usage/Billing.`;
     return { status: 503, error: errorMessage, stage };
