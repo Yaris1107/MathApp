@@ -12,8 +12,8 @@ import { handleMathSupport } from '../lib/math-support.js';
 import { specializedSchool } from '../lib/specialized-schools.js';
 import { runBenchmarkCase, validateBenchmarkCase } from '../lib/rag-benchmark.js';
 import { checkRateLimit } from '../lib/ai.js';
-import { RAG_VERSION } from '../lib/rag-core.js';
-import { queueSource, setupRag, backfillSources, processRagJobs } from '../lib/rag-store.js';
+import { RAG_VERSION, contentHash } from '../lib/rag-core.js';
+import { queueSource, queueReferenceSolution, setupRag, backfillSources, processRagJobs } from '../lib/rag-store.js';
 import { embeddingConfig } from '../lib/rag-embedding.js';
 import { ObjectId } from 'mongodb';
 import { getDb } from '../lib/db.js';
@@ -254,6 +254,10 @@ function requireContentManager(session, res) {
 async function refreshRagSource(db, id) {
   try { await queueSource(db, id); }
   catch (error) { console.error('[RAG QUEUE]', String(id), error.message); }
+}
+async function refreshRagReference(db, id) {
+  try { await queueReferenceSolution(db, id); }
+  catch (error) { console.error('[RAG REFERENCE QUEUE]', String(id), error.message); }
 }
 
 export default async function handler(req, res) {
@@ -753,6 +757,11 @@ export default async function handler(req, res) {
       }
       try {
         const result = await importCatalogExam(db, payload, session.username, now);
+        const verifiedReferences = await db.collection('problems').find(
+          { examKey: result.examKey, referenceSolutionVerified: true },
+          { projection: { _id: 1 } }
+        ).toArray();
+        for (const problem of verifiedReferences) await refreshRagReference(db, problem._id);
         await recordActivity(db, session, 'exam.imported', {
           itemTitle: result.examKey, examId: result.examId
         });
@@ -1309,6 +1318,7 @@ export default async function handler(req, res) {
         { _id: id, version: current.version ?? { $exists: false } },
         { $set: {
           content, referenceSolution, referenceLinks, referenceSolutionVerified,
+          referenceSolutionProblemHash: referenceSolutionVerified ? contentHash(content) : '',
           referenceSolutionVerifiedBy: referenceSolutionVerified ? session.username : '',
           referenceSolutionVerifiedAt: referenceSolutionVerified ? now : null,
           version: nextVersion, updatedBy: session.username, updatedAt: now,
@@ -1320,6 +1330,7 @@ export default async function handler(req, res) {
         } }
       );
       if (!changed.matchedCount) return res.status(409).json({ success: false, error: 'Nội dung đã thay đổi. Vui lòng tải lại.' });
+      await refreshRagReference(db, id);
       await db.collection('content_revisions').createIndex({ problemId: 1, createdAt: -1 });
       await recordActivity(db, session, 'catalog.updated', { problemKey: current.contentKey, itemTitle: current.title });
       return res.status(200).json({ success: true, item: { id: String(id), version: nextVersion } });
@@ -1415,6 +1426,8 @@ export default async function handler(req, res) {
           content: revision.content || '',
           referenceSolution: revision.referenceSolution || '',
           referenceSolutionVerified: revision.referenceSolutionVerified === true && Boolean(revision.referenceSolution),
+          referenceSolutionProblemHash: revision.referenceSolutionVerified === true && revision.referenceSolution
+            ? contentHash(revision.content || '') : '',
           referenceSolutionVerifiedBy: revision.referenceSolutionVerified === true ? session.username : '',
           referenceSolutionVerifiedAt: revision.referenceSolutionVerified === true ? now : null,
           referenceLinks: cleanReferenceLinks(revision.referenceLinks),
@@ -1423,6 +1436,7 @@ export default async function handler(req, res) {
           updatedAt: now
         } }
       );
+      await refreshRagReference(db, current._id);
       await recordActivity(db, session, 'catalog.updated', { problemKey: current.contentKey, itemTitle: current.title });
       return res.status(200).json({ success: true, item: { id: String(current._id), version: nextVersion } });
     }

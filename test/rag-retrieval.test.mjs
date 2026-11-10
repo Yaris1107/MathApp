@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { contentHash, compatible, referenceBlock, fuseRanks } from '../lib/rag-core.js';
 import { retrieveVerifiedContext } from '../lib/rag-retrieval.js';
-import { queueSource, setupRag, processRagJobs } from '../lib/rag-store.js';
+import { queueSource, queueReferenceSolution, setupRag, processRagJobs } from '../lib/rag-store.js';
 import worker from '../api/rag-worker.js';
 import { embedText } from '../lib/rag-embedding.js';
 import { fixtures, cases, FakeDb, embedStub } from './fixtures/rag-fixtures.mjs';
@@ -43,6 +43,29 @@ assert.equal(changed.results[0].status, 'failed', 'Thu hồi trong lúc embeddin
 const privateDb = new FakeDb(fixtures());
 privateDb.data.problems[0].setId = '507f1f77bcf86cd799439011';
 assert.equal((await retrieveVerifiedContext({ problemRef:'p1', session:{role:'student'} }, {db:privateDb,embed:embedStub})).blocked, true);
+
+const referenceData = fixtures();
+const referenceProblem = referenceData.problems[2];
+referenceProblem.referenceSolution = 'Lời giải chuẩn đã được giáo viên duyệt. Chứng minh bằng các bước đầy đủ.';
+referenceProblem.referenceSolutionVerified = true;
+referenceProblem.referenceSolutionProblemHash = contentHash(referenceProblem.content);
+referenceProblem.referenceSolutionVerifiedAt = '2026-10-01T00:00:00Z';
+referenceData.submissions.splice(1, 1);
+referenceData.verified_knowledge.splice(1, 1);
+const referenceDb = new FakeDb(referenceData);
+await queueReferenceSolution(referenceDb, referenceProblem._id);
+assert.equal(referenceDb.data.rag_index_jobs[0].sourceType, 'problem_reference');
+assert.equal((await processRagJobs(referenceDb, 1, embedStub)).results[0].status, 'ready');
+const similarReference = await retrieveVerifiedContext({
+  problemRef: 'p4', session: { role: 'admin', username: 'test' }
+}, { db: referenceDb, embed: embedStub });
+assert.equal(similarReference.mode, 'hybrid');
+assert.equal(similarReference.sources[0].sourceId, `problem-reference:${referenceProblem._id}`);
+assert.equal(similarReference.sources[0].permittedUse, 'method-only');
+
+referenceProblem.referenceSolutionVerified = false;
+await queueReferenceSolution(referenceDb, referenceProblem._id);
+assert.equal(referenceDb.data.verified_knowledge.find(item => item.sourceId === `problem-reference:${referenceProblem._id}`).status, 'revoked');
 
 const saved = process.env.OPENAI_API_KEY;
 process.env.OPENAI_API_KEY = 'test-key';

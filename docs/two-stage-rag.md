@@ -15,11 +15,13 @@ Bản đầu chủ động yêu cầu tag toán học phù hợp; chưa dùng ng
 
 ## Collection và trạng thái
 
-- `verified_knowledge`: sourceId, problemId/key, hash đề/lời giải, trạng thái, topic/tags/constraints, searchText rút gọn, vector/model/dimensions/version. Không duplicate toàn bộ lời giải.
+- `verified_knowledge`: sourceId, sourceType (`submission` or `problem_reference`), problemId/key, hash đề/lời giải, trạng thái, topic/tags/constraints, searchText rút gọn, vector/model/dimensions/version. Không duplicate toàn bộ lời giải.
 - `rag_index_jobs`: pending → processing → ready; failed thử tối đa 5 lần; revoked nếu nguồn không còn đủ điều kiện. Lease 60s cho job đang xử lý.
 - `rag_retrieval_logs`: ID lần truy xuất, mục đích, source IDs/hash/matchType, số token, chi phí embedding ước tính, thời gian, lỗi/hạn chế. TTL 90 ngày. Không lưu lời giải hoặc thông tin người làm bài trong context nguồn; nhật ký có username người gọi và chỉ Admin đọc được.
 
-Xác minh/sửa/thu hồi/xóa submission cập nhật hàng đợi. Lưu đè hoặc sửa AI Guide thu hồi xác minh của bản lưu. Nếu enqueue lỗi, mutation vẫn hoàn tất, ghi lỗi server; retrieval kiểm tra nguồn gốc để từ chối index cũ. Backfill phục hồi jobs bị bỏ lỡ. Sửa đề tự khiến hash cũ không khớp. Kiểm tra cuối diễn ra ngay trước khi tạo prompt, không bảo đảm nguồn không thay đổi trong lúc model đang chạy.
+Xác minh/sửa/thu hồi/xóa submission cập nhật hàng đợi. Lời giải mẫu trong ngân hàng câu hỏi cũng được lập chỉ mục khi Admin/Giáo viên xác minh và hash đề khớp; sửa đề hoặc lời giải, bỏ xác minh, ẩn đề sẽ làm nguồn cũ mất hiệu lực. Backfill phục hồi jobs bị bỏ lỡ. Lời giải do AI tự tạo không được học lại chỉ vì pipeline AI chấm đạt: cần được người có quyền xác minh trước. Đây là retrieval augmentation, không phải tự huấn luyện hoặc cập nhật trọng số mô hình; lời giải AI chưa duyệt không trở thành dữ liệu chuẩn.
+
+Việc lập chỉ mục có thể cần chạy `rag_setup`, rồi `rag_backfill` và `rag_process` (hoặc chờ worker cron). Lời giải xác minh chính xác cho cùng một câu được dùng ngay qua exact retrieval; nguồn tương tự chỉ được cung cấp để tham khảo phương pháp. Kiểm tra cuối diễn ra ngay trước khi tạo prompt, không bảo đảm nguồn không thay đổi trong lúc model đang chạy.
 
 Một nguồn có nội dung rất dài được cắt giới hạn để kiểm soát prompt; provenance ghi truncated. Nguồn đã xác minh được coi là tài liệu tham khảo, không mặc nhiên là lời giải hoàn chỉnh đạt điểm tối đa.
 
