@@ -78,7 +78,7 @@ Trình duyệt chỉ gọi `/api/auth` và `/api/data`; không kết nối trự
 
 ## API AI trên Vercel
 
-Các endpoint AI yêu cầu phiên đăng nhập hợp lệ. Đặt `OPENAI_API_KEY` làm Secret trên Vercel để bật bước kiểm định độc lập và dự phòng; `GEMINI_API_KEY` được dùng làm nhà cung cấp chính khi khả dụng. Nên cấu hình cả hai để các luồng tạo nội dung, OCR và dịch thuật tiếp tục hoạt động khi một nhà cung cấp gặp sự cố:
+Các endpoint AI yêu cầu phiên đăng nhập hợp lệ. Đặt `OPENAI_API_KEY` làm Secret trên Vercel và bảo đảm OpenAI Project có billing/hạn mức API khả dụng để bật bước kiểm định độc lập và dự phòng; `GEMINI_API_KEY` được dùng làm nhà cung cấp chính khi khả dụng. Nên cấu hình cả hai để các luồng tạo nội dung, OCR và dịch thuật tiếp tục hoạt động khi một nhà cung cấp gặp sự cố:
 
 - `/api/ai-guide`: sinh và kiểm định hướng dẫn/lời giải Olympic; có dự phòng OpenAI cho lời giải và hình;
 - `/api/ai-evaluate-solution`: chấm bài dạng văn bản hoặc ảnh với kiểm định độc lập;

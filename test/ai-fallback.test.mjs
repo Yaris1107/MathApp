@@ -83,6 +83,17 @@ try {
     error => error.code === 'OPENAI_HTTP_401' && !error.message.includes(process.env.OPENAI_API_KEY)
   );
 
+  globalThis.fetch = async () => ({
+    ok: false,
+    status: 429,
+    headers: { get: () => 'req_mock' },
+    json: async () => ({ error: { type: 'insufficient_quota', code: 'insufficient_quota' } })
+  });
+  await assert.rejects(
+    generateOpenAIJson({ input: 'test', schema }),
+    error => error.code === 'OPENAI_HTTP_429' && error.openaiCode === 'insufficient_quota' && error.requestId === 'req_mock'
+  );
+
   const [guide, evaluation, prediction, translation] = await Promise.all([
     readFile(new URL('../api/ai-guide.js', import.meta.url), 'utf8'),
     readFile(new URL('../api/ai-evaluate-solution.js', import.meta.url), 'utf8'),

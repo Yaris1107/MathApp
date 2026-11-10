@@ -64,7 +64,13 @@ export function describeGuideError(error, mode = '') {
     ? 'OpenAI quá thời gian khi tạo lời giải. Vui lòng thử lại.' : 'OpenAI quá thời gian khi kiểm định lời giải. Vui lòng thử lại.',
   stage: error?.aiStage || 'verifier' };
   if (code === 'OPENAI_HTTP_401' || code === 'OPENAI_HTTP_403') return { status: 502, error: 'OpenAI từ chối xác thực hoặc quyền truy cập model kiểm định. Quản trị viên cần kiểm tra cấu hình Vercel.' };
-  if (code === 'OPENAI_HTTP_429') return { status: 503, error: 'OpenAI đang quá tải hoặc hết hạn mức kiểm định. Vui lòng thử lại sau.' };
+  if (code === 'OPENAI_HTTP_429') {
+    const stage = error?.aiStage || 'verifier';
+    const errorMessage = error?.openaiCode === 'insufficient_quota'
+      ? 'OpenAI API đã hết hạn mức khả dụng. Quản trị viên cần kiểm tra Billing/Usage và giới hạn chi tiêu của Project trên OpenAI.'
+      : `OpenAI đang giới hạn yêu cầu khi ${stage === 'solver' ? 'tạo lời giải' : 'kiểm định lời giải'}. Vui lòng thử lại sau hoặc kiểm tra Usage/Billing.`;
+    return { status: 503, error: errorMessage, stage };
+  }
   if (code === 'OPENAI_INCOMPLETE') return { status: 502, error: error?.aiStage === 'solver'
     ? 'OpenAI chưa hoàn tất việc tạo lời giải. Hãy thử lại với đề ngắn, rõ hơn.'
     : 'OpenAI chưa hoàn tất kiểm định lời giải. Hãy thử lại với đề ngắn, rõ hơn.',
