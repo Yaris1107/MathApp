@@ -2,7 +2,8 @@ import { allows } from '../lib/education-access.js';
 import crypto from 'node:crypto';
 import { getDb } from '../lib/db.js';
 import { getSession } from '../lib/session.js';
-import { checkRateLimit, generateJson, handleAiError, parseBody, prepare, text } from '../lib/ai.js';
+import { checkRateLimit, generateJson, generateWithOpenAIFallback, handleAiError, parseBody, prepare, text } from '../lib/ai.js';
+import { generateOpenAIJson } from '../lib/openai.js';
 
 const TRANSLATION_VERSION = 'vmo-math-en-v4';
 const MAX_ITEMS = 18;
@@ -136,12 +137,31 @@ INPUT:
 ${JSON.stringify(payload)}`;
 
     try {
-      const result = await generateJson({
-        contents: prompt,
-        schema,
-        temperature: 0,
-        systemInstruction: 'You are a meticulous bilingual mathematical editor for VMO/IMO materials. Translate only; preserve all formula placeholders exactly.'
-      });
+      const systemInstruction = 'You are a meticulous bilingual mathematical editor for VMO/IMO materials. Translate only; preserve all formula placeholders exactly.';
+      const translationStartedAt = Date.now();
+      const result = await generateWithOpenAIFallback(
+        () => generateJson({
+          contents: prompt,
+          schema,
+          temperature: 0,
+          systemInstruction
+        }),
+        geminiError => {
+          console.warn('[i18n provider fallback]', { code: geminiError?.code || 'UNKNOWN', status: geminiError?.status || 0 });
+          const timeoutMs = Math.min(60_000, 110_000 - (Date.now() - translationStartedAt) - 10_000);
+          if (timeoutMs < 5_000) throw geminiError;
+          return generateOpenAIJson({
+            input: prompt,
+            schema,
+            model: process.env.OPENAI_TRANSLATION_MODEL || process.env.OPENAI_VERIFY_MODEL || 'gpt-5.6-terra',
+            timeoutMs,
+            maxOutputTokens: 16_000,
+            reasoningEffort: 'low',
+            systemInstruction
+          });
+        },
+        { stage: 'translation' }
+      );
 
       const translatedById = new Map(
         (Array.isArray(result.data?.translations) ? result.data.translations : [])

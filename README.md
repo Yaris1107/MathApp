@@ -78,11 +78,13 @@ Trình duyệt chỉ gọi `/api/auth` và `/api/data`; không kết nối trự
 
 ## API AI trên Vercel
 
-Ba Vercel Functions yêu cầu phiên đăng nhập hợp lệ và biến môi trường `GEMINI_API_KEY`:
+Các endpoint AI yêu cầu phiên đăng nhập hợp lệ. Đặt `OPENAI_API_KEY` làm Secret trên Vercel để bật bước kiểm định độc lập và dự phòng; `GEMINI_API_KEY` được dùng làm nhà cung cấp chính khi khả dụng. Nên cấu hình cả hai để các luồng tạo nội dung, OCR và dịch thuật tiếp tục hoạt động khi một nhà cung cấp gặp sự cố:
 
-- `/api/ai-guide`: sinh hướng dẫn và lời giải Olympic;
-- `/api/ai-evaluate-solution`: chấm bài dạng văn bản hoặc ảnh;
-- `/api/ai-ocr-math`: nhận diện công thức từ ảnh JPEG, PNG hoặc WEBP.
+- `/api/ai-guide`: sinh và kiểm định hướng dẫn/lời giải Olympic; có dự phòng OpenAI cho lời giải và hình;
+- `/api/ai-evaluate-solution`: chấm bài dạng văn bản hoặc ảnh với kiểm định độc lập;
+- `/api/ai-ocr-math` và `/api/ai-ocr-exam`: nhận diện công thức, bài giải và đề thi từ ảnh;
+- `/api/ai-predict-exam`: tạo đề dự đoán và kiểm định nội dung;
+- `/api/translate-content`: dịch nội dung toán học, có dự phòng OpenAI.
 
 API key chỉ được đọc ở server và không được gửi xuống trình duyệt. Các endpoint có giới hạn tần suất theo tài khoản và giới hạn kích thước nội dung đầu vào.
 
@@ -91,7 +93,7 @@ API key chỉ được đọc ở server và không được gửi xuống trìn
 
 Hướng dẫn cho bài hình học phẳng có thêm hình SVG gồm các điểm có nhãn, đoạn thẳng và đường tròn; nét đứt biểu diễn các đường phụ. Chức năng áp dụng cho câu hỏi trong đề thi và mục **Hỗ trợ giải toán**. Hình được đưa vào bản in/PDF và lưu cùng `aiGuide.geometry` khi người dùng bấm nút lưu MongoDB hiện có.
 
-- Gemini đề xuất các điểm tự do và chuỗi phép dựng; mã tính trực tiếp trung điểm, hình chiếu, đối xứng, giao hai đường thẳng, tâm ngoại tiếp, trực tâm, điểm trên đường tròn và giao đường thẳng–đường tròn/hai đường tròn. GPT kiểm tra sự phù hợp với giả thiết và lời giải. Bộ kiểm tra số học dùng chung ở server và trình duyệt kiểm tra quan hệ thẳng hàng, vuông góc, song song, bằng độ dài, trung điểm và thuộc đường tròn với sai số chuẩn hóa `1e-4`.
+- Gemini đề xuất các điểm tự do và chuỗi phép dựng, OpenAI dự phòng khi Gemini lỗi; mã tính trực tiếp trung điểm, hình chiếu, đối xứng, giao hai đường thẳng, tâm ngoại tiếp, trực tâm, điểm trên đường tròn và giao đường thẳng–đường tròn/hai đường tròn. GPT kiểm tra sự phù hợp với giả thiết và lời giải. Bộ kiểm tra số học dùng chung ở server và trình duyệt kiểm tra quan hệ thẳng hàng, vuông góc, song song, bằng độ dài, trung điểm và thuộc đường tròn với sai số chuẩn hóa `1e-4`.
 - Chỉ dựng SVG từ dữ liệu đã chuẩn hóa, không chèn SVG/HTML hoặc tài nguyên bên ngoài do mô hình cung cấp. Giới hạn mỗi hình: 40 điểm, 80 đoạn, 12 đường tròn và 100 ràng buộc.
 - Với hướng dẫn hình học đã lưu chưa có hình, bấm **Tạo / Thử lại hình vẽ**, sau đó lưu bằng nút MongoDB nếu muốn giữ hình. API dùng chế độ `diagram` của `/api/ai-guide`, giữ nguyên lời giải, phiên đăng nhập, quyền đọc câu hỏi và giới hạn tần suất hiện có.
 - Dữ liệu hình được tính và kiểm tra trước khi gửi GPT; kết quả GPT trả về được tính/kiểm tra lại. Cho phép một lượt hiệu chỉnh theo lỗi cụ thể trong thời hạn yêu cầu. Nếu vẫn không vượt qua kiểm tra, giao diện và log trả mã lỗi phân biệt lỗi tọa độ/ràng buộc với lỗi kiểm định nội dung; lời giải vẫn hiển thị cùng thông báo và nút thử lại. Khi sửa nội dung hướng dẫn, hình cũ bị loại bỏ để dựng lại; bản in của nội dung đang sửa cũng không dùng hình cũ.

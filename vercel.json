@@ -26,6 +26,9 @@
     "api/ai-evaluate-solution.js": {
       "maxDuration": 300
     },
+    "api/translate-content.js": {
+      "maxDuration": 120
+    },
     "api/data.js": {
       "maxDuration": 120,
       "includeFiles": "{index.html,assets/**,data/university-materials/**,data/books/**}"

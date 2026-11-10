@@ -58,10 +58,10 @@ let signedIn=true, blocked=false, approval=true, diagram=triangle;
 const calls=[];
 const { generateGuideDiagram } = await import('../lib/guide-diagram.js');
 let bookAssetKeys=[];
-const route=new Function('readBookProblemImages','generateGuideDiagram', 'inspectGeometryDiagram', 'geometrySchema','geometryInstruction','selectGuideGeometry','cleanGeometryDiagram','mathematicalAuditInstruction','auditEvidence','retrieveVerifiedContext','getSession','checkRateLimit','generateJson','parseBody','prepare','text','generateOpenAIJson',routeSource+';return handler;')(
+const route=new Function('readBookProblemImages','generateGuideDiagram', 'inspectGeometryDiagram', 'geometrySchema','geometryInstruction','selectGuideGeometry','cleanGeometryDiagram','mathematicalAuditInstruction','auditEvidence','retrieveVerifiedContext','getSession','checkRateLimit','generateJson','generateWithOpenAIFallback','parseBody','prepare','text','generateOpenAIJson',routeSource+';return handler;')(
   async()=>['data:image/png;base64,cG5n'],generateGuideDiagram,inspectGeometryDiagram,geometrySchema,geometryInstruction,selectGuideGeometry,clean,mathematicalAuditInstruction,auditEvidence,
   async()=>({blocked,bookAssetKeys,statement:'CANONICAL triangle ABC',topic:'Hình học phẳng',block:'No reference'}),()=>signedIn?{username:'student'}:null,()=>true,
-  async args=>{calls.push(args);return{data:triangle,model:'solver'}}, req=>req.body,()=>{},(v,max=50000)=>String(v??'').slice(0,max),
+  async args=>{calls.push(args);return{data:triangle,model:'solver'}},async primary=>({ ...await primary(), provider:'google' }), req=>req.body,()=>{},(v,max=50000)=>String(v??'').slice(0,max),
   async args=>{calls.push(args);return{data:{approved:approval,geometry:diagram},model:'reviewer'}}
 );
 const request=async(body={mode:'diagram',problemContent:'CLIENT text',solution:'AH perpendicular BC'})=>{const res={status(code){this.code=code;return this;},json(value){this.value=value;return this;}};await route({method:'POST',body},res);return res;};

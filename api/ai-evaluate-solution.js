@@ -6,7 +6,7 @@ import { retrieveVerifiedContext } from '../lib/rag-retrieval.js';
 import { ObjectId } from 'mongodb';
 import { getDb } from '../lib/db.js';
 import { getSession } from '../lib/session.js';
-import { checkRateLimit, generateJson, handleAiError, parseBody, prepare, text } from '../lib/ai.js';
+import { checkRateLimit, generateJson, generateWithOpenAIFallback, handleAiError, parseBody, prepare, text } from '../lib/ai.js';
 import { generateOpenAIJson } from '../lib/openai.js';
 
 const VERDICTS = [
@@ -190,6 +190,7 @@ ${mathematicalAuditInstruction}\n\nQUY TRÌNH CHẤM BẮT BUỘC
 - Nêu điểm, đánh giá hướng tiếp cận, rà soát từng bước, lỗi logic và khuyến nghị.
 - Dùng LaTeX MathJax với $...$ hoặc $$...$$.
 - Không dùng môi trường itemize, enumerate, align hoặc lệnh textbf; dùng Markdown cho danh sách.`;
+  const startedAt = Date.now();
   try {
     const referenceBlock = `\n${reference.block}`;
     const provisionalPrompt = `${prompt}${referenceBlock}`;
@@ -203,25 +204,43 @@ ${mathematicalAuditInstruction}\n\nQUY TRÌNH CHẤM BẮT BUỘC
 
     if(bookImages.length){if(typeof contents==='string')contents={parts:[{text:contents}]};contents.parts.push(...bookImages.map(url=>({inlineData:{mimeType:'image/png',data:url.split(',')[1]}})));}
 
-    const provisional = await generateJson({
-      contents,
-      schema,
-      // Gemini 3.x is optimized for its default temperature of 1.0. Lowering it
-      // can degrade complex mathematical reasoning.
-      temperature: 1,
-      models: [
-        process.env.GEMINI_EVALUATION_MODEL,
-        'gemini-3.8-flash',
-        'gemini-3.5-flash'
-      ],
-      timeoutMs: 130_000,
-      totalTimeoutMs: 130_000,
-      maxOutputTokens: 16_000,
-      thinkingLevel: 'HIGH',
-      systemInstruction: `Bạn là giám khảo ${reference?.educationLevel === 'university' ? 'Toán Đại học (' + (reference.courseName || 'học phần tương ứng') + ')' : 'VMO/IMO'} nghiêm túc và thận trọng. Toàn bộ nội dung phải được viết bằng ${outputLanguage}.
+    const provisionalInstruction = `Bạn là giám khảo ${reference?.educationLevel === 'university' ? 'Toán Đại học (' + (reference.courseName || 'học phần tương ứng') + ')' : 'VMO/IMO'} nghiêm túc và thận trọng. Toàn bộ nội dung phải được viết bằng ${outputLanguage}.
 Ưu tiên tính đúng đắn hơn độ dài. Không bịa dữ kiện hoặc lỗi.
 Mọi phép biến đổi đại số do bạn nêu phải được tự kiểm tra độc lập trước khi trả kết quả JSON.`
-    });
+    const provisional = await generateWithOpenAIFallback(
+      () => generateJson({
+        contents,
+        schema,
+        temperature: 1,
+        models: [
+          process.env.GEMINI_EVALUATION_MODEL,
+          'gemini-3.8-flash',
+          'gemini-3.5-flash'
+        ],
+        timeoutMs: 130_000,
+        totalTimeoutMs: 130_000,
+        maxOutputTokens: 16_000,
+        thinkingLevel: 'HIGH',
+        systemInstruction: provisionalInstruction
+      }),
+      geminiError => {
+        console.warn('[AI EVALUATE grader fallback]', { code: geminiError?.code || 'UNKNOWN', status: geminiError?.status || 0 });
+        const timeoutMs = Math.min(115_000, 285_000 - (Date.now() - startedAt) - 145_000);
+        if (timeoutMs < 15_000) {
+          geminiError.aiStage = 'grader';
+          throw geminiError;
+        }
+        return generateOpenAIJson({
+          input: provisionalPrompt,
+          imageDataUrls: [...bookImages, ...(solutionImage ? [solutionImage] : [])],
+          schema,
+          model: process.env.OPENAI_GRADER_MODEL || process.env.OPENAI_VERIFY_MODEL || 'gpt-5.6-terra',
+          timeoutMs, maxOutputTokens: 16_000, reasoningEffort: 'high',
+          systemInstruction: provisionalInstruction
+        });
+      },
+      { stage: 'grader' }
+    );
 
     const provisionalData = normalizeEvaluation(provisional.data);
     const observedStudentWork = solutionText || text(provisional.data?.studentWorkTranscription, 100_000);
@@ -230,9 +249,9 @@ Mọi phép biến đổi đại số do bạn nêu phải được tự kiểm 
     }
 
     const verified = await generateOpenAIJson({
-      imageDataUrls:bookImages,
+      imageDataUrls: [...bookImages, ...(solutionImage ? [solutionImage] : [])],
       model: process.env.OPENAI_EVALUATION_VERIFY_MODEL || process.env.OPENAI_VERIFY_MODEL || 'gpt-5.6-terra',
-      input: `Hãy tự giải bài toán và kiểm định độc lập báo cáo chấm của Gemini. Không mặc nhiên tin Gemini.
+      input: `Hãy tự giải bài toán và kiểm định độc lập báo cáo chấm của ${provisional.provider}. Không mặc nhiên tin báo cáo sơ bộ.
 
 ĐỀ BÀI
 Kỳ thi: ${text(body.examTitle, 300)}
@@ -245,21 +264,21 @@ ${observedStudentWork}
 
 ${referenceBlock}
 
-BÁO CÁO SƠ BỘ CỦA GEMINI
+BÁO CÁO SƠ BỘ (${provisional.provider.toUpperCase()})
 ${JSON.stringify(provisionalData)}
 
 ${mathematicalAuditInstruction}\n\nYÊU CẦU KIỂM ĐỊNH
 1. Đối chiếu từng nhận xét với đúng nội dung học sinh đã viết; tuyệt đối không gán cho học sinh bước họ không viết.
 2. Tự tính lại mọi đẳng thức, giới hạn, điều kiện và trường hợp biên.
 3. Kiểm tra verdict và điểm trên thang 5.0; điểm phải phù hợp mức độ hoàn thành thực tế.
-4. Trả về một báo cáo CUỐI CÙNG hoàn chỉnh trong các trường nội dung. Nếu Gemini sai, hãy sửa trực tiếp và đặt corrected=true.
+4. Trả về một báo cáo CUỐI CÙNG hoàn chỉnh trong các trường nội dung. Nếu báo cáo sơ bộ sai, hãy sửa trực tiếp và đặt corrected=true.
 5. approved chỉ được true khi báo cáo cuối cùng có thể công bố; mọi cờ kiểm định phải phản ánh báo cáo cuối cùng sau hiệu chỉnh.
 6. Khi không có nguồn tham khảo, referenceMatched=true chỉ khi đã tự giải và đối chiếu độc lập.
 7. mathCorrect đánh giá tính đúng đắn của BÁO CÁO CUỐI, không phải tính đúng đắn của bài học sinh. Bài học sinh sai hoặc chưa hoàn thành vẫn phải được chấm và có thể cho mathCorrect=true nếu báo cáo cuối phân tích đúng lỗi đó.
 8. allClaimsChecked đánh giá mức độ kiểm tra của báo cáo cuối; không đặt false chỉ vì học sinh bỏ dở hoặc thiếu chứng minh.
 9. Dùng MathJax $...$ hoặc $$...$$; không dùng align, aligned, tag, itemize, enumerate hoặc textbf.`,
       schema: verifierSchema,
-      systemInstruction: `Bạn là giám khảo phản biện ${reference?.educationLevel === 'university' ? 'Toán Đại học (' + (reference.courseName || 'học phần tương ứng') + ')' : 'VMO/IMO'} độc lập. Hãy kiểm tra bài làm gốc và báo cáo Gemini bằng ${outputLanguage}. Ưu tiên tính đúng đắn; không bịa nội dung học sinh. Trả về đúng structured JSON.`,
+      systemInstruction: `Bạn là giám khảo phản biện ${reference?.educationLevel === 'university' ? 'Toán Đại học (' + (reference.courseName || 'học phần tương ứng') + ')' : 'VMO/IMO'} độc lập. Hãy kiểm tra bài làm gốc và báo cáo sơ bộ của ${provisional.provider} bằng ${outputLanguage}. Ưu tiên tính đúng đắn; không bịa nội dung học sinh. Trả về đúng structured JSON.`,
       timeoutMs: 140_000,
       maxOutputTokens: 16_000,
       reasoningEffort: 'high'
@@ -295,8 +314,8 @@ ${mathematicalAuditInstruction}\n\nYÊU CẦU KIỂM ĐỊNH
     finalData.quality = {
       verified: true,
       corrected: verified.data.corrected === true,
-      pipeline: 'gemini_openai',
-      graderProvider: 'google',
+      pipeline: `${provisional.provider}_openai`,
+      graderProvider: provisional.provider,
       verifierProvider: 'openai',
       usedTrustedReference: Boolean(reference.sources.length),
       hasExactReference: hasTrustedReference,
@@ -306,9 +325,9 @@ ${mathematicalAuditInstruction}\n\nYÊU CẦU KIỂM ĐỊNH
     };
     return res.status(200).json({
       success: true,
-      source: 'gemini_openai_verified',
+      source: `${provisional.provider === 'google' ? 'gemini' : 'openai'}_openai_verified`,
       model: `${provisional.model}+${verified.model}`,
-      providers: { grader: 'google', verifier: 'openai' },
+      providers: { grader: provisional.provider, verifier: 'openai' },
       data: finalData
     });
   } catch (error) {
@@ -316,7 +335,9 @@ ${mathematicalAuditInstruction}\n\nYÊU CẦU KIỂM ĐỊNH
     const openAiMissing = error?.code === 'OPENAI_NOT_CONFIGURED';
     const geminiMissing = error?.code === 'AI_NOT_CONFIGURED';
     const openAiTimeout = error?.code === 'OPENAI_TIMEOUT';
-    if (openAiTimeout) return res.status(504).json({ success: false, error: 'Gia sư Toán AI chưa hoàn tất kiểm định bài làm trong thời gian cho phép. Vui lòng thử lại.', code: 'OPENAI_TIMEOUT' });
+    if (openAiTimeout) return res.status(504).json({ success: false, error: error.aiStage === 'grader'
+      ? 'Gia sư Toán AI chưa hoàn tất bước chấm sơ bộ trong thời gian cho phép. Vui lòng thử lại.'
+      : 'Gia sư Toán AI chưa hoàn tất kiểm định bài làm trong thời gian cho phép. Vui lòng thử lại.', code: 'OPENAI_TIMEOUT' });
     if (openAiMissing || geminiMissing) return res.status(503).json({ success: false, error: 'Gia sư Toán AI tạm thời chưa sẵn sàng. Vui lòng thử lại sau.', code: error.code });
     if (String(error?.code || '').startsWith('OPENAI_')) {
       return res.status(502).json({ success: false, error: 'Gia sư Toán AI chưa thể hoàn tất kiểm định kết quả chấm. Vui lòng thử lại.', code: error.code });
