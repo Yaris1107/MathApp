@@ -155,7 +155,9 @@ export default async function handler(req, res) {
     );
     const diagramCheck = solved.data.geometry?.isGeometry === true ? inspectGeometryDiagram(solved.data.geometry) : { geometry: null, issues: [] };
     if (diagramCheck.geometry) solved.data.geometry = diagramCheck.geometry;
-    const verified = await generateVerifierJson({
+    let verified;
+    try {
+      verified = await generateVerifierJson({
       imageDataUrls:bookImages,
       input: `${mathematicalAuditInstruction}\nIndependently solve and audit the candidate below. ${geometryInstruction} Independently check the candidate geometry against EVERY statement hypothesis and every depicted auxiliary construction in the selected proof, labels, coordinates and constraints. Set geometryApproved=true only if faithful and complete. Supply a correctedGeometry and correctedGeometryApproved for the corrected proof; never reuse a diagram incompatible with that proof. Diagram failure alone must not reject a valid proof. For non-geometric problems, set degeneraciesChecked=true with a concrete note that geometric degeneracies do not apply, and document checks relevant to the problem domain instead. For discrete-operation problems, independently verify the invariant and the constructive sufficiency proof. Do not reject a complete proof merely for being concise; reject unsupported claims, not brevity. Score 0.0-5.0. Approval requires every requested part correct, a rigorous derivation, no unstated assumptions, and all extremal/equality cases proved when applicable. When no EXACT reference exists (including SIMILAR-only sources), matchesVerifiedReference means independent cross-check passed. Never require the new answer to equal the answer of a similar problem. If anything is weak, provide a fully corrected guide in the corrected* fields. Leave no generic placeholders. ${mathFormat}\n\n${common}\n\nDIAGRAM NUMERICAL VALIDATION:\n${JSON.stringify(diagramCheck.issues)}\n${solved.provider.toUpperCase()} CANDIDATE JSON:\n${JSON.stringify(solved.data)}`,
       schema: verifierSchema,
@@ -164,7 +166,11 @@ export default async function handler(req, res) {
       timeoutMs: 140_000,
       maxOutputTokens: 12_000,
       reasoningEffort: 'medium'
-    });
+      });
+    } catch (error) {
+      error.aiStage = 'verifier';
+      throw error;
+    }
     const requiredParts = partCount(problemContent);
     let data; let score; let repaired = false;
     if (accepted(verified.data) && substantive(solved.data.solution, solved.data.finalAnswers, requiredParts)) {

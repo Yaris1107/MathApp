@@ -35,6 +35,15 @@ for (const [name, source] of [['ai-guide', guide], ['ai-evaluate-solution', eval
 assert.match(examOcr, /source = 'gemini-fallback'/, 'Exam OCR must fall back to a second Gemini model');
 assert.match(mathOcr, /source = 'gemini-fallback'/, 'Math OCR must fall back to a second Gemini model');
 
+// A busy verifier model (Gemini 503 UNAVAILABLE) must not fail the pipeline:
+// the adapter keeps a second Gemini model in the same request, and HTTP status
+// errors are normalized so callers can classify them as transient.
+const verifierSource = await readFile(new URL('../lib/ai-verifier.js', import.meta.url), 'utf8');
+assert.match(verifierSource, /GEMINI_VERIFY_FALLBACK_MODEL/, 'Verifier must expose a configurable fallback model');
+assert.match(verifierSource, /new Set\(\[primaryModel, alternateModel\]\)/, 'Verifier must try an alternate Gemini model');
+const aiSource = await readFile(new URL('../lib/ai.js', import.meta.url), 'utf8');
+assert.match(aiSource, /AI_HTTP_\$\{Number\(error\.status\)\}/, 'Gemini ApiError statuses must become retryable error codes');
+
 // Transient Gemini failures retry once; permanent request errors do not.
 const primaryUnavailable = Object.assign(new Error('provider unavailable'), { status: 503 });
 let fallbackCalled = false;
