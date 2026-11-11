@@ -164,6 +164,7 @@ export default async function handler(req, res) {
       systemInstruction: `You are an independent adversarial reviewer for ${academicContext}. Recompute the problem instead of trusting the candidate. Correct the guide in ${outputLanguage} when needed. A score of 5.0 means publication-ready and fully rigorous. Return only the required structured result.`,
       model: process.env.GEMINI_VERIFY_MODEL || 'gemini-3.8-flash',
       timeoutMs: 140_000,
+      totalTimeoutMs: Math.max(15_000, 285_000 - (Date.now() - startedAt) - 5_000),
       maxOutputTokens: 12_000,
       reasoningEffort: 'medium'
       });
