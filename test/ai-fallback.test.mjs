@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFile, readdir } from 'node:fs/promises';
-import { generateWithFallback } from '../lib/ai.js';
+import { generateWithFallback, isTransientAiError, normalizeAiError } from '../lib/ai.js';
 import { embeddingConfig } from '../lib/rag-embedding.js';
 
 // The deployment is Gemini-only. Guard against any route re-introducing a
@@ -40,9 +40,17 @@ assert.match(mathOcr, /source = 'gemini-fallback'/, 'Math OCR must fall back to 
 // errors are normalized so callers can classify them as transient.
 const verifierSource = await readFile(new URL('../lib/ai-verifier.js', import.meta.url), 'utf8');
 assert.match(verifierSource, /GEMINI_VERIFY_FALLBACK_MODEL/, 'Verifier must expose a configurable fallback model');
-assert.match(verifierSource, /new Set\(\[primaryModel, alternateModel\]\)/, 'Verifier must try an alternate Gemini model');
+assert.match(verifierSource, /new Set\(\[primaryModel, alternateModel, backupModel\]\)/, 'Verifier must try alternate Gemini models');
 const aiSource = await readFile(new URL('../lib/ai.js', import.meta.url), 'utf8');
 assert.match(aiSource, /AI_HTTP_\$\{Number\(error\.status\)\}/, 'Gemini ApiError statuses must become retryable error codes');
+
+// HTTP 429/5xx must be classified as transient so the next Gemini model and
+// the one short same-model retry both run; request/config errors must not.
+const capacityError = normalizeAiError(Object.assign(new Error('unavailable'), { status: 503 }));
+assert.equal(capacityError.code, 'AI_HTTP_503');
+assert.equal(isTransientAiError(capacityError), true);
+assert.equal(isTransientAiError(Object.assign(new Error('rate limited'), { code: 'AI_HTTP_429' })), true);
+assert.equal(isTransientAiError(Object.assign(new Error('bad request'), { code: 'AI_HTTP_400', status: 400 })), false);
 
 // Transient Gemini failures retry once; permanent request errors do not.
 const primaryUnavailable = Object.assign(new Error('provider unavailable'), { status: 503 });

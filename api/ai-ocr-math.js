@@ -11,7 +11,9 @@ function ocrFallbackModels() {
   return [
     process.env.GEMINI_OCR_FALLBACK_MODEL,
     process.env.GEMINI_SOLVER_MODEL,
-    'gemini-3.5-flash'
+    'gemini-3.5-flash',
+    'gemini-3.8-flash',
+    'gemini-3.5-flash-lite'
   ].filter(Boolean);
 }
 

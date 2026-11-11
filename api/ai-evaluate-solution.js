@@ -214,8 +214,9 @@ Mọi phép biến đổi đại số do bạn nêu phải được tự kiểm 
         temperature: 1,
         models: [
           process.env.GEMINI_EVALUATION_MODEL,
+          'gemini-3.5-flash',
           'gemini-3.8-flash',
-          'gemini-3.5-flash'
+          'gemini-3.5-flash-lite'
         ],
         timeoutMs: 130_000,
         totalTimeoutMs: 130_000,
@@ -234,7 +235,7 @@ Mọi phép biến đổi đại số do bạn nêu phải được tự kiểm 
           input: provisionalPrompt,
           imageDataUrls: [...bookImages, ...(solutionImage ? [solutionImage] : [])],
           schema,
-          model: process.env.GEMINI_EVALUATION_FALLBACK_MODEL || process.env.GEMINI_VERIFY_MODEL || 'gemini-3.8-flash',
+          model: process.env.GEMINI_EVALUATION_FALLBACK_MODEL || process.env.GEMINI_VERIFY_MODEL || 'gemini-3.5-flash',
           timeoutMs, maxOutputTokens: 16_000, reasoningEffort: 'high',
           systemInstruction: provisionalInstruction
         });
@@ -250,7 +251,7 @@ Mọi phép biến đổi đại số do bạn nêu phải được tự kiểm 
 
     const verified = await generateVerifierJson({
       imageDataUrls: [...bookImages, ...(solutionImage ? [solutionImage] : [])],
-      model: process.env.GEMINI_EVALUATION_VERIFY_MODEL || process.env.GEMINI_VERIFY_MODEL || 'gemini-3.8-flash',
+      model: process.env.GEMINI_EVALUATION_VERIFY_MODEL || process.env.GEMINI_VERIFY_MODEL || 'gemini-3.5-flash',
       input: `Hãy tự giải bài toán và kiểm định độc lập báo cáo chấm của ${provisional.provider}. Không mặc nhiên tin báo cáo sơ bộ.
 
 ĐỀ BÀI

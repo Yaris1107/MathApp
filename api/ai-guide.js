@@ -63,6 +63,7 @@ export function describeGuideError(error, mode = '') {
     ? 'Gemini quá thời gian khi tạo lời giải. Vui lòng thử lại.'
     : 'Gemini quá thời gian khi kiểm định lời giải. Vui lòng thử lại.', stage };
   if (code === 'AI_RECITATION') return { status: 502, error: 'Gemini không thể tạo nội dung cho bài này. Vui lòng thử lại hoặc diễn đạt đề ngắn gọn hơn.', stage };
+  if (/^AI_HTTP_(?:429|5\d\d)$/.test(code)) return { status: 503, error: 'Gemini đang quá tải hoặc tạm thời không khả dụng. Vui lòng thử lại sau ít phút.', stage };
   if (mode === 'diagram' && code === 'GEOMETRY_TIMEOUT') return { status: 504, error: 'Gia sư AI chưa hoàn tất kiểm tra hình trong thời gian cho phép. Vui lòng thử lại.', stage: 'verifier' };
   return { status: 502, error: `Gia sư AI gặp lỗi khi ${stage === 'verifier' ? 'kiểm định lời giải' : 'tạo lời giải'}${code ? ` (${code})` : ''}. Vui lòng thử lại; nếu tiếp tục, gửi mã lỗi cho quản trị viên.`,
     stage };
@@ -111,8 +112,9 @@ export default async function handler(req, res) {
             return generateVerifierJson({
               input: options.contents,
               schema: options.schema,
-              model: process.env.GEMINI_SOLVER_FALLBACK_MODEL || process.env.GEMINI_VERIFY_MODEL || 'gemini-3.8-flash',
+              model: process.env.GEMINI_SOLVER_FALLBACK_MODEL || process.env.GEMINI_VERIFY_MODEL || 'gemini-3.5-flash',
               timeoutMs,
+              totalTimeoutMs: timeoutMs,
               maxOutputTokens: 10_000,
               reasoningEffort: 'medium',
               systemInstruction: options.systemInstruction
@@ -146,8 +148,8 @@ export default async function handler(req, res) {
         }
         return generateVerifierJson({
           input: solverPrompt, imageDataUrls: bookImages, schema: guideSchema,
-          model: process.env.GEMINI_SOLVER_FALLBACK_MODEL || process.env.GEMINI_VERIFY_MODEL || 'gemini-3.8-flash',
-          timeoutMs, maxOutputTokens: 12_000, reasoningEffort: 'high',
+          model: process.env.GEMINI_SOLVER_FALLBACK_MODEL || process.env.GEMINI_VERIFY_MODEL || 'gemini-3.5-flash',
+          timeoutMs, totalTimeoutMs: timeoutMs, maxOutputTokens: 12_000, reasoningEffort: 'high',
           systemInstruction: solverInstruction
         });
       },
@@ -162,7 +164,7 @@ export default async function handler(req, res) {
       input: `${mathematicalAuditInstruction}\nIndependently solve and audit the candidate below. ${geometryInstruction} Independently check the candidate geometry against EVERY statement hypothesis and every depicted auxiliary construction in the selected proof, labels, coordinates and constraints. Set geometryApproved=true only if faithful and complete. Supply a correctedGeometry and correctedGeometryApproved for the corrected proof; never reuse a diagram incompatible with that proof. Diagram failure alone must not reject a valid proof. For non-geometric problems, set degeneraciesChecked=true with a concrete note that geometric degeneracies do not apply, and document checks relevant to the problem domain instead. For discrete-operation problems, independently verify the invariant and the constructive sufficiency proof. Do not reject a complete proof merely for being concise; reject unsupported claims, not brevity. Score 0.0-5.0. Approval requires every requested part correct, a rigorous derivation, no unstated assumptions, and all extremal/equality cases proved when applicable. When no EXACT reference exists (including SIMILAR-only sources), matchesVerifiedReference means independent cross-check passed. Never require the new answer to equal the answer of a similar problem. If anything is weak, provide a fully corrected guide in the corrected* fields. Leave no generic placeholders. ${mathFormat}\n\n${common}\n\nDIAGRAM NUMERICAL VALIDATION:\n${JSON.stringify(diagramCheck.issues)}\n${solved.provider.toUpperCase()} CANDIDATE JSON:\n${JSON.stringify(solved.data)}`,
       schema: verifierSchema,
       systemInstruction: `You are an independent adversarial reviewer for ${academicContext}. Recompute the problem instead of trusting the candidate. Correct the guide in ${outputLanguage} when needed. A score of 5.0 means publication-ready and fully rigorous. Return only the required structured result.`,
-      model: process.env.GEMINI_VERIFY_MODEL || 'gemini-3.8-flash',
+      model: process.env.GEMINI_VERIFY_MODEL || 'gemini-3.5-flash',
       timeoutMs: 140_000,
       totalTimeoutMs: Math.max(15_000, 285_000 - (Date.now() - startedAt) - 5_000),
       maxOutputTokens: 12_000,
