@@ -3,10 +3,17 @@ import { MATH_SUPPORT_TOPICS } from '../lib/math-support-topics.js';
 import { normalizeStandaloneMath } from '../lib/ocr-normalization.js';
 import { getSession } from '../lib/session.js';
 import { checkRateLimit, generateJson, handleAiError, parseBody, prepare, text } from '../lib/ai.js';
-import { generateOpenAIJson } from '../lib/openai.js';
 
 const OCR_GEMINI_TIMEOUT_MS = 45_000;
-const OCR_OPENAI_TIMEOUT_MS = 60_000;
+const OCR_FALLBACK_TIMEOUT_MS = 60_000;
+
+function ocrFallbackModels() {
+  return [
+    process.env.GEMINI_OCR_FALLBACK_MODEL,
+    process.env.GEMINI_SOLVER_MODEL,
+    'gemini-3.5-flash'
+  ].filter(Boolean);
+}
 
 const schema = {
   type: 'object',
@@ -87,13 +94,13 @@ Quy tắc bắt buộc: công thức nội dòng phải đặt trong $...$; côn
       });
     } catch (geminiError) {
       console.warn('[Math support OCR Gemini fallback]', { code: geminiError?.code || 'UNKNOWN' });
-      result = await generateOpenAIJson({
-        input: prompt, imageDataUrl: image, schema: ocrSchema,
-        model: process.env.OPENAI_OCR_MODEL || process.env.OPENAI_VERIFY_MODEL || 'gpt-5.6-terra',
-        timeoutMs: OCR_OPENAI_TIMEOUT_MS, maxOutputTokens: 8_000, reasoningEffort: 'low',
+      result = await generateJson({
+        contents, schema: ocrSchema,
+        models: ocrFallbackModels(),
+        timeoutMs: OCR_FALLBACK_TIMEOUT_MS, maxOutputTokens: 8_000,
         systemInstruction: 'Bạn là chuyên gia OCR công thức toán tiếng Việt. Chỉ chép nội dung nhìn thấy, không giải hoặc tự suy diễn.'
       });
-      source = 'openai-fallback';
+      source = 'gemini-fallback';
     }
     const data = { ...result.data, latexText: normalizeOcrLatex(standalone ? normalizeStandaloneMath(result.data?.latexText) : result.data?.latexText) };
     if (standalone) data.topic = MATH_SUPPORT_TOPICS.includes(data.topic) ? data.topic : '';

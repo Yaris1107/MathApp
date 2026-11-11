@@ -67,16 +67,20 @@ referenceProblem.referenceSolutionVerified = false;
 await queueReferenceSolution(referenceDb, referenceProblem._id);
 assert.equal(referenceDb.data.verified_knowledge.find(item => item.sourceId === `problem-reference:${referenceProblem._id}`).status, 'revoked');
 
-const saved = process.env.OPENAI_API_KEY;
-process.env.OPENAI_API_KEY = 'test-key';
+const saved = process.env.GEMINI_API_KEY;
+process.env.GEMINI_API_KEY = 'test-key';
 try {
   const result = await embedText('test', async (_, options) => {
-    assert.equal(JSON.parse(options.body).model, 'text-embedding-3-small');
-    return { ok: true, status: 200, json: async () => ({ data: [{ embedding: Array(1536).fill(0.1) }], usage: { total_tokens: 3 } }) };
+    const body = JSON.parse(options.body);
+    assert.equal(body.model, 'models/gemini-embedding-001');
+    assert.equal(body.taskType, 'RETRIEVAL_DOCUMENT');
+    assert.equal(body.outputDimensionality, 1536);
+    return { ok: true, status: 200, json: async () => ({ embedding: { values: Array(1536).fill(0.1) }, usageMetadata: { promptTokenCount: 3 } }) };
   });
   assert.equal(result.tokens, 3);
-  await assert.rejects(embedText('test', async () => ({ ok: true, status: 200, json: async () => ({ data: [{ embedding: [NaN] }] }) })), /RAG_EMBEDDING/);
-} finally { if (saved === undefined) delete process.env.OPENAI_API_KEY; else process.env.OPENAI_API_KEY = saved; }
+  assert.equal(result.estimatedUsd, 0, 'Gemini free-tier embeddings default to a zero estimate');
+  await assert.rejects(embedText('test', async () => ({ ok: true, status: 200, json: async () => ({ embedding: { values: [NaN] } }) })), /RAG_EMBEDDING/);
+} finally { if (saved === undefined) delete process.env.GEMINI_API_KEY; else process.env.GEMINI_API_KEY = saved; }
 const oldSecret = process.env.CRON_SECRET;
 process.env.CRON_SECRET = 'worker-test-secret';
 const response = { status(code) { this.code = code; return this; }, json(body) { this.body = body; return this; }, setHeader() {} };

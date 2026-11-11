@@ -3,11 +3,10 @@ import { getDb } from '../lib/db.js';
 import { allows } from '../lib/education-access.js';
 import { getSession } from '../lib/session.js';
 import { checkRateLimit, generateJson, handleAiError, parseBody, prepare, text } from '../lib/ai.js';
-import { generateOpenAIJson } from '../lib/openai.js';
 
 const OCR_ATTEMPT_TIMEOUT_MS = 40_000;
 const OCR_TOTAL_TIMEOUT_MS = 48_000;
-const OCR_OPENAI_TIMEOUT_MS = 60_000;
+const OCR_FALLBACK_TIMEOUT_MS = 60_000;
 const OCR_MAX_OUTPUT_TOKENS = 24_000;
 
 function ocrModels() {
@@ -15,6 +14,14 @@ function ocrModels() {
     process.env.GEMINI_OCR_MODEL,
     'gemini-3.5-flash-lite'
   ];
+}
+
+function ocrFallbackModels() {
+  return [
+    process.env.GEMINI_OCR_FALLBACK_MODEL,
+    process.env.GEMINI_SOLVER_MODEL,
+    'gemini-3.5-flash'
+  ].filter(Boolean);
 }
 
 const schema = {
@@ -130,17 +137,21 @@ Quy tắc bắt buộc:
       console.warn('[Exam OCR Gemini fallback]', {
         code: geminiError?.code || 'UNKNOWN', finishReason: geminiError?.finishReason || ''
       });
-      result = await generateOpenAIJson({
-        input: prompt,
-        imageDataUrl: image,
+      result = await generateJson({
+        contents: {
+          parts: [
+            { inlineData: { mimeType: match[1], data: match[2] } },
+            { text: prompt }
+          ]
+        },
         schema,
-        model: process.env.OPENAI_OCR_MODEL || process.env.OPENAI_VERIFY_MODEL || 'gpt-5.6-terra',
-        timeoutMs: OCR_OPENAI_TIMEOUT_MS,
+        temperature: 0,
+        models: ocrFallbackModels(),
+        timeoutMs: OCR_FALLBACK_TIMEOUT_MS,
         maxOutputTokens: 16_000,
-        reasoningEffort: 'low',
         systemInstruction: 'Bạn là chuyên gia OCR đề thi Toán, bao gồm Toán Đại học và Olympic. Chỉ trích xuất trung thực nội dung trong ảnh người dùng cung cấp và trả JSON đúng schema.'
       });
-      source = 'openai-fallback';
+      source = 'gemini-fallback';
     }
     const data = result.data || {};
     const rawQuestions=Array.isArray(data.questions)?data.questions:[];

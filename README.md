@@ -78,13 +78,13 @@ Trình duyệt chỉ gọi `/api/auth` và `/api/data`; không kết nối trự
 
 ## API AI trên Vercel
 
-Các endpoint AI yêu cầu phiên đăng nhập hợp lệ. Đặt `OPENAI_API_KEY` làm Secret trên Vercel và bảo đảm OpenAI Project có billing/hạn mức API khả dụng để bật bước kiểm định độc lập và dự phòng; `GEMINI_API_KEY` được dùng làm nhà cung cấp chính khi khả dụng. Nên cấu hình cả hai để các luồng tạo nội dung, OCR và dịch thuật tiếp tục hoạt động khi một nhà cung cấp gặp sự cố:
+Các endpoint AI yêu cầu phiên đăng nhập hợp lệ. Chỉ cần đặt `GEMINI_API_KEY` làm Secret trên Vercel; mọi bước giải, chấm, kiểm định, OCR, dịch thuật và embedding đều dùng Gemini. Khi model chính gặp lỗi tạm thời, hệ thống tự thử lại bằng một model Gemini mạnh hơn:
 
-- `/api/ai-guide`: sinh và kiểm định hướng dẫn/lời giải Olympic; có dự phòng OpenAI cho lời giải và hình;
+- `/api/ai-guide`: sinh và kiểm định hướng dẫn/lời giải Olympic; có dự phòng bằng model Gemini khác cho lời giải và hình;
 - `/api/ai-evaluate-solution`: chấm bài dạng văn bản hoặc ảnh với kiểm định độc lập;
 - `/api/ai-ocr-math` và `/api/ai-ocr-exam`: nhận diện công thức, bài giải và đề thi từ ảnh;
 - `/api/ai-predict-exam`: tạo đề dự đoán và kiểm định nội dung;
-- `/api/translate-content`: dịch nội dung toán học, có dự phòng OpenAI.
+- `/api/translate-content`: dịch nội dung toán học, có dự phòng bằng model Gemini khác.
 
 API key chỉ được đọc ở server và không được gửi xuống trình duyệt. Các endpoint có giới hạn tần suất theo tài khoản và giới hạn kích thước nội dung đầu vào.
 
@@ -93,10 +93,10 @@ API key chỉ được đọc ở server và không được gửi xuống trìn
 
 Hướng dẫn cho bài hình học phẳng có thêm hình SVG gồm các điểm có nhãn, đoạn thẳng và đường tròn; nét đứt biểu diễn các đường phụ. Chức năng áp dụng cho câu hỏi trong đề thi và mục **Hỗ trợ giải toán**. Hình được đưa vào bản in/PDF và lưu cùng `aiGuide.geometry` khi người dùng bấm nút lưu MongoDB hiện có.
 
-- Gemini đề xuất các điểm tự do và chuỗi phép dựng, OpenAI dự phòng khi Gemini lỗi; mã tính trực tiếp trung điểm, hình chiếu, đối xứng, giao hai đường thẳng, tâm ngoại tiếp, trực tâm, điểm trên đường tròn và giao đường thẳng–đường tròn/hai đường tròn. GPT kiểm tra sự phù hợp với giả thiết và lời giải. Bộ kiểm tra số học dùng chung ở server và trình duyệt kiểm tra quan hệ thẳng hàng, vuông góc, song song, bằng độ dài, trung điểm và thuộc đường tròn với sai số chuẩn hóa `1e-4`.
+- Gemini đề xuất các điểm tự do và chuỗi phép dựng, có thể dự phòng bằng model Gemini khác khi model chính lỗi; mã tính trực tiếp trung điểm, hình chiếu, đối xứng, giao hai đường thẳng, tâm ngoại tiếp, trực tâm, điểm trên đường tròn và giao đường thẳng–đường tròn/hai đường tròn. Gemini kiểm tra sự phù hợp với giả thiết và lời giải. Bộ kiểm tra số học dùng chung ở server và trình duyệt kiểm tra quan hệ thẳng hàng, vuông góc, song song, bằng độ dài, trung điểm và thuộc đường tròn với sai số chuẩn hóa `1e-4`.
 - Chỉ dựng SVG từ dữ liệu đã chuẩn hóa, không chèn SVG/HTML hoặc tài nguyên bên ngoài do mô hình cung cấp. Giới hạn mỗi hình: 40 điểm, 80 đoạn, 12 đường tròn và 100 ràng buộc.
 - Với hướng dẫn hình học đã lưu chưa có hình, bấm **Tạo / Thử lại hình vẽ**, sau đó lưu bằng nút MongoDB nếu muốn giữ hình. API dùng chế độ `diagram` của `/api/ai-guide`, giữ nguyên lời giải, phiên đăng nhập, quyền đọc câu hỏi và giới hạn tần suất hiện có.
-- Dữ liệu hình được tính và kiểm tra trước khi gửi GPT; kết quả GPT trả về được tính/kiểm tra lại. Cho phép một lượt hiệu chỉnh theo lỗi cụ thể trong thời hạn yêu cầu. Nếu vẫn không vượt qua kiểm tra, giao diện và log trả mã lỗi phân biệt lỗi tọa độ/ràng buộc với lỗi kiểm định nội dung; lời giải vẫn hiển thị cùng thông báo và nút thử lại. Khi sửa nội dung hướng dẫn, hình cũ bị loại bỏ để dựng lại; bản in của nội dung đang sửa cũng không dùng hình cũ.
+- Dữ liệu hình được tính và kiểm tra trước khi gửi Gemini; kết quả Gemini trả về được tính/kiểm tra lại. Cho phép một lượt hiệu chỉnh theo lỗi cụ thể trong thời hạn yêu cầu. Nếu vẫn không vượt qua kiểm tra, giao diện và log trả mã lỗi phân biệt lỗi tọa độ/ràng buộc với lỗi kiểm định nội dung; lời giải vẫn hiển thị cùng thông báo và nút thử lại. Khi sửa nội dung hướng dẫn, hình cũ bị loại bỏ để dựng lại; bản in của nội dung đang sửa cũng không dùng hình cũ.
 
 Hình biểu diễn một cấu hình minh họa, không phải chứng minh hình học. Kiểm tra số học chỉ kiểm tra các quan hệ đã khai báo; độ đầy đủ và sự phù hợp với đề bài còn phụ thuộc bước kiểm định AI. Phiên bản này hỗ trợ hình học phẳng, chưa dựng hình không gian hay các đường cong tổng quát. Chạy `node test/geometry-constructions.test.mjs` và `node test/geometry-diagram.test.mjs` để kiểm tra hình học, API với mô hình giả lập, lưu dữ liệu, giao diện và bản in.
 

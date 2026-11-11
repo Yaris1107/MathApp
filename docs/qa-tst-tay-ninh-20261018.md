@@ -41,7 +41,7 @@ Không chạy yêu cầu AI dựng hình mới: hình hợp lệ đã tồn tạ
 - 60 vị trí G hợp lệ kiểm tra FH∥AB khi AB∥KL nhưng d2≠d3.
 - 56 vị trí G hợp lệ kiểm tra FH=KL khi AD∥BC trong hình thang không phải hình bình hành.
 
-Đây là kiểm tra số học các cấu hình đại diện, không phải chứng minh tổng quát và không phải kết quả gọi Gemini/GPT thật. Sau khi bổ sung ca này vào `npm test`, toàn bộ 21 nhóm kiểm thử đã chạy thành công.
+Đây là kiểm tra số học các cấu hình đại diện, không phải chứng minh tổng quát và không phải kết quả gọi Gemini thật. Sau khi bổ sung ca này vào `npm test`, toàn bộ 21 nhóm kiểm thử đã chạy thành công.
 
 ## Lỗ hổng trong lời giải đã lưu
 

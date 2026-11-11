@@ -9,7 +9,7 @@ Cả `/api/ai-guide` và `/api/ai-evaluate-solution` dùng `retrieveVerifiedCont
 1. Backend giải quyết `contentKey`, ID Atlas hoặc ID cũ tới problem hiện hành, kiểm tra trạng thái/khóa AI và quyền đọc. Đề Atlas là nguồn chuẩn; client không được thay đề trong prompt.
 2. Exact: tìm submission Admin xác minh theo các khóa chuẩn, so hash đề hiện hành với snapshot. Nguồn referenceSolution trong problem chỉ được dùng nếu `referenceSolutionProblemHash` khớp đề hiện tại; nguồn cũ chưa có hash không mặc nhiên được tin.
 3. Hybrid khi exact không có: pre-filter active/admin_verified/topic; chạy Atlas Vector Search, Atlas Search và exact-tag lookup; hợp nhất RRF, lọc điều kiện, đọc lại submission/problem và kiểm tra hash/verification. Tối đa 3 nguồn khác nhau.
-4. Nhận định SIMILAR chỉ hỗ trợ phương pháp; không phải đáp án cho bài mới. Gemini giải/chấm và GPT kiểm định vẫn giữ. Chấm bài phải chấp nhận phương pháp đúng khác nguồn.
+4. Nhận định SIMILAR chỉ hỗ trợ phương pháp; không phải đáp án cho bài mới. Gemini giải/chấm và Gemini kiểm định vẫn giữ. Chấm bài phải chấp nhận phương pháp đúng khác nguồn.
 
 Bản đầu chủ động yêu cầu tag toán học phù hợp; chưa dùng ngưỡng vector cố định khi chưa có corpus thật để hiệu chỉnh. Bộ tag là heuristics hữu hạn trong rag-core.js; không phải bộ chứng minh tương đương toán học. Nguồn không có tag phù hợp bị bỏ qua. Lọc giả thiết chỉ nhận diện một số điều kiện (nguyên, thực, dương, tam giác nhọn); prompt phải tiếp tục kiểm tra đầy đủ. Nếu không đủ nguồn, AI tự giải độc lập. Không có cam kết mọi bài tương tự đều được tìm thấy.
 
@@ -27,7 +27,7 @@ Một nguồn có nội dung rất dài được cắt giới hạn để kiểm
 
 ## Cấu hình Atlas / Vercel
 
-Giữ các biến đã có: MONGODB_URI, JWT_SECRET, OPENAI_API_KEY và biến model Gemini/GPT. Thêm CRON_SECRET để bảo vệ worker cron.
+Giữ các biến đã có: MONGODB_URI, JWT_SECRET, GEMINI_API_KEY và các biến model Gemini. Thêm CRON_SECRET để bảo vệ worker cron.
 
 Biến thêm:
 
@@ -52,7 +52,7 @@ CLI tương đương:
     npm run rag:index -- backfill <cursor>
     npm run rag:index -- process
 
-Tác vụ chạy từ CLI hoặc Admin theo batch; worker cron chạy mỗi ngày lúc 00:00 UTC (07:00 Việt Nam), tối đa 24 nguồn/lượt, yêu cầu CRON_SECRET. Cron Vercel chỉ chạy trên deployment production; preview dùng nút Admin hoặc CLI. Vì vậy submission mới xác minh dùng được qua exact ngay, nhưng phải xử lý job trước khi tham gia vector retrieval. Quản trị dùng API data hiện có (maxDuration 120s); worker dùng endpoint thứ 12 và xác thực Bearer CRON_SECRET. AI chừa ngân sách retrieval bằng timeout Gemini 130s và GPT 140s.
+Tác vụ chạy từ CLI hoặc Admin theo batch; worker cron chạy mỗi ngày lúc 00:00 UTC (07:00 Việt Nam), tối đa 24 nguồn/lượt, yêu cầu CRON_SECRET. Cron Vercel chỉ chạy trên deployment production; preview dùng nút Admin hoặc CLI. Vì vậy submission mới xác minh dùng được qua exact ngay, nhưng phải xử lý job trước khi tham gia vector retrieval. Quản trị dùng API data hiện có (maxDuration 120s); worker dùng endpoint thứ 12 và xác thực Bearer CRON_SECRET. AI chừa ngân sách retrieval bằng timeout Gemini 130s và 140s cho bước kiểm định.
 
 Thay embedding model/dimensions cần tạo lại index vector tương ứng và backfill; setup không tự phá/hủy chỉ mục đang có. Không dùng embedding các model khác nhau chung một không gian.
 
@@ -68,7 +68,7 @@ Thay embedding model/dimensions cần tạo lại index vector tương ứng và
 
 Corpus: mảng {name, problemRef, expectedSourceIds: [submissionId...]}; cần Admin gán nhãn độc lập. Tối thiểu nên có 50–100 bài đa chuyên đề, nhiều bài gần giống khác giả thiết và bài không có nguồn. Script đo Recall@3, precision, p50/p95 và token/chi phí embedding. Chưa đo chi phí sinh/chấm AI. Thực hiện riêng thử nghiệm chấm cặp lời giải cùng bài theo hai phương pháp đúng; đánh giá điểm, lỗi và chênh lệch bởi Admin.
 
-Không xem điểm RRF là xác suất đúng. Chưa đủ điều kiện merge chỉ dựa trên benchmark mock; phải kiểm tra live Atlas và chất lượng Gemini/GPT trước khi merge.
+Không xem điểm RRF là xác suất đúng. Chưa đủ điều kiện merge chỉ dựa trên benchmark mock; phải kiểm tra live Atlas và chất lượng Gemini trước khi merge.
 
 ## Preview và trạng thái nghiệm thu
 
@@ -76,7 +76,7 @@ PR nháp: https://github.com/vutrhuy81/vmo-tst/pull/31
 
 Preview: https://vmo-tst-git-feature-two-stage-h-96cf89-vutrhuy81-6018s-projects.vercel.app/login.html
 
-Vercel bot báo Ready. Phiên triển khai này chưa truy cập được nội dung preview do kết nối Vercel trả 403 cho project/team. Workspace không có MONGODB_URI hoặc OPENAI_API_KEY để chạy lập chỉ mục và benchmark thật. Cần cấp kết nối Vercel đúng team, xác nhận cấu hình preview, rồi chạy các bước Atlas và kiểm thử live trước merge.
+Vercel bot báo Ready. Phiên triển khai này chưa truy cập được nội dung preview do kết nối Vercel trả 403 cho project/team. Workspace không có MONGODB_URI hoặc GEMINI_API_KEY để chạy lập chỉ mục và benchmark thật. Cần cấp kết nối Vercel đúng team, xác nhận cấu hình preview, rồi chạy các bước Atlas và kiểm thử live trước merge.
 
 ## Sửa đổi sau kiểm thử Atlas — 2026-10-01
 
@@ -84,7 +84,7 @@ Vercel bot báo Ready. Phiên triển khai này chưa truy cập được nội 
 - Hybrid yêu cầu ít nhất một thẻ cụ thể khớp và ngưỡng overlap. “Đường tròn”, “phương trình hàm”, “bất đẳng thức”, “tổ hợp”, “quy nạp” đơn lẻ không đủ. Không trả phí embedding khi không có nguồn đáp ứng thẻ. Đây là lựa chọn bảo thủ về precision; có thể giảm recall, cần corpus đa chuyên đề để hiệu chỉnh.
 - Cache `rag_query_embeddings`: SHA-256 của input/model/dimensions, TTL 24 giờ, single-flight trong từng instance. Cache chỉ lưu vector; mỗi lần vẫn tìm và kiểm tra nguồn hiện tại, nội dung, xác minh và quyền truy cập. Log phân biệt miss/hit/shared/bypass; token/chi phí trên hit là 0 cho embedding, không phải toàn request AI.
 - Chỉ chuẩn hóa khoảng trắng quanh một số quan hệ TeX (`\\ne`, `\\le`, …), bảo toàn số mũ/chỉ số và chuyển HTML sup/sub thành ký hiệu tương ứng. Không đơn giản hóa công thức hay coi hai giả thiết khác nhau là một.
-- Gemini/GPT phải ghi kiểm tra suy biến cụ thể. Gate không chấp nhận kết quả thiếu kiểm tra; GPT phải approved=true khi công bố báo cáo đánh giá. Hướng dẫn dùng reasoning medium; model vẫn lấy từ cấu hình hiện hành. Gate là kiểm tra cấu trúc/cờ tự báo cáo, không thay cho chứng minh hình thức hay phản biện của giáo viên.
+- Gemini phải ghi kiểm tra suy biến cụ thể. Gate không chấp nhận kết quả thiếu kiểm tra; bước kiểm định Gemini phải approved=true khi công bố báo cáo đánh giá. Hướng dẫn dùng reasoning medium; model vẫn lấy từ cấu hình hiện hành. Gate là kiểm tra cấu trúc/cờ tự báo cáo, không thay cho chứng minh hình thức hay phản biện của giáo viên.
 
 ### Nâng cấp Atlas sau khi deployment preview sẵn sàng
 
@@ -103,7 +103,7 @@ Baseline tái hiện lookup reference của AI Guide trước RAG, gồm problem
 
 CLI: `npm run rag:benchmark:live -- /secure/local/labelled-cases.json` (cần MONGODB_URI và khóa embedding khi phải gọi provider); thêm `--bypass-cache` để đo cold embedding. UI dùng phiên Admin, không yêu cầu nhập khóa DB/API lên frontend.
 
-Đơn giá mặc định cho text-embedding-3-small: $0.02/1M token (Standard, kiểm tra 2026-10-01: https://developers.openai.com/api/docs/models/text-embedding-3-small). RAG_EMBEDDING_USD_PER_MILLION ghi đè khi hợp đồng/đơn giá khác. Model chưa biết giá giữ null. Đây là ước tính embedding, không gồm Atlas và chi phí Gemini/GPT.
+Gemini embedding (`gemini-embedding-001`) dùng hạn mức miễn phí nên ước tính mặc định là 0. `RAG_EMBEDDING_USD_PER_MILLION` ghi đè khi đã bật thanh toán hoặc dùng đơn giá khác. Đây là ước tính embedding, không gồm Atlas và chi phí Gemini.
 
 ### Trạng thái nghiệm thu
 

@@ -8,7 +8,7 @@ import { randomUUID } from 'node:crypto';
 import { ObjectId } from 'mongodb';
 import { JSDOM } from 'jsdom';
 import { handleMathSupport } from '../lib/math-support.js';
-import { canAccessProblem, supportVisibility } from '../lib/problem-access.js';
+import { canAccessProblem, hideUnverifiedReferenceSolution, supportVisibility } from '../lib/problem-access.js';
 import { retrieveVerifiedContext } from '../lib/rag-retrieval.js';
 import { sourceFresh } from '../lib/rag-core.js';
 import { getCatalogTotals } from '../lib/home-stats.js';
@@ -28,17 +28,15 @@ for (const statement of [String.raw`$x$$y$`, String.raw`Cho $a,b\in\mathbb R$. C
 
 const ocrSource = fs.readFileSync(new URL('../api/ai-ocr-math.js', import.meta.url), 'utf8')
   .replace(/^import .*;\n/gm, '').replace('export default async function handler', 'async function handler');
-let ocrTopic = MATH_SUPPORT_TOPICS[0], ocrOptions, openAiOcrOptions, failGeminiOcr = false, failOpenAiOcr = false;
-const ocrRoute = new Function('allows', 'MATH_SUPPORT_TOPICS', 'normalizeStandaloneMath', 'getSession', 'checkRateLimit', 'prepare', 'parseBody', 'text', 'generateJson', 'generateOpenAIJson', 'handleAiError', `${ocrSource}\nreturn handler;`)(
+let ocrTopic = MATH_SUPPORT_TOPICS[0], ocrOptions, fallbackOcrOptions, failGeminiOcr = false, failFallbackOcr = false, inFallbackOcr = false;
+const ocrRoute = new Function('allows', 'MATH_SUPPORT_TOPICS', 'normalizeStandaloneMath', 'getSession', 'checkRateLimit', 'prepare', 'parseBody', 'text', 'generateJson', 'handleAiError', `${ocrSource}\nreturn handler;`)(
   allows,   MATH_SUPPORT_TOPICS, normalizeStandaloneMath, () => ({ username: 'tester' }), () => true, () => {}, req => req.body,
   value => String(value || ''), async options => {
-    ocrOptions = options;
-    if (failGeminiOcr) { const error = new Error('AI_TIMEOUT'); error.code = 'AI_TIMEOUT'; throw error; }
-    return { model: 'fixture', data: { latexText: malformedLiveOcr, summary: 'test', confidence: 'high', topic: ocrTopic } };
-  }, async options => {
-    openAiOcrOptions = options;
-    if (failOpenAiOcr) { const error = new Error('OPENAI_HTTP_429'); error.code = 'OPENAI_HTTP_429'; error.status = 429; throw error; }
-    return { model: 'openai-fixture', data: { latexText: malformedLiveOcr, summary: 'fallback', confidence: 'medium', topic: ocrTopic } };
+    const isFallback = inFallbackOcr;
+    if (isFallback) { fallbackOcrOptions = options; inFallbackOcr = false; } else ocrOptions = options;
+    if (failGeminiOcr && !isFallback) { inFallbackOcr = true; const error = new Error('AI_TIMEOUT'); error.code = 'AI_TIMEOUT'; throw error; }
+    if (failFallbackOcr && isFallback) { const error = new Error('AI_TIMEOUT'); error.code = 'AI_TIMEOUT'; throw error; }
+    return { model: isFallback ? 'gemini-fallback-fixture' : 'fixture', data: { latexText: malformedLiveOcr, summary: isFallback ? 'fallback' : 'test', confidence: 'high', topic: ocrTopic } };
   }, handleAiError);
 const ocrResponse = { status(n) { this.code = n; return this; }, json(body) { this.body = body; return this; } };
 await ocrRoute({ method: 'POST', body: { image: 'data:image/png;base64,iVBORw0KGgo=', purpose: 'standalone_problem' } }, ocrResponse);
@@ -59,17 +57,17 @@ await ocrRoute({ method: 'POST', body: { image: 'data:image/png;base64,iVBORw0KG
 assert.equal(ocrOptions.schema.properties.topic, undefined, 'Submission OCR keeps its original response schema');
 failGeminiOcr = true;
 await ocrRoute({ method: 'POST', body: { image: 'data:image/png;base64,iVBORw0KGgo=', purpose: 'standalone_problem' } }, ocrResponse);
-assert.equal(ocrResponse.code, 200, 'A failed Gemini OCR attempt falls back to vision OCR');
-assert.equal(ocrResponse.body.source, 'openai-fallback');
-assert.equal(openAiOcrOptions.imageDataUrl, 'data:image/png;base64,iVBORw0KGgo=');
-assert.equal(openAiOcrOptions.timeoutMs, 60_000);
+assert.equal(ocrResponse.code, 200, 'A failed Gemini OCR attempt falls back to a second Gemini model');
+assert.equal(ocrResponse.body.source, 'gemini-fallback');
+assert.match(fallbackOcrOptions.models.join(','), /gemini/, 'The OCR fallback must stay on the Gemini provider');
+assert.equal(fallbackOcrOptions.timeoutMs, 60_000);
 assert.equal(ocrResponse.body.data.latexText, repairedOcr);
-failOpenAiOcr = true;
+failFallbackOcr = true;
 await ocrRoute({ method: 'POST', body: { image: 'data:image/png;base64,iVBORw0KGgo=', purpose: 'standalone_problem' } }, ocrResponse);
-assert.equal(ocrResponse.code, 503);
-assert.match(ocrResponse.body.error, /quá tải hoặc hết hạn mức/);
-assert.equal(ocrResponse.body.code, 'OPENAI_HTTP_429');
-failGeminiOcr = false; failOpenAiOcr = false;
+assert.equal(ocrResponse.code, 504);
+assert.match(ocrResponse.body.error, /quá thời gian/);
+assert.equal(ocrResponse.body.code, 'AI_TIMEOUT');
+failGeminiOcr = false; failFallbackOcr = false; inFallbackOcr = false;
 
 // Isolated database with real BSON identities and the operators used by the routes.
 const rows = new Map();
@@ -124,8 +122,8 @@ const db = { collection(name) {
 let session = { sub: 'owner-1', username: 'student1', role: 'student' };
 const owner = { ...session }, other = { sub: 'owner-2', username: 'student2', role: 'student' }, admin = { sub: 'admin-1', username: 'admin', role: 'admin' };
 const routeSource = fs.readFileSync(new URL('../api/data.js', import.meta.url), 'utf8').replace(/^import .*;\n/gm, '').replace('export default async function handler', 'async function handler');
-const handler = new Function('educationDb', 'allows', 'getDb','getSession','ObjectId','recordActivity','handleMathSupport','canAccessProblem','supportVisibility','getCatalogTotals','cleanGeometryDiagram', `${routeSource}\nreturn handler;`)(
-  educationDb, allows,   async () => db, () => session, ObjectId, async () => {}, handleMathSupport, canAccessProblem, supportVisibility, getCatalogTotals, cleanGeometryDiagram);
+const handler = new Function('educationDb', 'allows', 'getDb','getSession','ObjectId','recordActivity','handleMathSupport','canAccessProblem','hideUnverifiedReferenceSolution','supportVisibility','getCatalogTotals','cleanGeometryDiagram','queueReferenceSolution', `${routeSource}\nreturn handler;`)(
+  educationDb, allows,   async () => db, () => session, ObjectId, async () => {}, handleMathSupport, canAccessProblem, hideUnverifiedReferenceSolution, supportVisibility, getCatalogTotals, cleanGeometryDiagram, async () => {});
 async function call({ action, payload, query } = {}) {
   const res = { code: 0, setHeader() {}, status(n) { this.code = n; return this; }, json(body) { this.body = JSON.parse(JSON.stringify(body)); return this; } };
   await handler({ method: action ? 'POST' : 'GET', query, body: { action, payload } }, res);
@@ -211,7 +209,7 @@ window.fetch = async (url, options = {}) => {
   }
   if (String(url).startsWith('/api/ai-guide')) {
     guideRequest = JSON.parse(options.body);
-    if (failGuideMessage) return { ok: false, status: 502, json: async () => ({ success: false, error: failGuideMessage, code: 'OPENAI_HTTP_401' }) };
+    if (failGuideMessage) return { ok: false, status: 502, json: async () => ({ success: false, error: failGuideMessage, code: 'AI_NOT_CONFIGURED' }) };
     return { ok: true, json: async () => ({ success: true, data: guideData }) };
   }
   const parsed = new URL(url, window.location.href);

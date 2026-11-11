@@ -6,8 +6,8 @@ import { retrieveVerifiedContext } from '../lib/rag-retrieval.js';
 import { ObjectId } from 'mongodb';
 import { getDb } from '../lib/db.js';
 import { getSession } from '../lib/session.js';
-import { checkRateLimit, generateJson, generateWithOpenAIFallback, handleAiError, parseBody, prepare, text } from '../lib/ai.js';
-import { generateOpenAIJson } from '../lib/openai.js';
+import { checkRateLimit, generateJson, generateWithFallback, handleAiError, parseBody, prepare, text } from '../lib/ai.js';
+import { generateVerifierJson } from '../lib/ai-verifier.js';
 
 const VERDICTS = [
   'CORRECT_OPTIMAL',
@@ -104,8 +104,8 @@ export function verifierChecks(data, hasTrustedReference) {
     mathCorrect: data?.mathCorrect === true,
     scoreConsistent: data?.scoreConsistent === true,
     noInventedStudentWork: data?.noInventedStudentWork === true,
-    // Không có nguồn admin xác minh thì GPT phải tự giải độc lập; không được
-    // biến một cờ "không có gì để đối chiếu" thành lỗi chặn toàn bộ kết quả.
+    // Không có nguồn admin xác minh thì bước kiểm định phải tự giải độc lập;
+    // không được biến một cờ "không có gì để đối chiếu" thành lỗi chặn toàn bộ kết quả.
     referenceMatched: !hasTrustedReference || data?.referenceMatched === true
   };
 }
@@ -207,7 +207,7 @@ ${mathematicalAuditInstruction}\n\nQUY TRÌNH CHẤM BẮT BUỘC
     const provisionalInstruction = `Bạn là giám khảo ${reference?.educationLevel === 'university' ? 'Toán Đại học (' + (reference.courseName || 'học phần tương ứng') + ')' : 'VMO/IMO'} nghiêm túc và thận trọng. Toàn bộ nội dung phải được viết bằng ${outputLanguage}.
 Ưu tiên tính đúng đắn hơn độ dài. Không bịa dữ kiện hoặc lỗi.
 Mọi phép biến đổi đại số do bạn nêu phải được tự kiểm tra độc lập trước khi trả kết quả JSON.`
-    const provisional = await generateWithOpenAIFallback(
+    const provisional = await generateWithFallback(
       () => generateJson({
         contents,
         schema,
@@ -230,11 +230,11 @@ Mọi phép biến đổi đại số do bạn nêu phải được tự kiểm 
           geminiError.aiStage = 'grader';
           throw geminiError;
         }
-        return generateOpenAIJson({
+        return generateVerifierJson({
           input: provisionalPrompt,
           imageDataUrls: [...bookImages, ...(solutionImage ? [solutionImage] : [])],
           schema,
-          model: process.env.OPENAI_GRADER_MODEL || process.env.OPENAI_VERIFY_MODEL || 'gpt-5.6-terra',
+          model: process.env.GEMINI_EVALUATION_FALLBACK_MODEL || process.env.GEMINI_VERIFY_MODEL || 'gemini-3.8-flash',
           timeoutMs, maxOutputTokens: 16_000, reasoningEffort: 'high',
           systemInstruction: provisionalInstruction
         });
@@ -248,9 +248,9 @@ Mọi phép biến đổi đại số do bạn nêu phải được tự kiểm 
       return res.status(422).json({ success: false, error: 'Gia sư Toán AI chưa đọc rõ nội dung bài làm để kiểm định độc lập. Vui lòng gửi ảnh rõ hơn hoặc nhập bài làm.', code: 'STUDENT_WORK_TRANSCRIPTION_MISSING' });
     }
 
-    const verified = await generateOpenAIJson({
+    const verified = await generateVerifierJson({
       imageDataUrls: [...bookImages, ...(solutionImage ? [solutionImage] : [])],
-      model: process.env.OPENAI_EVALUATION_VERIFY_MODEL || process.env.OPENAI_VERIFY_MODEL || 'gpt-5.6-terra',
+      model: process.env.GEMINI_EVALUATION_VERIFY_MODEL || process.env.GEMINI_VERIFY_MODEL || 'gemini-3.8-flash',
       input: `Hãy tự giải bài toán và kiểm định độc lập báo cáo chấm của ${provisional.provider}. Không mặc nhiên tin báo cáo sơ bộ.
 
 ĐỀ BÀI
@@ -307,16 +307,16 @@ ${mathematicalAuditInstruction}\n\nYÊU CẦU KIỂM ĐỊNH
     }
 
     const finalData = normalizeEvaluation(verified.data);
-    // Bảo toàn bản OCR/văn bản thực tế đã được Gemini đọc và GPT dùng để
-    // kiểm định. Frontend lưu trường này vào solutionContent để bài đánh giá
+    // Bảo toàn bản OCR/văn bản thực tế đã được Gemini đọc và bước kiểm định dùng
+    // để đối chiếu. Frontend lưu trường này vào solutionContent để bài đánh giá
     // từ ảnh có thể được admin chỉnh sửa, xem MathJax và xác minh về sau.
     finalData.studentWorkTranscription = text(observedStudentWork, 50_000);
     finalData.quality = {
       verified: true,
       corrected: verified.data.corrected === true,
-      pipeline: `${provisional.provider}_openai`,
-      graderProvider: provisional.provider,
-      verifierProvider: 'openai',
+      pipeline: 'gemini_gemini',
+      graderProvider: 'google',
+      verifierProvider: 'google',
       usedTrustedReference: Boolean(reference.sources.length),
       hasExactReference: hasTrustedReference,
       referenceOrigin: reference?.origin || '',
@@ -325,21 +325,20 @@ ${mathematicalAuditInstruction}\n\nYÊU CẦU KIỂM ĐỊNH
     };
     return res.status(200).json({
       success: true,
-      source: `${provisional.provider === 'google' ? 'gemini' : 'openai'}_openai_verified`,
+      source: 'gemini_verified',
       model: `${provisional.model}+${verified.model}`,
-      providers: { grader: provisional.provider, verifier: 'openai' },
+      providers: { grader: 'google', verifier: 'google' },
       data: finalData
     });
   } catch (error) {
     console.error('[AI EVALUATE]', error);
-    const openAiMissing = error?.code === 'OPENAI_NOT_CONFIGURED';
-    const geminiMissing = error?.code === 'AI_NOT_CONFIGURED';
-    const openAiTimeout = error?.code === 'OPENAI_TIMEOUT';
-    if (openAiTimeout) return res.status(504).json({ success: false, error: error.aiStage === 'grader'
+    const aiMissing = error?.code === 'AI_NOT_CONFIGURED';
+    const aiTimeout = error?.code === 'AI_TIMEOUT';
+    if (aiTimeout) return res.status(504).json({ success: false, error: error.aiStage === 'grader'
       ? 'Gia sư Toán AI chưa hoàn tất bước chấm sơ bộ trong thời gian cho phép. Vui lòng thử lại.'
-      : 'Gia sư Toán AI chưa hoàn tất kiểm định bài làm trong thời gian cho phép. Vui lòng thử lại.', code: 'OPENAI_TIMEOUT' });
-    if (openAiMissing || geminiMissing) return res.status(503).json({ success: false, error: 'Gia sư Toán AI tạm thời chưa sẵn sàng. Vui lòng thử lại sau.', code: error.code });
-    if (String(error?.code || '').startsWith('OPENAI_')) {
+      : 'Gia sư Toán AI chưa hoàn tất kiểm định bài làm trong thời gian cho phép. Vui lòng thử lại.', code: 'AI_TIMEOUT' });
+    if (aiMissing) return res.status(503).json({ success: false, error: 'Gia sư Toán AI tạm thời chưa sẵn sàng. Vui lòng thử lại sau.', code: error.code });
+    if (String(error?.code || '').startsWith('AI_')) {
       return res.status(502).json({ success: false, error: 'Gia sư Toán AI chưa thể hoàn tất kiểm định kết quả chấm. Vui lòng thử lại.', code: error.code });
     }
     return handleAiError(res, error);

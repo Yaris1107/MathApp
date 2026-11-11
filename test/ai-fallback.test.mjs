@@ -1,114 +1,81 @@
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
-import { generateWithOpenAIFallback } from '../lib/ai.js';
-import { generateOpenAIJson } from '../lib/openai.js';
+import { readFile, readdir } from 'node:fs/promises';
+import { generateWithFallback } from '../lib/ai.js';
+import { embeddingConfig } from '../lib/rag-embedding.js';
 
-const originalKey = process.env.OPENAI_API_KEY;
-const originalFetch = globalThis.fetch;
-
-try {
-  process.env.OPENAI_API_KEY = 'test-key-not-a-real-secret';
-  let request;
-  globalThis.fetch = async (url, options) => {
-    request = { url, headers: options.headers, body: JSON.parse(options.body) };
-    return {
-      ok: true,
-      status: 200,
-      json: async () => ({ status: 'completed', output_text: '{"ok":true}', model: 'mock-model', id: 'mock-id' })
-    };
-  };
-
-  const schema = {
-    type: 'object',
-    properties: {
-      title: { type: 'string' },
-      questions: {
-        type: 'array',
-        items: { type: 'object', properties: { id: { type: 'string' } }, required: ['id'] }
-      }
-    },
-    required: ['title']
-  };
-  const result = await generateOpenAIJson({
-    input: 'Read this image.',
-    imageDataUrl: 'data:image/png;base64,dGVzdA==',
-    schema,
-    maxOutputTokens: 32_000
-  });
-  assert.deepEqual(result.data, { ok: true });
-  assert.equal(result.model, 'mock-model');
-  assert.equal(request.url, 'https://api.openai.com/v1/responses');
-  assert.equal(request.headers.Authorization, `Bearer ${process.env.OPENAI_API_KEY}`);
-  assert.equal(request.body.max_output_tokens, 32_000);
-  const strictSchema = request.body.text.format.schema;
-  assert.equal(strictSchema.additionalProperties, false);
-  assert.deepEqual(strictSchema.required, ['title', 'questions']);
-  assert.equal(strictSchema.properties.questions.items.additionalProperties, false);
-  assert.deepEqual(strictSchema.properties.questions.items.required, ['id']);
-  assert.equal(schema.additionalProperties, undefined, 'Provider normalization must not mutate shared schemas');
-  assert.equal(request.body.input[1].content[1].type, 'input_image');
-
-  const primaryUnavailable = Object.assign(new Error('provider unavailable'), { status: 503 });
-  let fallbackCalled = false;
-  const recovered = await generateWithOpenAIFallback(
-    async () => { throw primaryUnavailable; },
-    async () => { fallbackCalled = true; return { data: { recovered: true }, model: 'openai-mock' }; },
-    { stage: 'solver' }
-  );
-  assert.equal(fallbackCalled, true);
-  assert.equal(recovered.provider, 'openai');
-  assert.equal(recovered.data.recovered, true);
-
-  const primaryResult = await generateWithOpenAIFallback(
-    async () => ({ data: { primary: true }, model: 'gemini-mock' }),
-    async () => assert.fail('Fallback must not run when the primary succeeds')
-  );
-  assert.equal(primaryResult.provider, 'google');
-
-  const invalidRequest = Object.assign(new Error('invalid request'), { status: 400 });
-  await assert.rejects(
-    generateWithOpenAIFallback(async () => { throw invalidRequest; }, async () => assert.fail('Do not retry non-transient errors')),
-    error => error === invalidRequest
-  );
-
-  const fallbackFailure = Object.assign(new Error('authentication rejected'), { code: 'OPENAI_HTTP_401' });
-  await assert.rejects(
-    generateWithOpenAIFallback(async () => { throw primaryUnavailable; }, async () => { throw fallbackFailure; }, { stage: 'grader' }),
-    error => error === fallbackFailure && error.aiStage === 'grader' && error.cause === primaryUnavailable
-  );
-
-  globalThis.fetch = async () => ({ ok: false, status: 401, json: async () => ({ error: 'redacted' }) });
-  await assert.rejects(
-    generateOpenAIJson({ input: 'test', schema }),
-    error => error.code === 'OPENAI_HTTP_401' && !error.message.includes(process.env.OPENAI_API_KEY)
-  );
-
-  globalThis.fetch = async () => ({
-    ok: false,
-    status: 429,
-    headers: { get: () => 'req_mock' },
-    json: async () => ({ error: { type: 'insufficient_quota', code: 'credit_balance_exhausted' } })
-  });
-  await assert.rejects(
-    generateOpenAIJson({ input: 'test', schema }),
-    error => error.code === 'OPENAI_HTTP_429' && error.openaiType === 'insufficient_quota'
-      && error.openaiCode === 'credit_balance_exhausted' && error.requestId === 'req_mock'
-  );
-
-  const [guide, evaluation, prediction, translation] = await Promise.all([
-    readFile(new URL('../api/ai-guide.js', import.meta.url), 'utf8'),
-    readFile(new URL('../api/ai-evaluate-solution.js', import.meta.url), 'utf8'),
-    readFile(new URL('../api/ai-predict-exam.js', import.meta.url), 'utf8'),
-    readFile(new URL('../api/translate-content.js', import.meta.url), 'utf8')
-  ]);
-  assert.match(guide, /generateWithOpenAIFallback/);
-  assert.match(guide, /AI GUIDE diagram fallback/);
-  assert.match(evaluation, /generateWithOpenAIFallback/);
-  assert.match(prediction, /generateWithOpenAIFallback/);
-  assert.match(translation, /generateWithOpenAIFallback/);
-  console.log('AI fallback routing and OpenAI structured vision request: OK');
-} finally {
-  globalThis.fetch = originalFetch;
-  if (originalKey === undefined) delete process.env.OPENAI_API_KEY;
-  else process.env.OPENAI_API_KEY = originalKey;
+// The deployment is Gemini-only. Guard against any route re-introducing a
+// second AI provider or an OpenAI key requirement.
+const apiDirectory = new URL('../api/', import.meta.url);
+const libDirectory = new URL('../lib/', import.meta.url);
+const sources = [];
+for (const directory of [apiDirectory, libDirectory]) {
+  for (const entry of await readdir(directory, { withFileTypes: true })) {
+    if (entry.isFile() && entry.name.endsWith('.js')) {
+      sources.push([entry.name, await readFile(new URL(entry.name, directory), 'utf8')]);
+    }
+  }
 }
+const legacyProvider = /openai/i;
+for (const [name, source] of sources) {
+  assert.doesNotMatch(source, legacyProvider, `${name} must not reference the removed OpenAI provider`);
+}
+await assert.rejects(readFile(new URL('lib/openai.js', new URL('../', import.meta.url))), /ENOENT/);
+
+const guide = await readFile(new URL('../api/ai-guide.js', import.meta.url), 'utf8');
+const evaluation = await readFile(new URL('../api/ai-evaluate-solution.js', import.meta.url), 'utf8');
+const prediction = await readFile(new URL('../api/ai-predict-exam.js', import.meta.url), 'utf8');
+const translation = await readFile(new URL('../api/translate-content.js', import.meta.url), 'utf8');
+const examOcr = await readFile(new URL('../api/ai-ocr-exam.js', import.meta.url), 'utf8');
+const mathOcr = await readFile(new URL('../api/ai-ocr-math.js', import.meta.url), 'utf8');
+for (const [name, source] of [['ai-guide', guide], ['ai-evaluate-solution', evaluation],
+  ['ai-predict-exam', prediction], ['translate-content', translation]]) {
+  assert.match(source, /generateWithFallback/, `${name} must retry with a Gemini model`);
+  assert.match(source, /generateVerifierJson/, `${name} must use the Gemini verifier adapter`);
+}
+assert.match(examOcr, /source = 'gemini-fallback'/, 'Exam OCR must fall back to a second Gemini model');
+assert.match(mathOcr, /source = 'gemini-fallback'/, 'Math OCR must fall back to a second Gemini model');
+
+// Transient Gemini failures retry once; permanent request errors do not.
+const primaryUnavailable = Object.assign(new Error('provider unavailable'), { status: 503 });
+let fallbackCalled = false;
+const recovered = await generateWithFallback(
+  async () => { throw primaryUnavailable; },
+  async () => { fallbackCalled = true; return { data: { recovered: true }, model: 'gemini-mock' }; },
+  { stage: 'solver' }
+);
+assert.equal(fallbackCalled, true);
+assert.equal(recovered.provider, 'google');
+assert.equal(recovered.data.recovered, true);
+
+const primaryResult = await generateWithFallback(
+  async () => ({ data: { primary: true }, model: 'gemini-mock' }),
+  async () => assert.fail('Fallback must not run when the primary succeeds')
+);
+assert.equal(primaryResult.provider, 'google');
+
+const invalidRequest = Object.assign(new Error('invalid request'), { status: 400 });
+await assert.rejects(
+  generateWithFallback(async () => { throw invalidRequest; }, async () => assert.fail('Do not retry non-transient errors')),
+  error => error === invalidRequest
+);
+
+const fallbackFailure = Object.assign(new Error('verification rejected'), { code: 'AI_INVALID_JSON' });
+await assert.rejects(
+  generateWithFallback(async () => { throw primaryUnavailable; }, async () => { throw fallbackFailure; }, { stage: 'grader' }),
+  error => error === fallbackFailure && error.aiStage === 'grader' && error.cause === primaryUnavailable
+);
+
+// A legacy OpenAI embedding model name in an existing environment is mapped to
+// Gemini so an old Vercel variable cannot call the removed provider.
+const previousModel = process.env.RAG_EMBEDDING_MODEL;
+process.env.RAG_EMBEDDING_MODEL = 'text-embedding-3-small';
+try {
+  assert.equal(embeddingConfig().model, 'gemini-embedding-001');
+  process.env.RAG_EMBEDDING_MODEL = 'gemini-embedding-001';
+  assert.equal(embeddingConfig().model, 'gemini-embedding-001');
+} finally {
+  if (previousModel === undefined) delete process.env.RAG_EMBEDDING_MODEL;
+  else process.env.RAG_EMBEDDING_MODEL = previousModel;
+}
+
+console.log('Gemini-only provider routing, verifier adapter and embedding mapping: OK');

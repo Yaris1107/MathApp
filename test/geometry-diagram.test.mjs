@@ -58,7 +58,7 @@ let signedIn=true, blocked=false, approval=true, diagram=triangle;
 const calls=[];
 const { generateGuideDiagram } = await import('../lib/guide-diagram.js');
 let bookAssetKeys=[];
-const route=new Function('readBookProblemImages','generateGuideDiagram', 'inspectGeometryDiagram', 'geometrySchema','geometryInstruction','selectGuideGeometry','cleanGeometryDiagram','mathematicalAuditInstruction','auditEvidence','retrieveVerifiedContext','getSession','checkRateLimit','generateJson','generateWithOpenAIFallback','parseBody','prepare','text','generateOpenAIJson',routeSource+';return handler;')(
+const route=new Function('readBookProblemImages','generateGuideDiagram', 'inspectGeometryDiagram', 'geometrySchema','geometryInstruction','selectGuideGeometry','cleanGeometryDiagram','mathematicalAuditInstruction','auditEvidence','retrieveVerifiedContext','getSession','checkRateLimit','generateJson','generateWithFallback','parseBody','prepare','text','generateVerifierJson',routeSource+';return handler;')(
   async()=>['data:image/png;base64,cG5n'],generateGuideDiagram,inspectGeometryDiagram,geometrySchema,geometryInstruction,selectGuideGeometry,clean,mathematicalAuditInstruction,auditEvidence,
   async()=>({blocked,bookAssetKeys,statement:'CANONICAL triangle ABC',topic:'Hình học phẳng',block:'No reference'}),()=>signedIn?{username:'student'}:null,()=>true,
   async args=>{calls.push(args);return{data:triangle,model:'solver'}},async primary=>({ ...await primary(), provider:'google' }), req=>req.body,()=>{},(v,max=50000)=>String(v??'').slice(0,max),

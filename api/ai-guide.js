@@ -4,8 +4,8 @@ import { geometrySchema, geometryInstruction, selectGuideGeometry, inspectGeomet
 import { mathematicalAuditInstruction, auditEvidence } from '../lib/math-audit.js';
 import { retrieveVerifiedContext } from '../lib/rag-retrieval.js';
 import { getSession } from '../lib/session.js';
-import { checkRateLimit, generateJson, generateWithOpenAIFallback, parseBody, prepare, text } from '../lib/ai.js';
-import { generateOpenAIJson } from '../lib/openai.js';
+import { checkRateLimit, generateJson, generateWithFallback, parseBody, prepare, text } from '../lib/ai.js';
+import { generateVerifierJson } from '../lib/ai-verifier.js';
 
 const stringArray = { type: 'array', items: { type: 'string' } };
 const guideSchema = { type: 'object', properties: {
@@ -57,28 +57,13 @@ export function accepted(data, corrected = false) {
 
 export function describeGuideError(error, mode = '') {
   const code = text(error?.code, 80);
+  const stage = error?.aiStage || 'solver';
   if (code === 'AI_NOT_CONFIGURED') return { status: 503, error: 'Chưa cấu hình GEMINI_API_KEY cho Gia sư AI trên Vercel.' };
-  if (code === 'OPENAI_NOT_CONFIGURED') return { status: 503, error: 'Chưa cấu hình OPENAI_API_KEY cho Gia sư AI trên Vercel.' };
-  if (code === 'AI_TIMEOUT') return { status: 504, error: 'Gemini quá thời gian khi tạo lời giải. Vui lòng thử lại.' , stage: 'solver' };
-  if (code === 'OPENAI_TIMEOUT') return { status: 504, error: error?.aiStage === 'solver'
-    ? 'OpenAI quá thời gian khi tạo lời giải. Vui lòng thử lại.' : 'OpenAI quá thời gian khi kiểm định lời giải. Vui lòng thử lại.',
-  stage: error?.aiStage || 'verifier' };
-  if (code === 'OPENAI_HTTP_401' || code === 'OPENAI_HTTP_403') return { status: 502, error: 'OpenAI từ chối xác thực hoặc quyền truy cập model kiểm định. Quản trị viên cần kiểm tra cấu hình Vercel.' };
-  if (code === 'OPENAI_HTTP_429') {
-    const stage = error?.aiStage || 'verifier';
-    const exhaustedQuota = error?.openaiType === 'insufficient_quota'
-      || ['insufficient_quota', 'credit_balance_exhausted'].includes(error?.openaiCode);
-    const errorMessage = exhaustedQuota
-      ? 'OpenAI API đã hết hạn mức khả dụng. Quản trị viên cần kiểm tra Billing/Usage và giới hạn chi tiêu của Project trên OpenAI.'
-      : `OpenAI đang giới hạn yêu cầu khi ${stage === 'solver' ? 'tạo lời giải' : 'kiểm định lời giải'}. Vui lòng thử lại sau hoặc kiểm tra Usage/Billing.`;
-    return { status: 503, error: errorMessage, stage };
-  }
-  if (code === 'OPENAI_INCOMPLETE') return { status: 502, error: error?.aiStage === 'solver'
-    ? 'OpenAI chưa hoàn tất việc tạo lời giải. Hãy thử lại với đề ngắn, rõ hơn.'
-    : 'OpenAI chưa hoàn tất kiểm định lời giải. Hãy thử lại với đề ngắn, rõ hơn.',
-  stage: error?.aiStage || 'verifier' };
+  if (code === 'AI_TIMEOUT') return { status: 504, error: error?.aiStage === 'solver'
+    ? 'Gemini quá thời gian khi tạo lời giải. Vui lòng thử lại.'
+    : 'Gemini quá thời gian khi kiểm định lời giải. Vui lòng thử lại.', stage };
+  if (code === 'AI_RECITATION') return { status: 502, error: 'Gemini không thể tạo nội dung cho bài này. Vui lòng thử lại hoặc diễn đạt đề ngắn gọn hơn.', stage };
   if (mode === 'diagram' && code === 'GEOMETRY_TIMEOUT') return { status: 504, error: 'Gia sư AI chưa hoàn tất kiểm tra hình trong thời gian cho phép. Vui lòng thử lại.', stage: 'verifier' };
-  const stage = error?.aiStage || (code.startsWith('OPENAI_') ? 'verifier' : 'solver');
   return { status: 502, error: `Gia sư AI gặp lỗi khi ${stage === 'verifier' ? 'kiểm định lời giải' : 'tạo lời giải'}${code ? ` (${code})` : ''}. Vui lòng thử lại; nếu tiếp tục, gửi mã lỗi cho quản trị viên.`,
     stage };
 }
@@ -117,16 +102,16 @@ export default async function handler(req, res) {
       const solution = text(body.solution, 100000);
       if (!solution) return res.status(400).json({ success: false, error: 'Thiếu lời giải để dựng hình' });
       const result = await generateGuideDiagram({ common, solution, language: outputLanguage,
-        generate: options => generateWithOpenAIFallback(
+        generate: options => generateWithFallback(
           () => generateJson(options),
           geminiError => {
             console.warn('[AI GUIDE diagram fallback]', { code: geminiError?.code || 'UNKNOWN', status: geminiError?.status || 0 });
             const timeoutMs = Math.min(options.timeoutMs, startedAt + 260000 - Date.now() - 150000);
             if (timeoutMs < 5_000) throw geminiError;
-            return generateOpenAIJson({
+            return generateVerifierJson({
               input: options.contents,
               schema: options.schema,
-              model: process.env.OPENAI_SOLVER_MODEL || process.env.OPENAI_VERIFY_MODEL || 'gpt-5.6-terra',
+              model: process.env.GEMINI_SOLVER_FALLBACK_MODEL || process.env.GEMINI_VERIFY_MODEL || 'gemini-3.8-flash',
               timeoutMs,
               maxOutputTokens: 10_000,
               reasoningEffort: 'medium',
@@ -135,7 +120,7 @@ export default async function handler(req, res) {
           },
           { stage: 'solver' }
         ),
-        review: generateOpenAIJson, deadline: startedAt + 260000,
+        review: generateVerifierJson, deadline: startedAt + 260000,
         log: (event, diagnostics) => console.warn(event, { problemKey: text(body.contentKey || body.problemId, 180), ...diagnostics }) });
       if (!result.geometry) return res.status(422).json({ success: false,
         error: outputLanguage === 'English' ? 'The diagram could not be validated after repair.' : 'Hình vẽ chưa đạt kiểm tra sau bước hiệu chỉnh.',
@@ -144,7 +129,7 @@ export default async function handler(req, res) {
     }
     const solverPrompt = `Produce a complete ${academicContext} solution in ${outputLanguage}.\n${common}\n${mathematicalAuditInstruction}\n${geometryInstruction} ${problemSpecificGuidance} For non-geometric problems, include in degeneracyChecks a concrete explanation that geometric degeneracies do not apply and identify the boundary/domain cases checked. First enumerate every requested part. Give exact final results and every equality case when applicable. Check boundary cases, indices, signs and quantifiers. The reference is evidence, not permission to copy an error. ${mathFormat} Use Markdown and MathJax $...$ or $$...$$; do not use itemize, enumerate, align or textbf.`;
     const solverInstruction = `You are the primary solver for ${academicContext}. Be explicit and rigorous. For discrete toggle/reachability problems, identify a preserved invariant, prove the necessary condition, then give an explicit sequence proving sufficiency; state any domain assumptions and edge cases. A concise complete proof is preferable to filler. Never replace proof steps with generic advice. Write entirely in ${outputLanguage}.`;
-    const solved = await generateWithOpenAIFallback(
+    const solved = await generateWithFallback(
       () => generateJson({
         contents: withBookImages(solverPrompt, bookImages),
         schema: guideSchema,
@@ -159,9 +144,9 @@ export default async function handler(req, res) {
           geminiError.aiStage = 'solver';
           throw geminiError;
         }
-        return generateOpenAIJson({
+        return generateVerifierJson({
           input: solverPrompt, imageDataUrls: bookImages, schema: guideSchema,
-          model: process.env.OPENAI_SOLVER_MODEL || process.env.OPENAI_VERIFY_MODEL || 'gpt-5.6-terra',
+          model: process.env.GEMINI_SOLVER_FALLBACK_MODEL || process.env.GEMINI_VERIFY_MODEL || 'gemini-3.8-flash',
           timeoutMs, maxOutputTokens: 12_000, reasoningEffort: 'high',
           systemInstruction: solverInstruction
         });
@@ -170,11 +155,12 @@ export default async function handler(req, res) {
     );
     const diagramCheck = solved.data.geometry?.isGeometry === true ? inspectGeometryDiagram(solved.data.geometry) : { geometry: null, issues: [] };
     if (diagramCheck.geometry) solved.data.geometry = diagramCheck.geometry;
-    const verified = await generateOpenAIJson({
+    const verified = await generateVerifierJson({
       imageDataUrls:bookImages,
       input: `${mathematicalAuditInstruction}\nIndependently solve and audit the candidate below. ${geometryInstruction} Independently check the candidate geometry against EVERY statement hypothesis and every depicted auxiliary construction in the selected proof, labels, coordinates and constraints. Set geometryApproved=true only if faithful and complete. Supply a correctedGeometry and correctedGeometryApproved for the corrected proof; never reuse a diagram incompatible with that proof. Diagram failure alone must not reject a valid proof. For non-geometric problems, set degeneraciesChecked=true with a concrete note that geometric degeneracies do not apply, and document checks relevant to the problem domain instead. For discrete-operation problems, independently verify the invariant and the constructive sufficiency proof. Do not reject a complete proof merely for being concise; reject unsupported claims, not brevity. Score 0.0-5.0. Approval requires every requested part correct, a rigorous derivation, no unstated assumptions, and all extremal/equality cases proved when applicable. When no EXACT reference exists (including SIMILAR-only sources), matchesVerifiedReference means independent cross-check passed. Never require the new answer to equal the answer of a similar problem. If anything is weak, provide a fully corrected guide in the corrected* fields. Leave no generic placeholders. ${mathFormat}\n\n${common}\n\nDIAGRAM NUMERICAL VALIDATION:\n${JSON.stringify(diagramCheck.issues)}\n${solved.provider.toUpperCase()} CANDIDATE JSON:\n${JSON.stringify(solved.data)}`,
       schema: verifierSchema,
-      systemInstruction: `You are an independent adversarial reviewer for ${academicContext}. Recompute the problem instead of trusting Gemini. Correct the guide in ${outputLanguage} when needed. A score of 5.0 means publication-ready and fully rigorous. Return only the required structured result.`,
+      systemInstruction: `You are an independent adversarial reviewer for ${academicContext}. Recompute the problem instead of trusting the candidate. Correct the guide in ${outputLanguage} when needed. A score of 5.0 means publication-ready and fully rigorous. Return only the required structured result.`,
+      model: process.env.GEMINI_VERIFY_MODEL || 'gemini-3.8-flash',
       timeoutMs: 140_000,
       maxOutputTokens: 12_000,
       reasoningEffort: 'medium'
@@ -194,12 +180,12 @@ export default async function handler(req, res) {
         quality: { score, summary } });
     }
     Object.assign(data, selectGuideGeometry(solved.data, verified.data, repaired, reference.topic || body.topic));
-    data.quality = { degeneracyChecks: repaired ? verified.data.correctedDegeneracyChecks : verified.data.degeneracyChecks, verified: true, score: `${score.toFixed(1)}/5.0`, repaired, solverProvider: solved.provider, verifierProvider: 'openai', usedTrustedReference: Boolean(reference?.content), referenceOrigin: reference?.origin || '', retrieval: reference.retrieval, summary: text(verified.data.summary, 1000) };
+    data.quality = { degeneracyChecks: repaired ? verified.data.correctedDegeneracyChecks : verified.data.degeneracyChecks, verified: true, score: `${score.toFixed(1)}/5.0`, repaired, solverProvider: solved.provider, verifierProvider: 'google', usedTrustedReference: Boolean(reference?.content), referenceOrigin: reference?.origin || '', retrieval: reference.retrieval, summary: text(verified.data.summary, 1000) };
     return res.status(200).json({
       success: true,
-      source: `${solved.provider === 'google' ? 'gemini' : 'openai'}_openai_verified`,
+      source: 'gemini_verified',
       model: `${solved.model}+${verified.model}`,
-      providers: { solver: solved.provider, verifier: 'openai' },
+      providers: { solver: 'google', verifier: 'google' },
       data
     });
   } catch (error) {

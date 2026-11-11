@@ -175,7 +175,7 @@ function cleanExamTrendReport(payload) {
       corrections: cleanStringList(quality.corrections, 20, 2500),
       topicChecks: (Array.isArray(quality.topicChecks) ? quality.topicChecks : []).slice(0, 6).map(item => ({
         topic: cleanText(item?.topic, 120), valid: item?.valid === true, reason: cleanText(item?.reason, 2000)
-      })), verifierModel: cleanText(quality.verifierModel, 100), pipeline: 'Gemini → GPT'
+      })), verifierModel: cleanText(quality.verifierModel, 100), pipeline: 'Gemini → Gemini'
     },
     model: cleanText(payload?.model, 100), generatedAt: cleanText(payload?.generatedAt, 50)
   };
@@ -394,7 +394,7 @@ export default async function handler(req, res) {
         try { indexes = (await db.collection('verified_knowledge').listSearchIndexes().toArray()).map(item => ({ name: item.name, status: item.status, queryable: item.queryable })); }
         catch (error) { indexError = String(error.message).slice(0, 150); }
         return res.status(200).json({ success: true, items: [{ knowledge, jobs, indexes, indexError,
-          embeddingConfigured: Boolean(process.env.OPENAI_API_KEY), metadataVersion: RAG_VERSION, currentMetadataSources, config: embeddingConfig() }] });
+          embeddingConfigured: Boolean(process.env.GEMINI_API_KEY), metadataVersion: RAG_VERSION, currentMetadataSources, config: embeddingConfig() }] });
       }
 
       if (resource === 'trend_theories') {

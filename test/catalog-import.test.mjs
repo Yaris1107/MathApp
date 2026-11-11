@@ -44,7 +44,7 @@ const exam = {
     { contentKey: 'mock-2026-01-q2', questionNumber: 2, content: '<p>Prove the claim.</p>',
       referenceSolution: '<p>Proof</p>', referenceSolutionVerified: false,
       generatedGuide: {
-        success: true, model: 'gemini+openai', providers: { solver: 'google', verifier: 'openai' },
+        success: true, model: 'gemini+gemini', providers: { solver: 'google', verifier: 'google' },
         generatedAt: now.toISOString(),
         guide: {
           solution: '<p>Proof</p>',

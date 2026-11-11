@@ -2,8 +2,8 @@ import { allows } from '../lib/education-access.js';
 import crypto from 'node:crypto';
 import { getDb } from '../lib/db.js';
 import { getSession } from '../lib/session.js';
-import { checkRateLimit, generateJson, generateWithOpenAIFallback, handleAiError, parseBody, prepare, text } from '../lib/ai.js';
-import { generateOpenAIJson } from '../lib/openai.js';
+import { checkRateLimit, generateJson, generateWithFallback, handleAiError, parseBody, prepare, text } from '../lib/ai.js';
+import { generateVerifierJson } from '../lib/ai-verifier.js';
 
 const TRANSLATION_VERSION = 'vmo-math-en-v4';
 const MAX_ITEMS = 18;
@@ -139,7 +139,7 @@ ${JSON.stringify(payload)}`;
     try {
       const systemInstruction = 'You are a meticulous bilingual mathematical editor for VMO/IMO materials. Translate only; preserve all formula placeholders exactly.';
       const translationStartedAt = Date.now();
-      const result = await generateWithOpenAIFallback(
+      const result = await generateWithFallback(
         () => generateJson({
           contents: prompt,
           schema,
@@ -150,10 +150,10 @@ ${JSON.stringify(payload)}`;
           console.warn('[i18n provider fallback]', { code: geminiError?.code || 'UNKNOWN', status: geminiError?.status || 0 });
           const timeoutMs = Math.min(60_000, 110_000 - (Date.now() - translationStartedAt) - 10_000);
           if (timeoutMs < 5_000) throw geminiError;
-          return generateOpenAIJson({
+          return generateVerifierJson({
             input: prompt,
             schema,
-            model: process.env.OPENAI_TRANSLATION_MODEL || process.env.OPENAI_VERIFY_MODEL || 'gpt-5.6-terra',
+            model: process.env.GEMINI_TRANSLATION_FALLBACK_MODEL || process.env.GEMINI_VERIFY_MODEL || 'gemini-3.8-flash',
             timeoutMs,
             maxOutputTokens: 16_000,
             reasoningEffort: 'low',

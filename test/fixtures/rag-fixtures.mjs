@@ -63,7 +63,7 @@ export class FakeDb {
 // The mock search returns deterministic candidate lists. This measures retrieval
 // orchestration/safety only, never the quality of a real embedding model.
 const id = n => new ObjectId(n.toString(16).padStart(24, '0'));
-export const embedStub = async () => ({ vector: Array(1536).fill(0.01), model: 'text-embedding-3-small', dimensions: 1536, tokens: 8, estimatedUsd: null });
+export const embedStub = async () => ({ vector: Array(1536).fill(0.01), model: 'gemini-embedding-001', dimensions: 1536, tokens: 8, estimatedUsd: 0 });
 export function fixtures() {
   const problems = [
     { _id: id(1), contentKey: 'p1', content: 'Cho tam giác nhọn ABC. Xét đường tròn và trực tâm H.', topic: 'Hình học' },
@@ -83,7 +83,7 @@ export function fixtures() {
       source: 'admin_verified', status: 'active', problemId: problem._id, problemKey: problem.contentKey,
       problemContentHash: contentHash(problem.content), solutionContentHash: contentHash(submission.solutionContent),
       verifiedAt: submission.adminVerifiedAt, topic: topicOf(problem.topic), mathTags: mathTags(problem.content),
-      constraints: constraints(problem.content), embeddingModel: 'text-embedding-3-small', embeddingVersion: EMBEDDING_VERSION, metadataVersion: RAG_VERSION,
+      constraints: constraints(problem.content), embeddingModel: 'gemini-embedding-001', embeddingVersion: EMBEDDING_VERSION, metadataVersion: RAG_VERSION,
       embeddingDimensions: 1536, embedding: Array(1536).fill(0.01) };
   });
   return { problems, submissions, verified_knowledge: knowledge };
