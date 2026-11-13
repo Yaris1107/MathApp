@@ -218,15 +218,15 @@ Mọi phép biến đổi đại số do bạn nêu phải được tự kiểm 
           'gemini-3.8-flash',
           'gemini-3.5-flash-lite'
         ],
-        timeoutMs: 130_000,
-        totalTimeoutMs: 130_000,
+        timeoutMs: 180_000,
+        totalTimeoutMs: 180_000,
         maxOutputTokens: 16_000,
         thinkingLevel: 'HIGH',
         systemInstruction: provisionalInstruction
       }),
       geminiError => {
         console.warn('[AI EVALUATE grader fallback]', { code: geminiError?.code || 'UNKNOWN', status: geminiError?.status || 0 });
-        const timeoutMs = Math.min(115_000, 285_000 - (Date.now() - startedAt) - 145_000);
+        const timeoutMs = Math.min(120_000, 290_000 - (Date.now() - startedAt) - 120_000);
         if (timeoutMs < 15_000) {
           geminiError.aiStage = 'grader';
           throw geminiError;
@@ -236,7 +236,7 @@ Mọi phép biến đổi đại số do bạn nêu phải được tự kiểm 
           imageDataUrls: [...bookImages, ...(solutionImage ? [solutionImage] : [])],
           schema,
           model: process.env.GEMINI_EVALUATION_FALLBACK_MODEL || process.env.GEMINI_VERIFY_MODEL || 'gemini-3.5-flash',
-          timeoutMs, maxOutputTokens: 16_000, reasoningEffort: 'high',
+          timeoutMs, totalTimeoutMs: timeoutMs, maxOutputTokens: 16_000, reasoningEffort: 'high',
           systemInstruction: provisionalInstruction
         });
       },
@@ -280,7 +280,8 @@ ${mathematicalAuditInstruction}\n\nYÊU CẦU KIỂM ĐỊNH
 9. Dùng MathJax $...$ hoặc $$...$$; không dùng align, aligned, tag, itemize, enumerate hoặc textbf.`,
       schema: verifierSchema,
       systemInstruction: `Bạn là giám khảo phản biện ${reference?.educationLevel === 'university' ? 'Toán Đại học (' + (reference.courseName || 'học phần tương ứng') + ')' : 'VMO/IMO'} độc lập. Hãy kiểm tra bài làm gốc và báo cáo sơ bộ của ${provisional.provider} bằng ${outputLanguage}. Ưu tiên tính đúng đắn; không bịa nội dung học sinh. Trả về đúng structured JSON.`,
-      timeoutMs: 140_000,
+      timeoutMs: Math.max(15_000, Math.min(180_000, 290_000 - (Date.now() - startedAt))),
+      totalTimeoutMs: Math.max(15_000, 293_000 - (Date.now() - startedAt)),
       maxOutputTokens: 16_000,
       reasoningEffort: 'high'
     });

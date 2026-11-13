@@ -323,3 +323,381 @@ body.dark .ai-formula-box {
   background: #0f172a;
   border-left-color: #60a5fa;
 }
+
+/* ── AI Red Team & Math DNA insight panels ─────────────────────────────── */
+.ai-guide-insight {
+  margin-top: 14px;
+}
+
+.ai-insight-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 14px 16px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+}
+
+.ai-guide-redteam .ai-insight-card {
+  border-left: 4px solid #dc2626;
+}
+
+.ai-guide-dna .ai-insight-card {
+  border-left: 4px solid #0891b2;
+}
+
+.ai-insight-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 8px;
+}
+
+.ai-insight-summary {
+  margin: 0 0 10px 0;
+  color: #334155;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.ai-insight-subtitle {
+  margin: 12px 0 6px 0;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.ai-insight-loading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #64748b;
+  font-size: 0.88rem;
+}
+
+.ai-insight-loading .ai-spinner {
+  flex: 0 0 auto;
+}
+
+.ai-insight-error {
+  margin: 8px 0 0 0;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  font-size: 0.88rem;
+}
+
+.ai-redteam-verdict {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.ai-redteam-verdict-passed {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.ai-redteam-verdict-concerns {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.ai-redteam-verdict-rejected {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.ai-redteam-roles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.ai-redteam-role {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #475569;
+}
+
+.ai-redteam-role-sound {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+  color: #166534;
+}
+
+.ai-redteam-role-fatal {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #991b1b;
+}
+
+.ai-redteam-role-concerns {
+  background: #fffbeb;
+  border-color: #fde68a;
+  color: #92400e;
+}
+
+.ai-redteam-objections {
+  margin: 6px 0 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ai-redteam-objection {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-left: 3px solid #f59e0b;
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-size: 0.88rem;
+  color: #334155;
+}
+
+.ai-redteam-objection.ai-redteam-fatal {
+  border-left-color: #dc2626;
+  background: #fef2f2;
+}
+
+.ai-redteam-objection.ai-redteam-minor {
+  border-left-color: #94a3b8;
+}
+
+.ai-redteam-meta {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: #64748b;
+  margin-bottom: 4px;
+}
+
+.ai-redteam-objection p {
+  margin: 0 0 6px 0;
+  line-height: 1.55;
+}
+
+.ai-redteam-objection p:last-child {
+  margin-bottom: 0;
+}
+
+.ai-redteam-fix {
+  color: #166534;
+}
+
+.ai-redteam-counterexample {
+  color: #991b1b;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.82rem;
+}
+
+.ai-redteam-empty {
+  margin: 4px 0 0 0;
+  color: #166534;
+  font-size: 0.88rem;
+}
+
+.ai-redteam-screened {
+  margin: 10px 0 0 0;
+  padding-top: 8px;
+  border-top: 1px dashed #e2e8f0;
+  color: #64748b;
+  font-size: 0.8rem;
+}
+
+.ai-dna-difficulty {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: #ecfeff;
+  color: #155e75;
+}
+
+.ai-dna-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.ai-dna-chip {
+  border: 1px solid #a5f3fc;
+  background: #ecfeff;
+  color: #155e75;
+  border-radius: 999px;
+  padding: 4px 11px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.ai-dna-chip:hover {
+  background: #cffafe;
+  border-color: #67e8f9;
+  color: #0e7490;
+}
+
+.ai-dna-insight {
+  margin: 8px 0 4px 0;
+  color: #334155;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.ai-dna-list {
+  margin: 0 0 0 18px;
+  padding: 0;
+  color: #334155;
+  font-size: 0.88rem;
+}
+
+.ai-dna-list li {
+  margin-bottom: 5px;
+  line-height: 1.55;
+}
+
+.ai-dna-similar:empty {
+  display: none;
+}
+
+.ai-dna-similar {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px dashed #e2e8f0;
+}
+
+.ai-dna-similar-list {
+  list-style: none;
+  margin: 6px 0 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ai-dna-similar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 100%;
+  text-align: left;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  border-radius: 6px;
+  padding: 8px 10px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.ai-dna-similar-item:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.ai-dna-similar-item strong {
+  color: #0f172a;
+  font-size: 0.88rem;
+}
+
+.ai-dna-similar-item span {
+  color: #64748b;
+  font-size: 0.78rem;
+}
+
+.ai-dna-similar-empty,
+.ai-dna-similar-loading {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.84rem;
+}
+
+.ai-problem-highlight {
+  outline: 3px solid #f59e0b;
+  outline-offset: 3px;
+  border-radius: 8px;
+  transition: outline-color 0.4s ease;
+}
+
+body.dark .ai-insight-card {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+body.dark .ai-insight-head,
+body.dark .ai-dna-similar-item strong {
+  color: #e2e8f0;
+}
+
+body.dark .ai-insight-summary,
+body.dark .ai-dna-insight,
+body.dark .ai-dna-list,
+body.dark .ai-redteam-objection {
+  color: #cbd5e1;
+}
+
+body.dark .ai-redteam-objection {
+  background: #0f172a;
+  border-color: #334155;
+}
+
+body.dark .ai-redteam-objection.ai-redteam-fatal {
+  background: #3f1d1d;
+}
+
+body.dark .ai-redteam-role,
+body.dark .ai-dna-similar-item {
+  background: #0f172a;
+  border-color: #334155;
+  color: #cbd5e1;
+}
+
+body.dark .ai-dna-chip {
+  background: #0f172a;
+  border-color: #155e75;
+  color: #67e8f9;
+}
+
+body.dark .ai-dna-chip:hover {
+  background: #164e63;
+  color: #cffafe;
+}
+
+body.dark .ai-dna-similar {
+  border-top-color: #334155;
+}
+
+body.dark .ai-insight-error {
+  background: #3f1d1d;
+  border-color: #7f1d1d;
+  color: #fecaca;
+}

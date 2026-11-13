@@ -65,7 +65,7 @@ const requests=[];let submitted=null,updated=null,guideFailure=false;
 const response=(body,ok=true,status=503)=>({ok,status:ok?200:status,headers:{get:()=> 'application/json'},json:async()=>body});
 window.fetch=async(url,options={})=>{
  const parsed=new URL(url,'https://example.test');const body=options.body?JSON.parse(options.body):null;requests.push({url:parsed,body});
- if(parsed.pathname==='/api/ai-guide')return guideFailure?response({error:'AI temporarily unavailable'},false):response({success:true,data:{knowledge:'Use the definition.',intuition:'Apply the hypothesis.',solution:'Detailed solution: $x=1$.',pitfalls:'Check the domain.'}});
+ if(parsed.pathname==='/api/ai-guide')return guideFailure?response({error:'AI rejected this request'},false,400):response({success:true,data:{knowledge:'Use the definition.',intuition:'Apply the hypothesis.',solution:'Detailed solution: $x=1$.',pitfalls:'Check the domain.'}});
  if(body?.action==='update_university_theory'){try{return response({success:true,item:await updateUniversityTheory(db,activeUser,body.payload)});}catch(error){return response({success:false,error:error.message},false,error.status||500);}}
  if(body?.action==='submit_solution'){submitted=body.payload;return response({success:true,item:{_id:'submission-test',...submitted}});}
  if(body?.action==='update_catalog_content'){

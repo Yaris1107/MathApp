@@ -13,7 +13,7 @@ const originalGuide = {
   quality: { verified: true, score: '5.0/5.0', verifier: 'GPT' }
 };
 
-export async function createHarness({ role = 'admin', persisted = true, guide = originalGuide, support = false, statement = '', topic = 'Đại số' } = {}) {
+export async function createHarness({ role = 'admin', persisted = true, guide = originalGuide, support = false, statement = '', topic = 'Đại số', fetchImpl = null } = {}) {
   const dom = new JSDOM(`<!doctype html><html><body><div class="tab-pane active">
     <article class="exam-card"><h3 class="exam-title">Đề kiểm thử</h3>
       <div class="problem-item" id="question-2" data-content-key="tst:tst-da-nang:day-1:question-2"
@@ -38,7 +38,9 @@ export async function createHarness({ role = 'admin', persisted = true, guide = 
   window.setTimeout = callback => { callback(); return 1; };
   const guideRequests = [];
   window.fetch = async (url, options) => {
-    guideRequests.push(JSON.parse(options.body));
+    const body = JSON.parse(options.body);
+    guideRequests.push(body);
+    if (fetchImpl) return fetchImpl(body);
     return ({
     ok: true,
     json: async () => ({ success: true, data: guide })
@@ -280,5 +282,22 @@ for(const role of ['admin','student']){
  await window.regenerateAIGuide(problemId,next.querySelector('.btn-ai-guide-refresh'));assert.equal(calls,1);release();await first;
  assert.equal(window.document.querySelectorAll('.ai-guide-panel').length,1);
  window.close();
+}
+// A timed-out single invocation resumes through solve+verify with no total limit.
+{
+  const phases = [];
+  const candidate = { ...originalGuide, requirements: ['x'], finalAnswers: ['0'], equalityCases: [], assumptionsUsed: [], verificationChecks: [], degeneracyChecks: ['none'] };
+  const resumedGuide = { ...originalGuide, solution: 'Lời giải mới $x=2$.', quality: { verified: true, score: '5.0/5.0' } };
+  const h = await createHarness({ persisted: false, fetchImpl: body => {
+    phases.push(body.mode || 'single');
+    if (!body.mode) return { ok: false, status: 504, json: async () => ({ success: false, code: 'AI_TIMEOUT', error: 'AI_TIMEOUT' }) };
+    if (body.mode === 'solve') return { ok: true, status: 200, json: async () => ({ success: true, phase: 'solved', candidate, model: 'gemini-solver' }) };
+    assert.ok(body.candidate && body.candidateModel === 'gemini-solver', 'Verify resumes with the solved candidate');
+    return { ok: true, status: 200, json: async () => ({ success: true, data: resumedGuide }) };
+  } });
+  assert.deepEqual(phases, ['single', 'solve', 'verify']);
+  assert.equal(h.guideRequests.length, 3, 'The client resumes instead of failing on a timeout');
+  assert.match(h.panel.textContent, /Lời giải mới/);
+  h.window.close();
 }
 console.log('Saved AI Guide refresh: new retrieval, source badge, explicit save, error preservation, cancel and duplicate-click guard: OK');

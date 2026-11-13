@@ -23,7 +23,7 @@ import { cleanTrendTheory } from '../lib/trend-theory-storage.js';
 import { buildSubmissionContentUpdate, buildSubmissionVerificationUpdate } from '../lib/submission-verification.js';
 import { importCatalogExam } from '../lib/catalog-import.js';
 
-const ALLOWED_RESOURCES = new Set(['book_asset', 'books', 'university_catalog', 'university_materials', 'math_support', 'math_support_image', 'documents', 'exams', 'exam_catalog', 'home_stats', 'exam_image', 'content_sets', 'content_blocks', 'problems', 'content_revisions', 'submissions', 'submission_image', 'events', 'activity_feed', 'learning_overview', 'exam_trend_reports', 'trend_theories', 'rag_status', 'rag_logs']);
+const ALLOWED_RESOURCES = new Set(['book_asset', 'books', 'university_catalog', 'university_materials', 'math_support', 'math_support_image', 'documents', 'exams', 'exam_catalog', 'home_stats', 'exam_image', 'content_sets', 'content_blocks', 'problems', 'content_revisions', 'submissions', 'submission_image', 'events', 'activity_feed', 'learning_overview', 'exam_trend_reports', 'trend_theories', 'rag_status', 'rag_logs', 'math_dna']);
 const TST_REGIONS = new Set(['BAC', 'TRUNG', 'NAM']);
 const EXAM_TREND_TOPICS = [
   'Dãy số và Giới hạn dãy số', 'Phương trình hàm', 'Số học và dãy số',
@@ -88,7 +88,81 @@ function cleanAiGuide(value) {
     intuition: cleanText(value.intuition, 50000),
     solution: cleanText(value.solution, 100000),
     pitfalls: cleanText(value.pitfalls, 50000),
+    dna: cleanMathDna(value.dna),
+    redTeam: cleanRedTeam(value.redTeam),
     quality
+  };
+}
+
+const DNA_SEVERITIES = ['minor', 'major', 'fatal'];
+const DNA_OBJECTION_TYPES = ['logic', 'counterexample', 'edge_case', 'quantifier', 'assumption', 'algebra'];
+
+function cleanTechniqueRef(value) {
+  const id = cleanText(value?.id, 80);
+  const label = cleanText(value?.label, 120);
+  return id && label ? { id, label } : null;
+}
+
+function cleanMathDna(value) {
+  if (!value || typeof value !== 'object') return null;
+  const techniqueTags = (Array.isArray(value.techniqueTags) ? value.techniqueTags : [])
+    .slice(0, 14).map(cleanTechniqueRef).filter(Boolean);
+  const primaryTechnique = cleanTechniqueRef(value.primaryTechnique) || techniqueTags[0] || null;
+  if (!primaryTechnique) return null;
+  return {
+    primaryTechnique,
+    techniqueTags: techniqueTags.length ? techniqueTags : [primaryTechnique],
+    hypothesisDependencies: (Array.isArray(value.hypothesisDependencies) ? value.hypothesisDependencies : [])
+      .slice(0, 12).map(item => ({
+        hypothesis: cleanText(item?.hypothesis, 600),
+        used: item?.used === true,
+        consequenceIfRemoved: cleanText(item?.consequenceIfRemoved, 1200)
+      })).filter(item => item.hypothesis && item.consequenceIfRemoved),
+    prerequisites: (Array.isArray(value.prerequisites) ? value.prerequisites : [])
+      .slice(0, 12).map(item => ({ concept: cleanText(item?.concept, 300), whyNeeded: cleanText(item?.whyNeeded, 1200) }))
+      .filter(item => item.concept && item.whyNeeded),
+    insight: cleanText(value.insight, 4000),
+    difficulty: cleanNumber(value.difficulty, 3, 1, 5),
+    suggestedPracticeFocus: cleanStringList(value.suggestedPracticeFocus, 6, 500)
+  };
+}
+
+function cleanRedTeamObjection(value) {
+  return {
+    severity: DNA_SEVERITIES.includes(value?.severity) ? value.severity : 'minor',
+    type: DNA_OBJECTION_TYPES.includes(value?.type) ? value.type : 'logic',
+    step: cleanNumber(value?.step, 0, 0, 100000),
+    claim: cleanText(value?.claim, 2000),
+    evidenceQuote: cleanText(value?.evidenceQuote, 2000),
+    reason: cleanText(value?.reason, 4000),
+    proposedFix: cleanText(value?.proposedFix, 4000),
+    counterexample: cleanText(value?.counterexample, 4000)
+  };
+}
+
+function cleanRedTeam(value) {
+  if (!value || typeof value !== 'object') return null;
+  return {
+    verdict: ['passed', 'concerns', 'rejected'].includes(value.verdict) ? value.verdict : 'concerns',
+    confidence: cleanNumber(value.confidence, 0.7, 0, 1),
+    summary: cleanText(value.summary, 5000),
+    revisedScore: cleanText(value.revisedScore, 20),
+    reviewers: (Array.isArray(value.reviewers) ? value.reviewers : []).slice(0, 6).map(item => ({
+      role: cleanText(item?.role, 60), title: cleanText(item?.title, 120),
+      verdict: ['sound', 'concerns', 'fatal'].includes(item?.verdict) ? item.verdict : 'concerns',
+      summary: cleanText(item?.summary, 3000), model: cleanText(item?.model, 80),
+      objectionCount: cleanNumber(item?.objectionCount, 0, 0, 100)
+    })),
+    confirmedObjections: (Array.isArray(value.confirmedObjections) ? value.confirmedObjections : [])
+      .slice(0, 20).map(cleanRedTeamObjection).filter(item => item.claim && item.reason),
+    dismissedObjections: (Array.isArray(value.dismissedObjections) ? value.dismissedObjections : [])
+      .slice(0, 25).map(item => ({
+        claim: cleanText(item?.claim, 2000), reason: cleanText(item?.reason, 2000),
+        rejectedBecause: cleanText(item?.rejectedBecause, 120)
+      })).filter(item => item.claim),
+    checkedObjectionCount: cleanNumber(value.checkedObjectionCount, 0, 0, 1000),
+    rejectedObjectionCount: cleanNumber(value.rejectedObjectionCount, 0, 0, 1000),
+    generatedAt: cleanText(value.generatedAt, 40)
   };
 }
 
@@ -364,6 +438,30 @@ export default async function handler(req, res) {
           { projection: { _id: 0, image: 1, mimeType: 1, pageNumber: 1, createdAt: 1 } }
         );
         return res.status(200).json({ success: true, items: stored ? [stored] : [] });
+      }
+
+      if (resource === 'math_dna') {
+        const problemKey = cleanKey(req.query?.problemKey, 180);
+        const technique = cleanText(req.query?.technique, 120);
+        if (problemKey) {
+          const item = await db.collection('math_dna').findOne({ problemKey });
+          return res.status(200).json({ success: true, items: item ? [item] : [] });
+        }
+        if (!technique) {
+          return res.status(400).json({ success: false, error: 'Cần mã bài toán hoặc kỹ thuật để tra cứu Math DNA' });
+        }
+        const limit = cleanNumber(req.query?.limit, 30, 1, 60);
+        const items = await db.collection('math_dna').find({
+          $or: [
+            { 'techniqueTags.id': technique },
+            { 'techniqueTags.label': technique },
+            { 'primaryTechnique.id': technique }
+          ]
+        }, { projection: {
+          problemKey: 1, title: 1, topic: 1, primaryTechnique: 1, techniqueTags: 1,
+          difficulty: 1, insight: 1, updatedAt: 1
+        } }).sort({ updatedAt: -1 }).limit(limit).toArray();
+        return res.status(200).json({ success: true, items });
       }
 
       if (resource === 'content_revisions') {
@@ -906,6 +1004,40 @@ export default async function handler(req, res) {
       await recordActivity(db, session, 'solution.saved', activityDetails);
       if (evaluation) await recordActivity(db, session, 'evaluation.saved', activityDetails);
       return res.status(201).json({ success: true, item: { _id: result.insertedId, ...doc } });
+    }
+
+    if (action === 'save_math_dna') {
+      if (!['admin', 'teacher'].includes(session.role)) {
+        return res.status(403).json({ success: false, error: 'Chỉ giáo viên hoặc quản trị viên được lưu Math DNA' });
+      }
+      const problemKey = cleanKey(payload.problemKey, 180);
+      const dna = cleanMathDna(payload.dna);
+      if (!problemKey || !dna) {
+        return res.status(400).json({ success: false, error: 'Thiếu mã bài toán hoặc dữ liệu Math DNA hợp lệ' });
+      }
+      if (!checkRateLimit(`${session.username}:math-dna`, 40)) {
+        return res.status(429).json({ success: false, error: 'Bạn đang lưu Math DNA quá nhanh' });
+      }
+      const stored = {
+        problemKey,
+        title: cleanText(payload.title, 500),
+        topic: cleanText(payload.topic, 200),
+        primaryTechnique: dna.primaryTechnique,
+        techniqueTags: dna.techniqueTags,
+        hypothesisDependencies: dna.hypothesisDependencies,
+        prerequisites: dna.prerequisites,
+        insight: dna.insight,
+        difficulty: dna.difficulty,
+        suggestedPracticeFocus: dna.suggestedPracticeFocus,
+        updatedBy: session.username,
+        updatedAt: now
+      };
+      const saved = await db.collection('math_dna').findOneAndUpdate(
+        { problemKey },
+        { $set: stored, $setOnInsert: { createdAt: now, createdBy: session.username } },
+        { upsert: true, returnDocument: 'after' }
+      );
+      return res.status(200).json({ success: true, item: saved });
     }
 
     if (action === 'update_catalog_content' && !['admin', 'teacher'].includes(session.role)) {

@@ -315,6 +315,13 @@
       : '';
     const rag = guideData.quality?.retrieval;
     const safeRagText = value => String(value || '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
+    const dnaTechnique = guideData.dna?.primaryTechnique?.label || '';
+    const dnaBadge = dnaTechnique
+      ? `<span class="prof-badge ai-guide-dna-badge" style="background:#ecfeff;color:#155e75;">🧬 ${safeRagText(dnaTechnique)}</span>`
+      : '';
+    const redTeamBadge = guideData.redTeam?.verdict
+      ? `<span class="prof-badge ai-guide-redteam-badge ai-redteam-verdict-${safeRagText(guideData.redTeam.verdict)}">🛡️ ${guideData.redTeam.verdict === 'passed' ? (isEn ? 'Red Team passed' : 'Red Team đạt') : guideData.redTeam.verdict === 'rejected' ? (isEn ? 'Red Team rejected' : 'Red Team bác bỏ') : (isEn ? 'Red Team concerns' : 'Red Team lưu ý')}</span>`
+      : '';
     const referenceKeys = (rag?.sources || []).map(item => item.problemKey).filter(Boolean);
     const ragBadge = rag ? `<span class="prof-badge ai-guide-reference-badge">📚 <span class="ai-guide-reference-label">${isEn ? 'Solution references:' : 'Tham chiếu lời giải:'}</span> ${referenceKeys.length ? `<strong>${safeRagText(referenceKeys.join('; '))}</strong>` : `<span class="ai-guide-reference-empty">${isEn ? 'AI Math Tutor generated this solution independently' : 'Gia sư Toán AI tự xây dựng lời giải'}</span>`}</span>` : '';
     const adminEditedBadge = guideData.adminEdited
@@ -339,11 +346,14 @@
             <span>${headerTitle}</span>
             <span class="prof-badge">${profBadge}</span>
             ${qualityBadge}${ragBadge}
+            ${dnaBadge}${redTeamBadge}
             ${adminEditedBadge}
             ${persistedBadge}
             <span style="font-size: 0.8rem; font-weight: 500; color: #64748b; margin-left: 4px;">• ${topic || guideData.branch || defaultTopic}</span>
           </div>
           <div class="ai-guide-actions">
+            <button type="button" class="btn-guide-action btn-ai-guide-redteam" onclick="openRedTeam('${problemId}')" title="${isEn ? 'Three independent AI reviewers attack this proof, then a judge rules on evidence' : 'Ba AI độc lập phản biện lời giải, trọng tài chỉ kết luận dựa trên bằng chứng kiểm chứng được'}">🛡️ AI Red Team</button>
+            <button type="button" class="btn-guide-action btn-ai-guide-dna" onclick="openMathDna('${problemId}')" title="${isEn ? 'Extract techniques, hypothesis dependencies and prerequisites' : 'Trích xuất kỹ thuật, phụ thuộc giả thiết và kiến thức tiên quyết'}">🧬 Math DNA</button>
             <button type="button" class="btn-guide-action btn-ai-guide-refresh" onclick="regenerateAIGuide('${problemId}',this)">${isEn ? '🔄 Recheck sources / Regenerate' : '🔄 Đối chiếu nguồn / Tạo lại'}</button>
             <button type="button" class="btn-guide-action" id="btn-save-ai-${problemId}" onclick="saveAIGuideToDatabase('${problemId}', '${(topic || guideData.branch || defaultTopic).replace(/'/g, "\\'")}')" title="Lưu hướng dẫn giải này vào cơ sở dữ liệu" style="color: #0284c7; font-weight: 600;">
               ${guideData.persisted || guideData.savedGuideId ? '💾 Cập nhật lời giải đã lưu' : '🚀 Lưu bài giải vào cơ sở dữ liệu'}
@@ -402,6 +412,11 @@
               ${guideData.pitfalls}
             </div>
           </div>
+
+          <!-- Phần 5: AI Red Team (phản biện độc lập) -->
+          <div class="ai-guide-insight ai-guide-redteam" data-redteam-panel hidden></div>
+          <!-- Phần 6: Math DNA (cấu trúc kỹ thuật) -->
+          <div class="ai-guide-insight ai-guide-dna" data-dna-panel hidden></div>
         </div>
       </div>
     `;
@@ -425,6 +440,110 @@
     });
     holder.querySelectorAll('button, .ai-guide-panel').forEach(node => node.remove());
     return (holder.textContent || '').replace(/\uE120(\d+)\uE121/g, (_, index) => math[Number(index)]).trim();
+  }
+
+  // ── Unlimited AI budget ──────────────────────────────────────────────────
+  // Vercel limits one invocation to 300s. A normal request still uses the
+  // single-call pipeline; if that phase times out or Gemini is overloaded, the
+  // client automatically resumes with mode=solve then mode=verify, retrying each
+  // phase as long as needed. There is no total wall-clock limit across phases.
+  const GUIDE_PHASE_CLIENT_TIMEOUT_MS = 6 * 60 * 1000;
+  const GUIDE_MAX_RESUME_ATTEMPTS = 120;
+
+  function guideWait(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  function guideBackoff(attempt) {
+    return Math.min(30_000, 1_500 * Math.max(1, attempt));
+  }
+
+  async function postGuidePhase(payload) {
+    const controller = typeof AbortController === 'function' ? new AbortController() : null;
+    const timer = controller ? setTimeout(() => controller.abort(), GUIDE_PHASE_CLIENT_TIMEOUT_MS) : null;
+    try {
+      const resp = await fetch('/api/ai-guide', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        ...(controller ? { signal: controller.signal } : {})
+      });
+      const json = await resp.json().catch(() => ({}));
+      return { resp, json };
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
+  }
+
+  function guideFailure(result) {
+    const status = Number(result?.resp?.status) || 0;
+    const json = result?.json || {};
+    const code = String(json.code || '');
+    const retryable = result?.network === true || status === 504 || status === 408 || status === 429 || status === 503
+      || code === 'AI_TIMEOUT' || code === 'AI_HTTP_429' || code === 'AI_RED_TEAM_UNAVAILABLE'
+      || /^AI_HTTP_5\d\d$/.test(code);
+    const error = new Error(json.error || `Dịch vụ AI trả về lỗi ${status || 'mạng'}`);
+    error.code = code;
+    error.status = status;
+    error.retryable = retryable;
+    return error;
+  }
+
+  // Never let a dropped connection or the client-side phase timeout abort the
+  // whole guide: report it as a retryable phase failure instead.
+  async function postGuidePhaseSafe(payload) {
+    try {
+      return await postGuidePhase(payload);
+    } catch (error) {
+      const aborted = error?.name === 'AbortError';
+      return {
+        network: true,
+        resp: { ok: false, status: 0 },
+        json: {
+          code: aborted ? 'AI_TIMEOUT' : 'NETWORK_ERROR',
+          error: aborted
+            ? 'Phiên AI kéo dài quá lâu, đang tự tiếp tục…'
+            : 'Mất kết nối tới máy chủ AI, đang tự thử lại…'
+        }
+      };
+    }
+  }
+
+  async function requestGuidePipeline(basePayload, onProgress) {
+    let attempt = 0;
+    // 1) Preferred path: one invocation, full 292s budget.
+    const first = await postGuidePhaseSafe(basePayload);
+    if (first.resp.ok && first.json?.success && first.json.data) return first.json;
+    const firstError = guideFailure(first);
+    if (!firstError.retryable) throw firstError;
+
+    // 2) Resume path: solve and verify in separate invocations.
+    onProgress?.('AI đang chuyển sang chế độ giải dài, không giới hạn thời gian…');
+    let candidate = null;
+    let candidateModel = '';
+    while (!candidate) {
+      if (++attempt > GUIDE_MAX_RESUME_ATTEMPTS) throw firstError;
+      if (attempt > 1) await guideWait(guideBackoff(attempt));
+      const solved = await postGuidePhaseSafe({ ...basePayload, mode: 'solve' });
+      if (solved.resp.ok && solved.json?.success && solved.json.candidate) {
+        candidate = solved.json.candidate;
+        candidateModel = solved.json.model || '';
+        break;
+      }
+      const error = guideFailure(solved);
+      if (!error.retryable) throw error;
+      onProgress?.(`Gemini đang quá tải, AI tự thử lại bước giải (lần ${attempt})…`);
+    }
+    onProgress?.('Đã có lời giải, AI đang kiểm định độc lập…');
+    while (true) {
+      if (++attempt > GUIDE_MAX_RESUME_ATTEMPTS) throw new Error('AI chưa hoàn tất sau nhiều lần tự tiếp tục. Vui lòng thử lại.');
+      if (attempt > 1) await guideWait(guideBackoff(attempt));
+      const verified = await postGuidePhaseSafe({ ...basePayload, mode: 'verify', candidate, candidateModel });
+      if (verified.resp.ok && verified.json?.success && verified.json.data) return verified.json;
+      const error = guideFailure(verified);
+      if (!error.retryable) throw error;
+      onProgress?.(`Gemini đang quá tải, AI tự thử lại bước kiểm định (lần ${attempt})…`);
+    }
   }
 
   window.openAIGuide = async function(btn, options = {}) {
@@ -515,6 +634,8 @@
             intuition: formatMarkdownToHtml(rawGuide.intuition || ''),
             solution: formatMarkdownToHtml(rawGuide.solution || ''),
             pitfalls: formatMarkdownToHtml(rawGuide.pitfalls || ''),
+            dna: rawGuide.dna || null,
+            redTeam: rawGuide.redTeam || null,
             quality: rawGuide.quality || null,
             adminEdited: saved.aiGuideAdminEdited === true,
             persisted: true,
@@ -526,49 +647,46 @@
       }
     }
 
-    // Nếu có API Server hỗ trợ Gemini AI, gửi request đến máy chủ
+    // Gửi request đến máy chủ; tự tiếp tục qua nhiều phiên nếu Gemini quá tải.
     if (!guideData) try {
-      const resp = await fetch('/api/ai-guide', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          problemId,
-          problemTitle,
-          problemContent,
-          contentKey: card.dataset.contentKey || '',
-          topic: problemTopic,
-          examTitle,
-          lang: window.currentLang === 'en' ? 'en' : 'vi'
-        })
+      const result = await requestGuidePipeline({
+        problemId,
+        problemTitle,
+        problemContent,
+        contentKey: card.dataset.contentKey || '',
+        topic: problemTopic,
+        examTitle,
+        lang: window.currentLang === 'en' ? 'en' : 'vi'
+      }, message => {
+        const loadingText = tempPanel.querySelector('.ai-loading-state > div:last-child');
+        if (loadingText) loadingText.textContent = message;
       });
 
-      if (resp.ok) {
-        const result = await resp.json();
-        if (result.success && result.data) {
-          rawGuide = {
-            branch: problemTopic || 'Toán THPT Chuyên',
-            knowledge: result.data.knowledge || '',
-            intuition: result.data.intuition || '',
-            solution: result.data.solution || '',
-            pitfalls: result.data.pitfalls || '',
-            quality: result.data.quality || null,
-            geometry: window.MathAppGeometry?.clean(result.data.geometry) || null,
-            geometryRequested: result.data.geometryRequested === true
-          };
-          guideData = {
-            branch: problemTopic || 'Toán THPT Chuyên',
-            knowledge: formatMarkdownToHtml(result.data.knowledge),
-            intuition: formatMarkdownToHtml(result.data.intuition),
-            solution: formatMarkdownToHtml(result.data.solution),
-            pitfalls: formatMarkdownToHtml(result.data.pitfalls),
-            quality: result.data.quality || null
-          };
-        } else {
-          throw new Error(result.error || 'AI chưa tạo được lời giải đạt chuẩn');
-        }
+      if (result.success && result.data) {
+        rawGuide = {
+          branch: problemTopic || 'Toán THPT Chuyên',
+          knowledge: result.data.knowledge || '',
+          intuition: result.data.intuition || '',
+          solution: result.data.solution || '',
+          pitfalls: result.data.pitfalls || '',
+          dna: result.data.dna || null,
+          redTeam: result.data.redTeam || null,
+          quality: result.data.quality || null,
+          geometry: window.MathAppGeometry?.clean(result.data.geometry) || null,
+          geometryRequested: result.data.geometryRequested === true
+        };
+        guideData = {
+          branch: problemTopic || 'Toán THPT Chuyên',
+          knowledge: formatMarkdownToHtml(result.data.knowledge),
+          intuition: formatMarkdownToHtml(result.data.intuition),
+          solution: formatMarkdownToHtml(result.data.solution),
+          pitfalls: formatMarkdownToHtml(result.data.pitfalls),
+          dna: result.data.dna || null,
+          redTeam: result.data.redTeam || null,
+          quality: result.data.quality || null
+        };
       } else {
-        const result = await resp.json().catch(() => ({}));
-        throw new Error(result.error || `Dịch vụ AI trả về lỗi ${resp.status}`);
+        throw new Error(result.error || 'AI chưa tạo được lời giải đạt chuẩn');
       }
     } catch (err) {
       if(options.regenerate && existingPanel){tempPanel.remove();existingPanel.querySelector('.ai-guide-refresh-error')?.remove();const error=document.createElement('p');error.className='ai-guide-refresh-error';error.setAttribute('role','alert');error.textContent=(err.message || 'Chưa tạo được hướng dẫn mới')+'. Lời giải hiện tại được giữ nguyên.';existingPanel.querySelector('.ai-guide-body')?.prepend(error);window.showVMOToast?.(error.textContent,false);return false;}
@@ -616,6 +734,7 @@
       const notice=document.createElement('p');notice.className='ai-guide-refresh-notice';notice.textContent=window.currentLang==='en'?'Sources rechecked and a new guide generated. Save/Update to store this result.':'Đã đối chiếu lại nguồn và tạo hướng dẫn mới. Bấm Lưu/Cập nhật để lưu kết quả này.';finalPanel?.querySelector('.ai-guide-body')?.prepend(notice);
     }
     mountGuideGeometry(finalPanel, rawGuide);
+    mountGuideInsights(finalPanel, rawGuide);
     if (finalPanel && window.MathJax?.typesetPromise) {
       window.MathJax.typesetPromise([finalPanel]).catch(() => {});
     }
@@ -794,6 +913,218 @@
     appendGuideGeometry(section, guide, window.currentLang === 'en', () => window.generateAIGuideDiagram(panel.id.replace('ai-panel-', '')));
   }
 
+  const RED_TEAM_VERDICT_TEXT = {
+    passed: { vi: 'Đạt phản biện', en: 'Red Team passed' },
+    concerns: { vi: 'Cần lưu ý', en: 'Concerns found' },
+    rejected: { vi: 'Bị bác bỏ', en: 'Rejected' }
+  };
+  const RED_TEAM_SEVERITY_TEXT = {
+    minor: { vi: 'Nhẹ', en: 'Minor' },
+    major: { vi: 'Nặng', en: 'Major' },
+    fatal: { vi: 'Nghiêm trọng', en: 'Fatal' }
+  };
+  const RED_TEAM_TYPE_TEXT = {
+    logic: { vi: 'Logic', en: 'Logic' },
+    counterexample: { vi: 'Phản ví dụ', en: 'Counterexample' },
+    edge_case: { vi: 'Trường hợp biên', en: 'Edge case' },
+    quantifier: { vi: 'Lượng từ', en: 'Quantifier' },
+    assumption: { vi: 'Giả thiết ngầm', en: 'Assumption' },
+    algebra: { vi: 'Đại số', en: 'Algebra' }
+  };
+
+  function renderRedTeamPanel(panel, report) {
+    const host = panel?.querySelector('[data-redteam-panel]');
+    if (!host) return;
+    if (!report || typeof report !== 'object') {
+      host.hidden = true;
+      host.replaceChildren();
+      return;
+    }
+    const isEn = window.currentLang === 'en';
+    const pick = (table, key) => (table[key] || table.logic || { vi: key, en: key })[isEn ? 'en' : 'vi'];
+    const wrap = document.createElement('div');
+    wrap.className = 'ai-insight-card';
+    const header = document.createElement('div');
+    header.className = 'ai-insight-head';
+    const title = document.createElement('span');
+    title.textContent = isEn ? '🛡️ AI Red Team — adversarial review' : '🛡️ AI Red Team — hội đồng phản biện';
+    const verdict = document.createElement('span');
+    verdict.className = `ai-redteam-verdict ai-redteam-verdict-${report.verdict || 'concerns'}`;
+    verdict.textContent = `${pick(RED_TEAM_VERDICT_TEXT, report.verdict || 'concerns')}${report.revisedScore ? ` · ${report.revisedScore}` : ''}`;
+    header.append(title, verdict);
+    wrap.append(header);
+
+    if (report.summary) {
+      const summary = document.createElement('p');
+      summary.className = 'ai-insight-summary';
+      summary.textContent = report.summary;
+      wrap.append(summary);
+    }
+
+    if (Array.isArray(report.reviewers) && report.reviewers.length) {
+      const row = document.createElement('div');
+      row.className = 'ai-redteam-roles';
+      report.reviewers.forEach(reviewer => {
+        const chip = document.createElement('span');
+        chip.className = `ai-redteam-role ai-redteam-role-${reviewer.verdict || 'concerns'}`;
+        chip.textContent = `${reviewer.title || reviewer.role || 'Reviewer'} · ${reviewer.objectionCount ?? 0}`;
+        row.append(chip);
+      });
+      wrap.append(row);
+    }
+
+    const confirmed = Array.isArray(report.confirmedObjections) ? report.confirmedObjections : [];
+    const listTitle = document.createElement('p');
+    listTitle.className = 'ai-insight-subtitle';
+    listTitle.textContent = isEn
+      ? `Confirmed objections (${confirmed.length})`
+      : `Lỗi được xác nhận (${confirmed.length})`;
+    wrap.append(listTitle);
+    if (!confirmed.length) {
+      const empty = document.createElement('p');
+      empty.className = 'ai-redteam-empty';
+      empty.textContent = isEn
+        ? 'No evidence-backed objection survived screening. The proof passed this adversarial review.'
+        : 'Không có phản biện nào vượt qua bước kiểm chứng bằng chứng. Lời giải đạt phản biện độc lập.';
+      wrap.append(empty);
+    } else {
+      const list = document.createElement('ol');
+      list.className = 'ai-redteam-objections';
+      confirmed.forEach(item => {
+        const li = document.createElement('li');
+        li.className = `ai-redteam-objection ai-redteam-${item.severity || 'major'}`;
+        const meta = document.createElement('div');
+        meta.className = 'ai-redteam-meta';
+        meta.textContent = `${pick(RED_TEAM_SEVERITY_TEXT, item.severity || 'major')} · ${pick(RED_TEAM_TYPE_TEXT, item.type || 'logic')}${item.step ? ` · ${isEn ? 'step' : 'bước'} ${item.step}` : ''}`;
+        const reason = document.createElement('p');
+        reason.textContent = item.reason || item.claim || '';
+        li.append(meta, reason);
+        if (item.proposedFix) {
+          const fix = document.createElement('p');
+          fix.className = 'ai-redteam-fix';
+          fix.textContent = `${isEn ? 'Fix: ' : 'Cách sửa: '}${item.proposedFix}`;
+          li.append(fix);
+        }
+        if (item.counterexample) {
+          const counter = document.createElement('p');
+          counter.className = 'ai-redteam-counterexample';
+          counter.textContent = `${isEn ? 'Counterexample: ' : 'Phản ví dụ: '}${item.counterexample}`;
+          li.append(counter);
+        }
+        list.append(li);
+      });
+      wrap.append(list);
+    }
+
+    const rejectedCount = Number(report.rejectedObjectionCount) || 0;
+    if (rejectedCount > 0) {
+      const note = document.createElement('p');
+      note.className = 'ai-redteam-screened';
+      note.textContent = isEn
+        ? `${rejectedCount} objection(s) were discarded because their quoted evidence was not in the solution.`
+        : `${rejectedCount} phản biện đã bị loại vì trích dẫn không khớp với lời giải.`;
+      wrap.append(note);
+    }
+    host.replaceChildren(wrap);
+    host.hidden = false;
+  }
+
+  function renderDnaPanel(panel, dna) {
+    const host = panel?.querySelector('[data-dna-panel]');
+    if (!host) return;
+    if (!dna || typeof dna !== 'object') {
+      host.hidden = true;
+      host.replaceChildren();
+      return;
+    }
+    const isEn = window.currentLang === 'en';
+    const wrap = document.createElement('div');
+    wrap.className = 'ai-insight-card';
+    const header = document.createElement('div');
+    header.className = 'ai-insight-head';
+    const title = document.createElement('span');
+    title.textContent = isEn ? '🧬 Math DNA — reusable structure' : '🧬 Math DNA — cấu trúc kỹ thuật';
+    const difficulty = document.createElement('span');
+    difficulty.className = 'ai-dna-difficulty';
+    difficulty.textContent = `${isEn ? 'Difficulty' : 'Độ khó'} ${dna.difficulty || 3}/5`;
+    header.append(title, difficulty);
+    wrap.append(header);
+
+    if (dna.primaryTechnique?.label) {
+      const primary = document.createElement('p');
+      primary.className = 'ai-insight-summary';
+      primary.textContent = `${isEn ? 'Primary technique: ' : 'Kỹ thuật chính: '}${dna.primaryTechnique.label}`;
+      wrap.append(primary);
+    }
+
+    const tags = Array.isArray(dna.techniqueTags) ? dna.techniqueTags : [];
+    if (tags.length) {
+      const chips = document.createElement('div');
+      chips.className = 'ai-dna-chips';
+      tags.forEach(tag => {
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'ai-dna-chip';
+        chip.dataset.techniqueId = tag.id;
+        chip.title = isEn ? `Find problems using ${tag.label}` : `Tìm bài cùng kỹ thuật ${tag.label}`;
+        chip.textContent = tag.label;
+        chip.onclick = () => window.findProblemsByTechnique(tag.id, tag.label, panel.id.replace('ai-panel-', ''));
+        chips.append(chip);
+      });
+      wrap.append(chips);
+    }
+
+    if (dna.insight) {
+      const insight = document.createElement('p');
+      insight.className = 'ai-dna-insight';
+      insight.textContent = dna.insight;
+      wrap.append(insight);
+    }
+
+    const dependencies = Array.isArray(dna.hypothesisDependencies) ? dna.hypothesisDependencies : [];
+    if (dependencies.length) {
+      const heading = document.createElement('p');
+      heading.className = 'ai-insight-subtitle';
+      heading.textContent = isEn ? 'Hypothesis dependencies' : 'Phụ thuộc giả thiết';
+      const list = document.createElement('ul');
+      list.className = 'ai-dna-list';
+      dependencies.forEach(item => {
+        const li = document.createElement('li');
+        const used = item.used ? (isEn ? 'used' : 'được dùng') : (isEn ? 'not used' : 'không dùng');
+        li.textContent = `${item.hypothesis} (${used}): ${item.consequenceIfRemoved}`;
+        list.append(li);
+      });
+      wrap.append(heading, list);
+    }
+
+    const prerequisites = Array.isArray(dna.prerequisites) ? dna.prerequisites : [];
+    if (prerequisites.length) {
+      const heading = document.createElement('p');
+      heading.className = 'ai-insight-subtitle';
+      heading.textContent = isEn ? 'Prerequisites' : 'Kiến thức tiên quyết';
+      const list = document.createElement('ul');
+      list.className = 'ai-dna-list';
+      prerequisites.forEach(item => {
+        const li = document.createElement('li');
+        li.textContent = `${item.concept}: ${item.whyNeeded}`;
+        list.append(li);
+      });
+      wrap.append(heading, list);
+    }
+
+    const similar = document.createElement('div');
+    similar.className = 'ai-dna-similar';
+    wrap.append(similar);
+    host.replaceChildren(wrap);
+    host.hidden = false;
+  }
+
+  function mountGuideInsights(panel, guide) {
+    if (!panel) return;
+    renderDnaPanel(panel, guide?.dna);
+    renderRedTeamPanel(panel, guide?.redTeam);
+  }
+
   window.generateAIGuideDiagram = async function(problemId) {
     const context = aiGuideContexts.get(problemId), panel = document.getElementById(`ai-panel-${problemId}`);
     if (!context || !panel || context.diagramBusy || panel.dataset.guideEditing === 'true') return false;
@@ -845,9 +1176,264 @@
       if (content) content.innerHTML = formatMarkdownToHtml(guide?.[field] || '');
     });
     mountGuideGeometry(panel, guide);
+    mountGuideInsights(panel, guide);
     setGuideEditorState(panel, false);
     if (window.MathJax?.typesetPromise) window.MathJax.typesetPromise([panel]).catch(() => {});
   }
+
+  // ── AI Red Team action ───────────────────────────────────────────────────
+  window.openRedTeam = async function(problemId) {
+    const context = aiGuideContexts.get(problemId);
+    const panel = document.getElementById(`ai-panel-${problemId}`);
+    if (!context?.rawGuide || !panel) return false;
+    if (context.redTeamBusy) return false;
+    const solution = String(context.rawGuide.solution || '');
+    const isEn = window.currentLang === 'en';
+    if (solution.trim().length < 120) {
+      window.showVMOToast?.(isEn ? 'The solution is too short for an adversarial review.' : 'Lời giải quá ngắn để phản biện.', false);
+      return false;
+    }
+    const button = panel.querySelector('.btn-ai-guide-redteam');
+    const original = button?.textContent;
+    context.redTeamBusy = true;
+    if (button) { button.disabled = true; button.textContent = isEn ? '🛡️ Reviewing…' : '🛡️ Đang phản biện…'; }
+    const host = panel.querySelector('[data-redteam-panel]');
+    if (host) {
+      host.hidden = false;
+      host.replaceChildren();
+      const loading = document.createElement('div');
+      loading.className = 'ai-insight-card ai-insight-loading';
+      loading.innerHTML = '<div class="ai-spinner"></div>';
+      const text = document.createElement('p');
+      text.textContent = isEn
+        ? 'Three independent reviewers are attacking the proof; their objections will be screened for verifiable evidence.'
+        : 'Ba AI độc lập đang tấn công lời giải; mọi phản biện sẽ được kiểm tra bằng chứng trước khi trọng tài kết luận.';
+      loading.append(text);
+      host.append(loading);
+    }
+    try {
+      const response = await fetch('/api/ai-guide', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mode: 'redteam',
+          problemId,
+          problemTitle: context.problemTitle,
+          problemContent: context.problemContent,
+          contentKey: context.problemKey || '',
+          topic: context.topic,
+          examTitle: context.examTitle,
+          solution,
+          lang: isEn ? 'en' : 'vi'
+        })
+      });
+      const result = await response.json().catch(() => ({}));
+      const report = result?.data?.redTeam;
+      if (!response.ok || !result.success || !report) {
+        throw new Error(result?.error || (isEn ? 'The Red Team could not complete the review.' : 'AI Red Team chưa hoàn tất phản biện.'));
+      }
+      context.rawGuide = { ...context.rawGuide, redTeam: report };
+      renderRedTeamPanel(panel, report);
+      refreshRedTeamBadge(panel, report);
+      window.showVMOToast?.(report.verdict === 'passed'
+        ? (isEn ? 'Red Team passed: no evidence-backed objection.' : 'AI Red Team đạt: không có phản biện nào đứng vững.')
+        : (isEn ? 'Red Team found points that need attention.' : 'AI Red Team phát hiện điểm cần xem lại.'), report.verdict !== 'rejected');
+      return true;
+    } catch (error) {
+      renderRedTeamPanel(panel, null);
+      if (host) {
+        host.hidden = false;
+        const message = document.createElement('p');
+        message.className = 'ai-insight-error';
+        message.setAttribute('role', 'alert');
+        message.textContent = error.message || (isEn ? 'Red Team failed.' : 'AI Red Team gặp lỗi.');
+        host.append(message);
+      }
+      window.showVMOToast?.(error.message || 'AI Red Team gặp lỗi.', false);
+      return false;
+    } finally {
+      context.redTeamBusy = false;
+      if (button) { button.disabled = false; button.textContent = original || '🛡️ AI Red Team'; }
+    }
+  };
+
+  function refreshRedTeamBadge(panel, report) {
+    const title = panel?.querySelector('.ai-guide-title');
+    if (!title || !report) return;
+    title.querySelector('.ai-guide-redteam-badge')?.remove();
+    const isEn = window.currentLang === 'en';
+    const badge = document.createElement('span');
+    badge.className = `prof-badge ai-guide-redteam-badge ai-redteam-verdict-${report.verdict}`;
+    badge.style.cssText = 'background:#fef2f2;color:#991b1b;';
+    badge.textContent = `🛡️ ${report.verdict === 'passed' ? (isEn ? 'Red Team passed' : 'Red Team đạt') : report.verdict === 'rejected' ? (isEn ? 'Red Team rejected' : 'Red Team bác bỏ') : (isEn ? 'Red Team concerns' : 'Red Team lưu ý')}`;
+    const dnaBadge = title.querySelector('.ai-guide-dna-badge');
+    if (dnaBadge) dnaBadge.after(badge); else title.append(badge);
+  }
+
+  // ── Math DNA action ──────────────────────────────────────────────────────
+  window.openMathDna = async function(problemId) {
+    const context = aiGuideContexts.get(problemId);
+    const panel = document.getElementById(`ai-panel-${problemId}`);
+    if (!context?.rawGuide || !panel) return false;
+    if (context.dnaBusy) return false;
+    const isEn = window.currentLang === 'en';
+    const button = panel.querySelector('.btn-ai-guide-dna');
+    const original = button?.textContent;
+    context.dnaBusy = true;
+    if (button) { button.disabled = true; button.textContent = isEn ? '🧬 Extracting…' : '🧬 Đang trích xuất…'; }
+    const host = panel.querySelector('[data-dna-panel]');
+    if (host) {
+      host.hidden = false;
+      host.replaceChildren();
+      const loading = document.createElement('div');
+      loading.className = 'ai-insight-card ai-insight-loading';
+      loading.innerHTML = '<div class="ai-spinner"></div>';
+      const text = document.createElement('p');
+      text.textContent = isEn
+        ? 'Extracting techniques, hypothesis dependencies and prerequisites…'
+        : 'Đang trích xuất kỹ thuật, phụ thuộc giả thiết và kiến thức tiên quyết…';
+      loading.append(text);
+      host.append(loading);
+    }
+    try {
+      const response = await fetch('/api/ai-guide', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mode: 'dna',
+          problemId,
+          problemTitle: context.problemTitle,
+          problemContent: context.problemContent,
+          contentKey: context.problemKey || '',
+          topic: context.topic,
+          examTitle: context.examTitle,
+          solution: String(context.rawGuide.solution || ''),
+          lang: isEn ? 'en' : 'vi'
+        })
+      });
+      const result = await response.json().catch(() => ({}));
+      const dna = result?.data?.dna;
+      if (!response.ok || !result.success || !dna) {
+        throw new Error(result?.error || (isEn ? 'Math DNA extraction failed.' : 'Chưa trích xuất được Math DNA.'));
+      }
+      context.rawGuide = { ...context.rawGuide, dna };
+      renderDnaPanel(panel, dna);
+      refreshDnaBadge(panel, dna);
+      window.showVMOToast?.(isEn ? 'Math DNA extracted.' : 'Đã trích xuất Math DNA.', true);
+      return true;
+    } catch (error) {
+      renderDnaPanel(panel, null);
+      if (host) {
+        host.hidden = false;
+        const message = document.createElement('p');
+        message.className = 'ai-insight-error';
+        message.setAttribute('role', 'alert');
+        message.textContent = error.message || (isEn ? 'Math DNA failed.' : 'Math DNA gặp lỗi.');
+        host.append(message);
+      }
+      window.showVMOToast?.(error.message || 'Math DNA gặp lỗi.', false);
+      return false;
+    } finally {
+      context.dnaBusy = false;
+      if (button) { button.disabled = false; button.textContent = original || '🧬 Math DNA'; }
+    }
+  };
+
+  function refreshDnaBadge(panel, dna) {
+    const title = panel?.querySelector('.ai-guide-title');
+    if (!title || !dna?.primaryTechnique?.label) return;
+    title.querySelector('.ai-guide-dna-badge')?.remove();
+    const badge = document.createElement('span');
+    badge.className = 'prof-badge ai-guide-dna-badge';
+    badge.style.cssText = 'background:#ecfeff;color:#155e75;';
+    badge.textContent = `🧬 ${dna.primaryTechnique.label}`;
+    const quality = title.querySelector('.ai-guide-quality-badge');
+    if (quality) quality.after(badge); else title.append(badge);
+  }
+
+  window.findProblemsByTechnique = async function(techniqueId, techniqueLabel, problemId) {
+    const context = aiGuideContexts.get(problemId);
+    const panel = document.getElementById(`ai-panel-${problemId}`);
+    const host = panel?.querySelector('.ai-dna-similar');
+    if (!host) return false;
+    const isEn = window.currentLang === 'en';
+    host.replaceChildren();
+    const loading = document.createElement('p');
+    loading.className = 'ai-dna-similar-loading';
+    loading.textContent = isEn ? 'Searching problems with the same technique…' : 'Đang tìm bài cùng kỹ thuật…';
+    host.append(loading);
+    try {
+      const response = await fetch(`/api/data?resource=math_dna&technique=${encodeURIComponent(techniqueId)}&limit=20`, {
+        credentials: 'include', cache: 'no-store'
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || !result.success) throw new Error(result?.error || 'Không tra cứu được Math DNA');
+      const currentKey = String(context?.problemKey || '');
+      const items = (Array.isArray(result.items) ? result.items : [])
+        .filter(item => item.problemKey && String(item.problemKey) !== currentKey)
+        .slice(0, 12);
+      host.replaceChildren();
+      const heading = document.createElement('p');
+      heading.className = 'ai-insight-subtitle';
+      heading.textContent = `${isEn ? 'Problems using' : 'Bài cùng kỹ thuật'} ${techniqueLabel || techniqueId} (${items.length})`;
+      host.append(heading);
+      if (!items.length) {
+        const empty = document.createElement('p');
+        empty.className = 'ai-dna-similar-empty';
+        empty.textContent = isEn
+          ? 'No other problem has this DNA yet. Extract DNA for more problems to build the map.'
+          : 'Chưa có bài khác cùng Math DNA. Hãy trích xuất DNA thêm để xây bản đồ kỹ thuật.';
+        host.append(empty);
+        return true;
+      }
+      const list = document.createElement('ul');
+      list.className = 'ai-dna-similar-list';
+      items.forEach(item => {
+        const li = document.createElement('li');
+        const open = document.createElement('button');
+        open.type = 'button';
+        open.className = 'ai-dna-similar-item';
+        const label = document.createElement('strong');
+        label.textContent = item.title || item.problemKey;
+        const meta = document.createElement('span');
+        meta.textContent = [
+          item.topic,
+          item.primaryTechnique?.label,
+          item.difficulty ? `${isEn ? 'level' : 'mức'} ${item.difficulty}` : ''
+        ].filter(Boolean).join(' · ');
+        open.append(label, meta);
+        open.onclick = () => window.locateProblemByKey(item.problemKey);
+        li.append(open);
+        list.append(li);
+      });
+      host.append(list);
+      return true;
+    } catch (error) {
+      host.replaceChildren();
+      const message = document.createElement('p');
+      message.className = 'ai-insight-error';
+      message.textContent = error.message || (isEn ? 'Could not search by technique.' : 'Không tra cứu được theo kỹ thuật.');
+      host.append(message);
+      return false;
+    }
+  };
+
+  window.locateProblemByKey = function(problemKey) {
+    const key = String(problemKey || '').trim();
+    if (!key) return false;
+    const candidates = [...document.querySelectorAll('[data-content-key]')];
+    const target = candidates.find(node => node.dataset.contentKey === key)
+      || candidates.find(node => node.dataset.problemKey === key);
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      target.classList.add('ai-problem-highlight');
+      setTimeout(() => target.classList.remove('ai-problem-highlight'), 2600);
+      return true;
+    }
+    if (navigator.clipboard?.writeText) navigator.clipboard.writeText(key).catch(() => {});
+    window.showVMOToast?.(`Đã sao chép mã bài: ${key}. Bài này có thể nằm ở tab khác.`, true);
+    return false;
+  };
 
   window.editAIGuideContent = function(problemId) {
     if (!isAdminGuideEditor()) return;
@@ -890,11 +1476,14 @@
       }
     }
 
+    const proofChanged = GUIDE_EDIT_FIELDS.some(field => edited[field] !== context.rawGuide[field]);
     context.rawGuide = {
       ...context.rawGuide,
       ...edited,
-      geometry: GUIDE_EDIT_FIELDS.some(field => edited[field] !== context.rawGuide[field]) ? null : context.rawGuide.geometry,
+      geometry: proofChanged ? null : context.rawGuide.geometry,
       geometryRequested: context.rawGuide.geometryRequested || Boolean(context.rawGuide.geometry),
+      dna: proofChanged ? null : context.rawGuide.dna,
+      redTeam: proofChanged ? null : context.rawGuide.redTeam,
       quality: context.rawGuide.quality
         ? { ...context.rawGuide.quality, verified: false, score: '' }
         : null
@@ -902,6 +1491,10 @@
     context.adminEdited = true;
     renderGuideFields(problemId, context.rawGuide);
     panel.querySelector('.ai-guide-quality-badge')?.remove();
+    if (proofChanged) {
+      panel.querySelector('.ai-guide-dna-badge')?.remove();
+      panel.querySelector('.ai-guide-redteam-badge')?.remove();
+    }
     if (!panel.querySelector('.ai-guide-admin-edited-badge')) {
       const badge = document.createElement('span');
       badge.className = 'prof-badge ai-guide-admin-edited-badge';
@@ -1286,6 +1879,8 @@
     });
 
     document.querySelectorAll('.btn-ai-guide-refresh').forEach(button=>{button.textContent=isEn?'🔄 Recheck sources / Regenerate':'🔄 Đối chiếu nguồn / Tạo lại';});
+    document.querySelectorAll('.btn-ai-guide-redteam').forEach(button=>{if(!button.disabled)button.textContent='🛡️ AI Red Team';});
+    document.querySelectorAll('.btn-ai-guide-dna').forEach(button=>{if(!button.disabled)button.textContent='🧬 Math DNA';});
 
     // Cập nhật tiêu đề trong các panel đang mở
     document.querySelectorAll('.ai-guide-panel').forEach(panel => {
@@ -1319,7 +1914,14 @@
       const s4 = panel.querySelector('.ai-section-notes .ai-section-title span');
       if (s4) s4.textContent = isEn ? '⚠️ 4. Common Pitfalls & Scoring Notes' : '⚠️ 4. Sai lầm phổ biến & Lưu ý khi chấm thi';
       const context = aiGuideContexts.get(panel.id.replace('ai-panel-', ''));
-      if (context?.rawGuide && !context.diagramBusy && panel.dataset.guideEditing !== 'true') mountGuideGeometry(panel, context.rawGuide);
+      if (context?.rawGuide) {
+        if (context.rawGuide.dna) refreshDnaBadge(panel, context.rawGuide.dna);
+        if (context.rawGuide.redTeam) refreshRedTeamBadge(panel, context.rawGuide.redTeam);
+      }
+      if (context?.rawGuide && !context.diagramBusy && panel.dataset.guideEditing !== 'true') {
+        mountGuideGeometry(panel, context.rawGuide);
+        mountGuideInsights(panel, context.rawGuide);
+      }
     });
   });
 
