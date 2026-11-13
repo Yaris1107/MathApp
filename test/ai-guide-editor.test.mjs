@@ -13,7 +13,7 @@ const originalGuide = {
   quality: { verified: true, score: '5.0/5.0', verifier: 'GPT' }
 };
 
-export async function createHarness({ role = 'admin', persisted = true, guide = originalGuide, support = false, statement = '', topic = 'Đại số', fetchImpl = null } = {}) {
+export async function createHarness({ role = 'admin', persisted = true, guide = originalGuide, support = false, statement = '', topic = 'Đại số', fetchImpl = null, idleTracker = null } = {}) {
   const dom = new JSDOM(`<!doctype html><html><body><div class="tab-pane active">
     <article class="exam-card"><h3 class="exam-title">Đề kiểm thử</h3>
       <div class="problem-item" id="question-2" data-content-key="tst:tst-da-nang:day-1:question-2"
@@ -36,6 +36,7 @@ export async function createHarness({ role = 'admin', persisted = true, guide = 
   window.showVMOToast = () => {};
   window.alert = () => {};
   window.setTimeout = callback => { callback(); return 1; };
+  if (idleTracker) window.VMOIdleTracker = idleTracker;
   const guideRequests = [];
   window.fetch = async (url, options) => {
     const body = JSON.parse(options.body);
@@ -286,9 +287,11 @@ for(const role of ['admin','student']){
 // A timed-out single invocation resumes through solve+verify with no total limit.
 {
   const phases = [];
+  let keepAliveCalls = 0;
+  const idleTracker = { recordActivity: () => { keepAliveCalls += 1; } };
   const candidate = { ...originalGuide, requirements: ['x'], finalAnswers: ['0'], equalityCases: [], assumptionsUsed: [], verificationChecks: [], degeneracyChecks: ['none'] };
   const resumedGuide = { ...originalGuide, solution: 'Lời giải mới $x=2$.', quality: { verified: true, score: '5.0/5.0' } };
-  const h = await createHarness({ persisted: false, fetchImpl: body => {
+  const h = await createHarness({ persisted: false, idleTracker, fetchImpl: body => {
     phases.push(body.mode || 'single');
     if (!body.mode) return { ok: false, status: 504, json: async () => ({ success: false, code: 'AI_TIMEOUT', error: 'AI_TIMEOUT' }) };
     if (body.mode === 'solve') return { ok: true, status: 200, json: async () => ({ success: true, phase: 'solved', candidate, model: 'gemini-solver' }) };
@@ -297,6 +300,7 @@ for(const role of ['admin','student']){
   } });
   assert.deepEqual(phases, ['single', 'solve', 'verify']);
   assert.equal(h.guideRequests.length, 3, 'The client resumes instead of failing on a timeout');
+  assert.ok(keepAliveCalls >= 1, 'The idle tracker stays fresh during a long AI phase');
   assert.match(h.panel.textContent, /Lời giải mới/);
   h.window.close();
 }

@@ -454,6 +454,17 @@
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
+  // A long AI phase (especially the resume pipeline) can run for many minutes.
+  // Keep the idle tracker fresh while the user is waiting, otherwise the app
+  // would log out mid-request and abort the answer they are waiting for.
+  function keepSessionAlive() {
+    const tracker = window.VMOIdleTracker;
+    if (!tracker?.recordActivity || typeof setInterval !== 'function') return () => {};
+    tracker.recordActivity(true);
+    const timer = setInterval(() => tracker.recordActivity(true), 60_000);
+    return () => clearInterval(timer);
+  }
+
   function guideBackoff(attempt) {
     return Math.min(30_000, 1_500 * Math.max(1, attempt));
   }
@@ -649,18 +660,24 @@
 
     // Gửi request đến máy chủ; tự tiếp tục qua nhiều phiên nếu Gemini quá tải.
     if (!guideData) try {
-      const result = await requestGuidePipeline({
-        problemId,
-        problemTitle,
-        problemContent,
-        contentKey: card.dataset.contentKey || '',
-        topic: problemTopic,
-        examTitle,
-        lang: window.currentLang === 'en' ? 'en' : 'vi'
-      }, message => {
-        const loadingText = tempPanel.querySelector('.ai-loading-state > div:last-child');
-        if (loadingText) loadingText.textContent = message;
-      });
+      const stopKeepAlive = keepSessionAlive();
+      let result;
+      try {
+        result = await requestGuidePipeline({
+          problemId,
+          problemTitle,
+          problemContent,
+          contentKey: card.dataset.contentKey || '',
+          topic: problemTopic,
+          examTitle,
+          lang: window.currentLang === 'en' ? 'en' : 'vi'
+        }, message => {
+          const loadingText = tempPanel.querySelector('.ai-loading-state > div:last-child');
+          if (loadingText) loadingText.textContent = message;
+        });
+      } finally {
+        stopKeepAlive();
+      }
 
       if (result.success && result.data) {
         rawGuide = {
@@ -1134,6 +1151,7 @@
     const solution = guideAtStart.solution;
     context.diagramBusy = true;
     if (button) { button.disabled = true; button.textContent = window.currentLang === 'en' ? 'Drawing…' : 'Đang dựng và kiểm tra hình…'; }
+    const stopKeepAlive = keepSessionAlive();
     try {
       const response = await fetch('/api/ai-guide', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
         mode: 'diagram', contentKey: context.problemKey, problemId, problemTitle: context.problemTitle,
@@ -1160,6 +1178,7 @@
       notice.textContent = error.message;
       return false;
     } finally {
+      stopKeepAlive();
       context.diagramBusy = false;
       if (button) { button.disabled = false; button.textContent = originalButtonText || (window.currentLang === 'en' ? 'Create / retry diagram' : 'Tạo / Thử lại hình vẽ'); }
     }
@@ -1211,6 +1230,7 @@
       loading.append(text);
       host.append(loading);
     }
+    const stopKeepAlive = keepSessionAlive();
     try {
       const response = await fetch('/api/ai-guide', {
         method: 'POST',
@@ -1252,6 +1272,7 @@
       window.showVMOToast?.(error.message || 'AI Red Team gặp lỗi.', false);
       return false;
     } finally {
+      stopKeepAlive();
       context.redTeamBusy = false;
       if (button) { button.disabled = false; button.textContent = original || '🛡️ AI Red Team'; }
     }
@@ -1295,6 +1316,7 @@
       loading.append(text);
       host.append(loading);
     }
+    const stopKeepAlive = keepSessionAlive();
     try {
       const response = await fetch('/api/ai-guide', {
         method: 'POST',
@@ -1334,6 +1356,7 @@
       window.showVMOToast?.(error.message || 'Math DNA gặp lỗi.', false);
       return false;
     } finally {
+      stopKeepAlive();
       context.dnaBusy = false;
       if (button) { button.disabled = false; button.textContent = original || '🧬 Math DNA'; }
     }
