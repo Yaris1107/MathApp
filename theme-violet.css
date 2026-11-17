@@ -91,6 +91,7 @@ body.dark *::-webkit-scrollbar-thumb {
 }
 
 body.dark .skip-link { background: #1b1440; color: #ede9fe; border: 1px solid var(--line-strong); }
+body.dark #educationAccessSummary { color: #9aa2c2 !important; }
 
 /* Focus ring */
 body.dark :where(button, a, input, summary, select, textarea):focus-visible {
@@ -784,6 +785,54 @@ body.dark .math-support-source-image { border-radius: 12px; border: 1px solid va
 body.dark #supportProblems article h3,
 body.dark #supportProblems article h4 { color: #efeaff; }
 
+/* Books & university materials */
+body.dark .university-material-controls {
+  background: rgba(255, 255, 255, 0.028);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+body.dark .university-material-controls select,
+body.dark .university-material-controls input,
+body.dark #booksControls select,
+body.dark #booksEditor select,
+body.dark #booksEditor textarea {
+  background: rgba(8, 10, 20, 0.9);
+  border: 1px solid var(--line);
+  color: #e9e8f8;
+  border-radius: 10px;
+}
+body.dark .university-material-method {
+  background: rgba(59, 130, 246, 0.1);
+  border-left-color: #60a5fa;
+  color: #d5d9ef;
+  border-radius: 0 12px 12px 0;
+}
+body.dark .university-material-pitfall {
+  background: rgba(217, 119, 6, 0.12);
+  border-left-color: #f59e0b;
+  color: #e8dcc8;
+  border-radius: 0 12px 12px 0;
+}
+body.dark .university-material-example {
+  background: var(--panel-grad);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+}
+body.dark .university-material-references { color: #9aa2c2; border-top-color: var(--line); }
+body.dark .book-exercise {
+  background: rgba(255, 255, 255, 0.028);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+body.dark #booksContent, body.dark #universityMaterialsContent { color: #d8d9ec; }
+body.dark #booksContent button, body.dark #universityMaterialsContent button {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--line);
+  color: #d8d3ff;
+  border-radius: 9px;
+}
+body.dark .university-theory-reference-row { border-color: var(--line); border-radius: 10px; }
+
 /* ---------------------------------------------------------------------------
    8. AI GUIDE / RED TEAM / MATH DNA
    -------------------------------------------------------------------------- */
@@ -1210,6 +1259,16 @@ body.dark [style*="background:#fee2e2"],
 body.dark [style*="background: #fee2e2"] {
   background: rgba(244, 63, 94, 0.13) !important;
   border-color: rgba(244, 63, 94, 0.3) !important;
+}
+
+body.dark [style*="background:#e0f2fe"],
+body.dark [style*="background: #e0f2fe"],
+body.dark [style*="background:#dbeafe"],
+body.dark [style*="background: #dbeafe"],
+body.dark [style*="background:#bfdbfe"],
+body.dark [style*="background: #bfdbfe"] {
+  background: rgba(59, 130, 246, 0.14) !important;
+  border-color: rgba(59, 130, 246, 0.3) !important;
 }
 
 body.dark [style*="color:#b91c1c"],
