@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="description" content="MathApp: Nền tảng Toán chuyên cùng Gia sư Toán AI. Khám phá tài liệu chuyên đề, kho đề VMO, TST, Olympic và hỗ trợ giải toán chuyên sâu.">
-<meta name="theme-color" content="#173b64">
+<meta name="theme-color" content="#06070d">
 <title>MathApp | Chinh phục Toán chuyên cùng Gia sư AI</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -56,6 +56,11 @@ window.MathJax = {
 <link rel="stylesheet" href="auth.css?v=20260915_2">
 <link rel="stylesheet" href="ai_guide.css?v=20260915_2">
 <link rel="stylesheet" href="i18n.css?v=20260915_2">
+<link rel="stylesheet" href="theme-violet.css?v=20261117_violet">
+<script>
+/* Giao diện mặc định: Violet Glass (tối). Người dùng vẫn có thể chuyển sáng/tối. */
+try { if (!localStorage.getItem('vmo-theme')) localStorage.setItem('vmo-theme', 'dark'); } catch (e) {}
+</script>
 
 <!-- Synchronous Auth Gate: Chặn truy cập nếu chưa đăng nhập -->
 <script src="education_access.js?v=20261025"></script>
@@ -82,6 +87,10 @@ VMOAuth.requireAuth('login.html');
 <script src="app.js?v=20260915_2" defer></script>
 </head>
 <body class="tex2jax_process">
+<script>
+/* Áp lớp tối ngay khi bắt đầu render để tránh nháy trắng (FOUC). */
+try { if (localStorage.getItem('vmo-theme') !== 'light') document.body.classList.add('dark'); } catch (e) {}
+</script>
 <a href="#main-content" class="skip-link">Bỏ qua đến nội dung chính</a>
 <header class="hero">
   <div class="hero-badge">MATHAPP · NỀN TẢNG TOÁN CHUYÊN &amp; OLYMPIC</div>
