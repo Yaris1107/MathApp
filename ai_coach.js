@@ -212,11 +212,27 @@
     `;
     items.forEach((item, index) => {
       const content = host.querySelector(`[data-q-content="${index}"]`);
-      if (content) content.textContent = item.content || '';
+      if (content) {
+        if (window.safeRenderMathJaxToElement) window.safeRenderMathJaxToElement(content, item.content || '');
+        else content.textContent = item.content || '';
+      }
       const answer = host.querySelector(`[data-q-answer="${index}"]`);
-      if (answer) answer.textContent = item.answer || t('Đáp án được trình bày trong lời giải.', 'The answer is developed in the solution.');
+      if (answer) {
+        const ans = item.answer || t('Đáp án được trình bày trong lời giải.', 'The answer is developed in the solution.');
+        if (window.safeRenderMathJaxToElement) window.safeRenderMathJaxToElement(answer, ans);
+        else answer.textContent = ans;
+      }
       const solution = host.querySelector(`[data-q-solution="${index}"]`);
-      if (solution) solution.textContent = item.solution || t('Chưa có lời giải cho câu này.', 'No solution available for this question.');
+      if (solution) {
+        const sol = item.solution || t('Chưa có lời giải cho câu này.', 'No solution available for this question.');
+        if (window.safeRenderMathJaxToElement) window.safeRenderMathJaxToElement(solution, sol);
+        else solution.textContent = sol;
+      }
+    });
+    host.querySelectorAll('details.coach-answer, details.coach-solution').forEach(details => {
+      details.addEventListener('toggle', () => {
+        if (details.open) typeset(details);
+      });
     });
     typeset(host);
   }

@@ -729,7 +729,13 @@ Vậy giới hạn cần tìm là $\\sqrt{2}$.`;
       .replace(/⇒/g, '\\Rightarrow ')
       .replace(/⇔/g, '\\Leftrightarrow ')
       .replace(/\\begin\{align\*?\}/g, '\\begin{aligned}')
-      .replace(/\\end\{align\*?\}/g, '\\end{aligned}');
+      .replace(/\\end\{align\*?\}/g, '\\end{aligned}')
+      .replace(/\\(tg|cotg|arctg|arcctg)\b/g, (_, m) => ({
+        tg: '\\tan',
+        cotg: '\\cot',
+        arctg: '\\arctan',
+        arcctg: '\\operatorname{arcctg}'
+      }[m] || m));
 
     // MathJax không cho phép \tag nằm bên trong aligned/alignedat.
     // Giữ nhãn phương trình dưới dạng văn bản toán học tương đương.
@@ -767,7 +773,7 @@ Vậy giới hạn cần tìm là $\\sqrt{2}$.`;
 
     // Tách và bảo vệ những khối Math đã có delimiter trước mọi xử lý văn bản.
     const mathTokens = [];
-    let text = raw.replace(/(\$\$[\s\S]+?\$\$|\\\[[\s\S]+?\\\]|\$(?:\\.|[^$\n])+?\$|\\\([\s\S]+?\\\))/g, (match) => {
+    let text = raw.replace(/(\$\$[\s\S]+?\$\$|\\\[[\s\S]+?\\\]|\$(?:\\.|[^$])+?\$|\\\([\s\S]+?\\\))/g, (match) => {
       mathTokens.push(match);
       return `@@VMO_MATH_${mathTokens.length - 1}@@`;
     });
@@ -1681,7 +1687,13 @@ Vậy giới hạn cần tìm là $\\sqrt{2}$.`;
         .replace(/±/g, '\\pm ')
         .replace(/→/g, '\\to ')
         .replace(/⇒/g, '\\Rightarrow ')
-        .replace(/⇔/g, '\\Leftrightarrow ');
+        .replace(/⇔/g, '\\Leftrightarrow ')
+        .replace(/\\(tg|cotg|arctg|arcctg)\b/g, (_, m) => ({
+          tg: '\\tan',
+          cotg: '\\cot',
+          arctg: '\\arctan',
+          arcctg: '\\operatorname{arcctg}'
+        }[m] || m));
 
       safeHtml += mathPart.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
       lastIndex = match.index + match[0].length;

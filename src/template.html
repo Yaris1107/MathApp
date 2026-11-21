@@ -14,7 +14,19 @@ window.MathJax = {
   tex: {
     inlineMath: [['$', '$'], ['\\(', '\\)']],
     displayMath: [['$$', '$$'], ['\\[', '\\]']],
-    processEscapes: true
+    processEscapes: true,
+    macros: {
+      tg: '\\tan',
+      cotg: '\\cot',
+      arctg: '\\arctan',
+      arcctg: ['\\operatorname{arcctg}'],
+      sh: '\\sinh',
+      ch: '\\cosh',
+      th: '\\tanh',
+      cth: '\\coth',
+      sgn: ['\\operatorname{sgn}'],
+      lcm: ['\\operatorname{lcm}']
+    }
   },
   options: {
     ignoreHtmlClass: 'tex2jax_ignore',
@@ -27,7 +39,18 @@ window.MathJax = {
       MathJax.startup.defaultReady();
       const renderedRoots = new WeakSet();
       window.renderMathInContainer = async (root, force = false) => {
-        if (!root || (!force && renderedRoots.has(root))) return;
+        if (!root) return;
+        const untypesetNodes = root.querySelectorAll?.('.problem-content, .examplebox, [data-raw-math], .coach-q-content, .example-solution');
+        let hasUntypeset = false;
+        if (untypesetNodes && untypesetNodes.length > 0) {
+          for (const el of untypesetNodes) {
+            if (!el.querySelector('mjx-container, .MathJax')) {
+              hasUntypeset = true;
+              break;
+            }
+          }
+        }
+        if (!force && !hasUntypeset && renderedRoots.has(root)) return;
         root.querySelectorAll?.('.problem-content, .examplebox').forEach(el => {
           if (!el.getAttribute('data-raw-math')) el.setAttribute('data-raw-math', el.innerHTML);
         });

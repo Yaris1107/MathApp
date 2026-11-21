@@ -398,7 +398,7 @@
     window.applyCurrentLanguage?.();
 
     // Render công thức toán nếu tab vừa mở chưa được biên dịch
-    if (!isM && !isT && !isH && !isV && !isO && !isGradeCatalog && !isSupport && !isAdmission && !isUniversity && !isUniversityMaterials && !isBooks) typeset(targetPane);
+    typeset(targetPane);
   };
 
   // 2. Hiện / Ẩn lời giải và barem điểm từng bài
@@ -422,7 +422,10 @@
         : (isEn ? '🙈 Hide Solution & Rubric' : '🙈 Ẩn lời giải & Thang điểm');
     }
 
-    if (!open) typeset(content);
+    if (!open) {
+      if (window.renderMathInContainer) window.renderMathInContainer(content, true).catch(() => {});
+      else typeset(content);
+    }
   };
 
   // 3. Sao chép nội dung bài toán vào Clipboard

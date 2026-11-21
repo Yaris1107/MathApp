@@ -91,7 +91,7 @@ export const historicalExams = [
       {
         "number": 3,
         "topic": "Hình học",
-        "excerpt": "Cho đường tròn $(O)$ và điểm $M$ nằm ngoài đường tròn $(O)$. Dựng hai tiếp tuyến $MA,MB$ của $(O)$ với $A,B$ là các tiếp điểm. Xét điểm $C$ thuộc $AM$, và điểm $D$ là giao điểm của $BC$ với $(O)$. Chứng minh rằng, nếu $D$ là trung điểm $BC$ thì $MD,M"
+        "excerpt": "Cho đường tròn $(O)$ và điểm $M$ nằm ngoài đường tròn $(O)$. Dựng hai tiếp tuyến $MA,MB$ của $(O)$ với $A,B$ là các tiếp điểm. Xét điểm $C$ thuộc $AM$, và điểm $D$ là giao điểm của $BC$ với $(O)$. Chứng minh rằng, nếu $D$ là trung điểm $BC$ thì $MD,M$"
       },
       {
         "number": 4,
@@ -216,12 +216,12 @@ export const historicalExams = [
       {
         "number": 2,
         "topic": "Dãy số – Số học",
-        "excerpt": "Cho dãy số nguyên $(u_n)$ được xác định bởi $u_1=3,\\ u_2=7$ và $$ u_{n+2}=3u_{n+1}-u_n,\\qquad \\forall n\\ge1. $$ Cho $N$ là hợp số lẻ không chia hết cho $3$ và $$ u_N\\equiv3\\pmod N. $$ Đặt $$ M=\\frac{u_N}{3}. $$ a) Chứng minh rằng $u_N$ chia hết cho $"
+        "excerpt": "Cho dãy số nguyên $(u_n)$ được xác định bởi $u_1=3,\\ u_2=7$ và $$ u_{n+2}=3u_{n+1}-u_n,\\qquad \\forall n\\ge1. $$ Cho $N$ là hợp số lẻ không chia hết cho $3$ và $$ u_N\\equiv3\\pmod N. $$ Đặt $$ M=\\frac{u_N}{3}. $$ a) Chứng minh rằng $u_N$ chia hết cho"
       },
       {
         "number": 3,
         "topic": "Hình học",
-        "excerpt": "Cho tam giác $ABC$ nội tiếp $(O)$. Lấy điểm $X$ cố định nằm trên cung $BC$ không chứa $A$ của $(O)$. Một đường thẳng $d$ chuyển động qua $X$. Các đường thẳng $d_A,d_B,d_C$ lần lượt đối xứng với $d$ qua $BC,CA,AB$. Gọi $A'$ là giao điểm của $d_B$ và $"
+        "excerpt": "Cho tam giác $ABC$ nội tiếp $(O)$. Lấy điểm $X$ cố định nằm trên cung $BC$ không chứa $A$ của $(O)$. Một đường thẳng $d$ chuyển động qua $X$. Các đường thẳng $d_A,d_B,d_C$ lần lượt đối xứng với $d$ qua $BC,CA,AB$. Gọi $A'$ là giao điểm của $d_B$ và"
       },
       {
         "number": 4,
@@ -301,7 +301,7 @@ export const historicalExams = [
       {
         "number": 3,
         "topic": "Hình học",
-        "excerpt": "Cho tam giác $ABC$ có góc $\\widehat B>90^\\circ$, các đường phân giác trong $BE,CF$ $(E\\in AC,\\ F\\in AB)$ cắt nhau tại $I$. Kí hiệu $(XYZ)$ là đường tròn ngoại tiếp tam giác $XYZ$. Gọi $N$ là điểm trên đường tròn $(AEF)$ sao cho góc $\\widehat{IAN}=90^"
+        "excerpt": "Cho tam giác $ABC$ có góc $\\widehat B>90^\\circ$, các đường phân giác trong $BE,CF$ $(E\\in AC,\\ F\\in AB)$ cắt nhau tại $I$. Kí hiệu $(XYZ)$ là đường tròn ngoại tiếp tam giác $XYZ$. Gọi $N$ là điểm trên đường tròn $(AEF)$ sao cho góc"
       },
       {
         "number": 4,
@@ -406,7 +406,7 @@ export const historicalExams = [
       {
         "number": 6,
         "topic": "Hình học",
-        "excerpt": "Cho tam giác nhọn $ABC$ nội tiếp đường tròn $(O)$. Gọi $M$ là trung điểm của $AB$, đường kính $CD$ của $(O)$ cắt $AB$ tại $E$. Tiếp tuyến tại $A,B$ của $(O)$ cắt nhau ở $T$, $CT$ cắt $(O)$ tại điểm thứ hai là $S$. Gọi $I$ là tâm của đường tròn $(CME)"
+        "excerpt": "Cho tam giác nhọn $ABC$ nội tiếp đường tròn $(O)$. Gọi $M$ là trung điểm của $AB$, đường kính $CD$ của $(O)$ cắt $AB$ tại $E$. Tiếp tuyến tại $A,B$ của $(O)$ cắt nhau ở $T$, $CT$ cắt $(O)$ tại điểm thứ hai là $S$. Gọi $I$ là tâm của đường tròn $(CME)$"
       },
       {
         "number": 7,
@@ -441,7 +441,7 @@ export const historicalExams = [
       {
         "number": 4,
         "topic": "Số học – LCM",
-        "excerpt": "Cho $n$ số nguyên dương đôi một phân biệt $a_1,\\ldots,a_n$. Đặt $$ b_i=(a_i-a_1)\\cdots(a_i-a_{i-1})(a_i-a_{i+1})\\cdots(a_i-a_n). $$ Chứng minh rằng $(n-1)!$ là ước của $$ \\operatorname{lcm}(b_1,\\ldots,b_n), $$ trong đó $\\operatorname{lcm}(b_1,\\ldots,"
+        "excerpt": "Cho $n$ số nguyên dương đôi một phân biệt $a_1,\\ldots,a_n$. Đặt $$ b_i=(a_i-a_1)\\cdots(a_i-a_{i-1})(a_i-a_{i+1})\\cdots(a_i-a_n). $$ Chứng minh rằng $(n-1)!$ là ước của $$ \\operatorname{lcm}(b_1,\\ldots,b_n), $$ trong đó $\\operatorname{lcm}(b_1,\\ldots,$"
       },
       {
         "number": 5,
@@ -471,7 +471,7 @@ export const historicalExams = [
       {
         "number": 2,
         "topic": "Đa thức – Dãy số",
-        "excerpt": "Cho $P(x)$ là đa thức hệ số thực bậc $2026$, có hệ số cao nhất bằng $1$. a) Chứng minh rằng tồn tại số nguyên dương $n_0$ sao cho với mọi số nguyên dương $n\\ge n_0$ thì phương trình $$ P(x)=2027^n $$ có duy nhất một nghiệm thực dương, kí hiệu là $x_n"
+        "excerpt": "Cho $P(x)$ là đa thức hệ số thực bậc $2026$, có hệ số cao nhất bằng $1$. a) Chứng minh rằng tồn tại số nguyên dương $n_0$ sao cho với mọi số nguyên dương $n\\ge n_0$ thì phương trình $$ P(x)=2027^n $$ có duy nhất một nghiệm thực dương, kí hiệu là $x_n$"
       },
       {
         "number": 3,
@@ -536,7 +536,7 @@ export const historicalExams = [
       {
         "number": 6,
         "topic": "Đa thức",
-        "excerpt": "Cho đa thức monic $$ P(x)=x^n+a_{n-1}x^{n-1}+\\cdots+a_1x+a_0, $$ với $n\\ge2$, hệ số thực, tất cả nghiệm của $P(x)$ đều là số thực và khác $0$. a) Chứng minh rằng $$ 2026a_k^2+2027a_{k+1}^2>0 $$ với mọi $k=0,1,\\ldots,n-2$. b) Hỏi số lượng hệ số khác $"
+        "excerpt": "Cho đa thức monic $$ P(x)=x^n+a_{n-1}x^{n-1}+\\cdots+a_1x+a_0, $$ với $n\\ge2$, hệ số thực, tất cả nghiệm của $P(x)$ đều là số thực và khác $0$. a) Chứng minh rằng $$ 2026a_k^2+2027a_{k+1}^2>0 $$ với mọi $k=0,1,\\ldots,n-2$. b) Hỏi số lượng hệ số khác"
       },
       {
         "number": 7,
@@ -556,7 +556,7 @@ export const historicalExams = [
       {
         "number": 1,
         "topic": "Dãy số – Số học",
-        "excerpt": "Cho dãy số nguyên $(x_n)$ xác định bởi $$ x_1=x_2=1 $$ và $$ x_{n+2}=3x_{n+1}+2x_n,\\qquad \\forall n\\in\\mathbb N^*. $$ a) Tìm các số nguyên dương $n$ sao cho $$ 17x_n^2-(-2)^{n+2} $$ là số chính phương. b) Chứng minh rằng tồn tại vô số số nguyên tố $p"
+        "excerpt": "Cho dãy số nguyên $(x_n)$ xác định bởi $$ x_1=x_2=1 $$ và $$ x_{n+2}=3x_{n+1}+2x_n,\\qquad \\forall n\\in\\mathbb N^*. $$ a) Tìm các số nguyên dương $n$ sao cho $$ 17x_n^2-(-2)^{n+2} $$ là số chính phương. b) Chứng minh rằng tồn tại vô số số nguyên tố $p$"
       },
       {
         "number": 2,
@@ -581,7 +581,7 @@ export const historicalExams = [
       {
         "number": 6,
         "topic": "Tổ hợp",
-        "excerpt": "Với $n$ nguyên dương, cho $n$ tập hữu hạn các số thực $$ S_1,S_2,\\ldots,S_n $$ rời nhau đôi một, thỏa mãn $$ |S_i|=s_i\\ge n+1,\\qquad 1\\le i\\le n. $$ Một đoạn $$ [a,b]=\\{x\\in\\mathbb R\\mid a\\le x\\le b\\} $$ được gọi là đoạn chuẩn bậc $i$ nếu $a,b\\in S_i"
+        "excerpt": "Với $n$ nguyên dương, cho $n$ tập hữu hạn các số thực $$ S_1,S_2,\\ldots,S_n $$ rời nhau đôi một, thỏa mãn $$ |S_i|=s_i\\ge n+1,\\qquad 1\\le i\\le n. $$ Một đoạn $$ [a,b]=\\{x\\in\\mathbb R\\mid a\\le x\\le b\\} $$ được gọi là đoạn chuẩn bậc $i$ nếu $a,b\\in S_i$"
       }
     ]
   },
@@ -636,7 +636,7 @@ export const historicalExams = [
       {
         "number": 1,
         "topic": "Dãy số",
-        "excerpt": "Cho dãy số $(x_n)$ thỏa mãn $$ x_1=a\\ne2;\\qquad x_{n+1}=\\frac{x_n^2-3}{2x_n-4},\\qquad \\forall n\\ge1. $$ a) Chứng minh rằng với $a=4$, dãy số đã cho có giới hạn hữu hạn. Tìm giới hạn đó. b) Chứng minh dãy số đã cho có giới hạn hữu hạn với mọi $a>0;\\ a"
+        "excerpt": "Cho dãy số $(x_n)$ thỏa mãn $$ x_1=a\\ne2;\\qquad x_{n+1}=\\frac{x_n^2-3}{2x_n-4},\\qquad \\forall n\\ge1. $$ a) Chứng minh rằng với $a=4$, dãy số đã cho có giới hạn hữu hạn. Tìm giới hạn đó. b) Chứng minh dãy số đã cho có giới hạn hữu hạn với mọi $a>0;\\ a$"
       },
       {
         "number": 2,
@@ -651,7 +651,7 @@ export const historicalExams = [
       {
         "number": 4,
         "topic": "Hình học",
-        "excerpt": "Cho $(O)$ cố định và dây cung $BC$ của $(O)$ cố định, $BC$ không phải đường kính. Điểm $A$ di chuyển trên cung lớn $BC$ của $(O)$. Gọi $M,N$ lần lượt là các trung điểm của $AC,AB$; gọi $Q,P$ lần lượt là hình chiếu của $M,N$ lên đường phân giác của $\\"
+        "excerpt": "Cho $(O)$ cố định và dây cung $BC$ của $(O)$ cố định, $BC$ không phải đường kính. Điểm $A$ di chuyển trên cung lớn $BC$ của $(O)$. Gọi $M,N$ lần lượt là các trung điểm của $AC,AB$; gọi $Q,P$ lần lượt là hình chiếu của $M,N$ lên đường phân giác của"
       },
       {
         "number": 5,
@@ -686,7 +686,7 @@ export const historicalExams = [
       {
         "number": 4,
         "topic": "Hình học",
-        "excerpt": "Cho tam giác $ABC$ $(AB<AC<BC)$ nội tiếp đường tròn $(O)$. Ba đường cao $AA_1,BB_1,CC_1$ của tam giác $ABC$ cắt nhau tại trực tâm $H$. a) Gọi $A_0,B_0,C_0$ tương ứng là trung điểm của các cạnh $BC,CA,AB$. Gọi $X$ là giao điểm của hai đường thẳng $B_0"
+        "excerpt": "Cho tam giác $ABC$ $(AB<AC<BC)$ nội tiếp đường tròn $(O)$. Ba đường cao $AA_1,BB_1,CC_1$ của tam giác $ABC$ cắt nhau tại trực tâm $H$. a) Gọi $A_0,B_0,C_0$ tương ứng là trung điểm của các cạnh $BC,CA,AB$. Gọi $X$ là giao điểm của hai đường thẳng $B_0$"
       },
       {
         "number": 5,
@@ -731,7 +731,7 @@ export const historicalExams = [
       {
         "number": 3,
         "topic": "Hình học giải tích",
-        "excerpt": "Trong mặt phẳng với hệ tọa độ $Oxy$ cho parabol $$ (P):y^2=4x. $$ Gọi $M$ là điểm di động trên $(P)$, $T$ là điểm trên $(P)$ sao cho $$ OT\\perp OM $$ ($M$ và $T$ đều không trùng với $O$). Chứng minh rằng khi $M$ di động trên $(P)$ thì đường thẳng $MT"
+        "excerpt": "Trong mặt phẳng với hệ tọa độ $Oxy$ cho parabol $$ (P):y^2=4x. $$ Gọi $M$ là điểm di động trên $(P)$, $T$ là điểm trên $(P)$ sao cho $$ OT\\perp OM $$ ($M$ và $T$ đều không trùng với $O$). Chứng minh rằng khi $M$ di động trên $(P)$ thì đường thẳng $MT$"
       },
       {
         "number": 4,
@@ -776,7 +776,7 @@ export const historicalExams = [
       {
         "number": 2,
         "topic": "Phương trình hàm",
-        "excerpt": "Cho $n$ là một số nguyên dương lẻ. Xét các hàm $f:\\mathbb R\\to\\mathbb R$ thỏa mãn $$ f(x)f(y+x)=x^n f(f(y))+(f(x))^2,\\qquad \\forall x,y\\in\\mathbb R. \\tag{1} $$ a) Giả sử $f$ không là hàm hằng. Chứng minh rằng: i) $f(x)=0$ khi và chỉ khi $x=0$. ii) $f"
+        "excerpt": "Cho $n$ là một số nguyên dương lẻ. Xét các hàm $f:\\mathbb R\\to\\mathbb R$ thỏa mãn $$ f(x)f(y+x)=x^n f(f(y))+(f(x))^2,\\qquad \\forall x,y\\in\\mathbb R. \\tag{1} $$ a) Giả sử $f$ không là hàm hằng. Chứng minh rằng: i) $f(x)=0$ khi và chỉ khi $x=0$. ii) $f$"
       },
       {
         "number": 3,
@@ -796,12 +796,12 @@ export const historicalExams = [
       {
         "number": 6,
         "topic": "Số học",
-        "excerpt": "a) Với mỗi số nguyên dương $n$, gọi $\\sigma(n)$ là tổng các ước dương của $n$. Chứng minh rằng tồn tại vô hạn số nguyên dương $n$ sao cho $n$ là ước của $$ 2^{\\sigma(n)}-1. $$ b) Cho dãy số nguyên dương $(a_n)_{n\\ge1}$ và dãy các số nguyên tố $(p_n)_"
+        "excerpt": "a) Với mỗi số nguyên dương $n$, gọi $\\sigma(n)$ là tổng các ước dương của $n$. Chứng minh rằng tồn tại vô hạn số nguyên dương $n$ sao cho $n$ là ước của $$ 2^{\\sigma(n)}-1. $$ b) Cho dãy số nguyên dương $(a_n)_{n\\ge1}$ và dãy các số nguyên tố"
       },
       {
         "number": 7,
         "topic": "Hình học",
-        "excerpt": "Cho tam giác $ABC$ nhọn, không cân, nội tiếp đường tròn $(O)$, có ba đường cao $AD,BE,CF$ đồng quy tại $H$. Gọi $G$ là trọng tâm tam giác $ABC$. Các đoạn thẳng $AG,BG,CG$ theo thứ tự cắt đường tròn $(DEF)$ tại $I,J,K$. Các đường tròn $(AID),(BJE),(CK"
+        "excerpt": "Cho tam giác $ABC$ nhọn, không cân, nội tiếp đường tròn $(O)$, có ba đường cao $AD,BE,CF$ đồng quy tại $H$. Gọi $G$ là trọng tâm tam giác $ABC$. Các đoạn thẳng $AG,BG,CG$ theo thứ tự cắt đường tròn $(DEF)$ tại $I,J,K$. Các đường tròn $(AID),(BJE),(CK$"
       }
     ]
   },
@@ -876,7 +876,7 @@ export const historicalExams = [
       {
         "number": 4,
         "topic": "Hình học",
-        "excerpt": "Cho tam giác nhọn $ABC$ $(AB<AC)$ ngoại tiếp đường tròn $(I)$. Gọi $D,E,F$ lần lượt là tiếp điểm của đường tròn $(I)$ với $BC,CA,AB$. Đường thẳng $AI$ cắt $DE,DF$ lần lượt tại $P,Q$. Đường tròn đường kính $PQ$ cắt $BC$ tại $M,N$. a) Chứng minh rằng $"
+        "excerpt": "Cho tam giác nhọn $ABC$ $(AB<AC)$ ngoại tiếp đường tròn $(I)$. Gọi $D,E,F$ lần lượt là tiếp điểm của đường tròn $(I)$ với $BC,CA,AB$. Đường thẳng $AI$ cắt $DE,DF$ lần lượt tại $P,Q$. Đường tròn đường kính $PQ$ cắt $BC$ tại $M,N$. a) Chứng minh rằng"
       },
       {
         "number": 5,
@@ -951,7 +951,7 @@ export const historicalExams = [
       {
         "number": 4,
         "topic": "Dãy số – Số học",
-        "excerpt": "Cho hai dãy số $(a_n),(b_n)$ xác định như sau: \\[ a_0=1,\\qquad a_1=1,\\qquad a_{n+2}=2a_{n+1}+a_n,\\qquad \\forall n\\in\\mathbb N, \\] và \\[ b_0=0,\\qquad b_1=1,\\qquad b_{n+2}=2b_{n+1}+b_n,\\qquad \\forall n\\in\\mathbb N. \\] Chứng minh rằng, với mọi $n\\in\\mat"
+        "excerpt": "Cho hai dãy số $(a_n),(b_n)$ xác định như sau: \\[ a_0=1,\\qquad a_1=1,\\qquad a_{n+2}=2a_{n+1}+a_n,\\qquad \\forall n\\in\\mathbb N, \\] và \\[ b_0=0,\\qquad b_1=1,\\qquad b_{n+2}=2b_{n+1}+b_n,\\qquad \\forall n\\in\\mathbb N. \\] Chứng minh rằng, với mọi $n\\in\\mat$"
       }
     ]
   },
@@ -1021,7 +1021,7 @@ export const historicalExams = [
       {
         "number": 4,
         "topic": "Hình học",
-        "excerpt": "Cho hai đường tròn $(O_1),(O_2)$ có bán kính khác nhau và cắt nhau tại hai điểm $A,B$. Kẻ tiếp tuyến chung $CD$ của hai đường tròn (gần $B$ hơn) với $C\\in(O_1)$; $D\\in(O_2)$. Dựng điểm $H$ sao cho tam giác $HCD$ nhận $B$ làm trực tâm. Kẻ đường kính $"
+        "excerpt": "Cho hai đường tròn $(O_1),(O_2)$ có bán kính khác nhau và cắt nhau tại hai điểm $A,B$. Kẻ tiếp tuyến chung $CD$ của hai đường tròn (gần $B$ hơn) với $C\\in(O_1)$; $D\\in(O_2)$. Dựng điểm $H$ sao cho tam giác $HCD$ nhận $B$ làm trực tâm. Kẻ đường kính"
       },
       {
         "number": 5,
@@ -1031,7 +1031,7 @@ export const historicalExams = [
       {
         "number": 6,
         "topic": "Hình học",
-        "excerpt": "Cho tam giác $ABC$ nhọn, không cân, nội tiếp đường tròn $(O)$ và có tâm đường tròn nội tiếp $I$. Kẻ phân giác $BB',CC'$ của tam giác $ABC$, trong đó $B',C'\\in(O)$. Gọi $d$ là đường thẳng qua $I$, vuông góc $OI$. Giả sử $d$ cắt các đoạn thẳng $AB,BC,B"
+        "excerpt": "Cho tam giác $ABC$ nhọn, không cân, nội tiếp đường tròn $(O)$ và có tâm đường tròn nội tiếp $I$. Kẻ phân giác $BB',CC'$ của tam giác $ABC$, trong đó $B',C'\\in(O)$. Gọi $d$ là đường thẳng qua $I$, vuông góc $OI$. Giả sử $d$ cắt các đoạn thẳng $AB,BC,B$"
       },
       {
         "number": 7,
@@ -1061,7 +1061,7 @@ export const historicalExams = [
       {
         "number": 3,
         "topic": "Hình học",
-        "excerpt": "Cho hai đường tròn $(C_1)$ và $(C_2)$ cắt nhau tại hai điểm phân biệt $C,D$ sao cho tâm $O$ của $(C_2)$ nằm trên $(C_1)$. Gọi $A$ là điểm trên $(C_1)$ và $B$ là điểm trên $(C_2)$ sao cho đường thẳng $AC$ tiếp xúc với $(C_2)$ tại $C$ và đường thẳng $B"
+        "excerpt": "Cho hai đường tròn $(C_1)$ và $(C_2)$ cắt nhau tại hai điểm phân biệt $C,D$ sao cho tâm $O$ của $(C_2)$ nằm trên $(C_1)$. Gọi $A$ là điểm trên $(C_1)$ và $B$ là điểm trên $(C_2)$ sao cho đường thẳng $AC$ tiếp xúc với $(C_2)$ tại $C$ và đường thẳng $B$"
       },
       {
         "number": 4,
@@ -1076,7 +1076,7 @@ export const historicalExams = [
       {
         "number": 6,
         "topic": "Tổ hợp",
-        "excerpt": "Với mỗi số nguyên dương $n$, gọi $f(n)$ là số cách thay các dấu “$\\pm$” trong biểu thức $\\pm1\\pm2\\pm3\\cdots\\pm n$ bởi các dấu “$+$” hoặc “$-$” sao cho tổng đại số nhận được bằng $0$. Chứng minh rằng: a) $f(n)=0$ khi $n\\equiv1\\pmod4$ hoặc $n\\equiv2\\pm"
+        "excerpt": "Với mỗi số nguyên dương $n$, gọi $f(n)$ là số cách thay các dấu “$\\pm$” trong biểu thức $\\pm1\\pm2\\pm3\\cdots\\pm n$ bởi các dấu “$+$” hoặc “$-$” sao cho tổng đại số nhận được bằng $0$. Chứng minh rằng: a) $f(n)=0$ khi $n\\equiv1\\pmod4$ hoặc $n\\equiv2\\pm$"
       },
       {
         "number": 7,
@@ -1106,7 +1106,7 @@ export const historicalExams = [
       {
         "number": 3,
         "topic": "Hình học",
-        "excerpt": "Cho tam giác nhọn, không cân $ABC$ nội tiếp đường tròn $(O)$. Đường phân giác góc $A$ của tam giác cắt cạnh $BC$ tại $D$ và cắt lại $(O)$ tại $E$. Gọi $K$ là điểm nằm trong mặt phẳng chứa tam giác $ABC$, thỏa mãn $KB=KC$ và $\\widehat{BKC}+\\widehat{BA"
+        "excerpt": "Cho tam giác nhọn, không cân $ABC$ nội tiếp đường tròn $(O)$. Đường phân giác góc $A$ của tam giác cắt cạnh $BC$ tại $D$ và cắt lại $(O)$ tại $E$. Gọi $K$ là điểm nằm trong mặt phẳng chứa tam giác $ABC$, thỏa mãn $KB=KC$ và"
       },
       {
         "number": 4,
@@ -1166,7 +1166,7 @@ export const historicalExams = [
       {
         "number": 6,
         "topic": "Hình học",
-        "excerpt": "Cho tứ giác $ABCD$ lồi, $P$ là điểm nằm bên trong tứ giác thỏa $\\widehat{PAD}=\\widehat{CAB}$. $M,N$ đối xứng của $C$ qua $AB,AD$. Các đường tròn $(CPM),(CPN)$ cắt đoạn $AB,AD$ lần lượt tại $S,T$. $X,Y$ là tâm của $(PSC),(PTC)$. $Q$ là giao điểm của $"
+        "excerpt": "Cho tứ giác $ABCD$ lồi, $P$ là điểm nằm bên trong tứ giác thỏa $\\widehat{PAD}=\\widehat{CAB}$. $M,N$ đối xứng của $C$ qua $AB,AD$. Các đường tròn $(CPM),(CPN)$ cắt đoạn $AB,AD$ lần lượt tại $S,T$. $X,Y$ là tâm của $(PSC),(PTC)$. $Q$ là giao điểm của"
       },
       {
         "number": 7,
@@ -1201,7 +1201,7 @@ export const historicalExams = [
       {
         "number": 4,
         "topic": "Tổ hợp",
-        "excerpt": "Một lớp 10 chuyên Toán ở một trường THPT chuyên có $n$ ($n\\ge6$) học sinh, trong số đó có một số học sinh đã quen biết với nhau từ trước khi thi vào trường. Biết rằng: i) Mỗi học sinh trong lớp đã quen với nhiều nhất $n-\\left\\lfloor\\frac{n+2}{3}\\righ"
+        "excerpt": "Một lớp 10 chuyên Toán ở một trường THPT chuyên có $n$ ($n\\ge6$) học sinh, trong số đó có một số học sinh đã quen biết với nhau từ trước khi thi vào trường. Biết rằng: i) Mỗi học sinh trong lớp đã quen với nhiều nhất $n-\\left\\lfloor\\frac{n+2}{3}\\righ$"
       },
       {
         "number": 5,
@@ -1216,7 +1216,7 @@ export const historicalExams = [
       {
         "number": 7,
         "topic": "Tổ hợp",
-        "excerpt": "Cho tập $S=\\{1,2,\\ldots,2017\\}$ và $A_1,A_2,\\ldots,A_k$ là các tập con của $S$ sao cho với mọi $1\\le i"
+        "excerpt": "Cho tập $S=\\{1,2,\\ldots,2017\\}$ và $A_1,A_2,\\ldots,A_k$ là các tập con của $S$ sao cho với mọi $1\\le i$"
       }
     ]
   },
@@ -1231,7 +1231,7 @@ export const historicalExams = [
       {
         "number": 1,
         "topic": "Dãy số",
-        "excerpt": "a) Cho dãy số $(x_n)_{n\\ge1}$ xác định bởi \\[ x_1=1,\\qquad x_{n+1}=1+\\frac{n}{x_n},\\quad \\forall n\\in\\mathbb N^*. \\] Đặt $y_n=\\dfrac{x_n}{\\sqrt n}$. Chứng minh dãy $(y_n)_{n\\ge1}$ có giới hạn hữu hạn và tìm giới hạn đó. b) Cho dãy số thực dương $(a_n"
+        "excerpt": "a) Cho dãy số $(x_n)_{n\\ge1}$ xác định bởi \\[ x_1=1,\\qquad x_{n+1}=1+\\frac{n}{x_n},\\quad \\forall n\\in\\mathbb N^*. \\] Đặt $y_n=\\dfrac{x_n}{\\sqrt n}$. Chứng minh dãy $(y_n)_{n\\ge1}$ có giới hạn hữu hạn và tìm giới hạn đó. b) Cho dãy số thực dương $(a_n$"
       },
       {
         "number": 2,
@@ -1251,7 +1251,7 @@ export const historicalExams = [
       {
         "number": 5,
         "topic": "Hình học",
-        "excerpt": "Cho tam giác $ABC$ nhọn, không cân, nội tiếp đường tròn $(O)$ và có trực tâm $H$. a) Tia $OA$ cắt lại đường tròn $(BOC)$ tại điểm thứ hai khác $O$ là $A_1$. Gọi $A_2$ là điểm đối xứng của $A$ qua đường thẳng $BC$. Chứng minh ba đường thẳng $A_1O,HA_2"
+        "excerpt": "Cho tam giác $ABC$ nhọn, không cân, nội tiếp đường tròn $(O)$ và có trực tâm $H$. a) Tia $OA$ cắt lại đường tròn $(BOC)$ tại điểm thứ hai khác $O$ là $A_1$. Gọi $A_2$ là điểm đối xứng của $A$ qua đường thẳng $BC$. Chứng minh ba đường thẳng $A_1O,HA_2$"
       },
       {
         "number": 6,
@@ -1411,7 +1411,7 @@ export const historicalExams = [
       {
         "number": 1,
         "topic": "Dãy số – Giới hạn",
-        "excerpt": "Với $n\\in\\mathbb N^*$, xét phương trình \\[ 2x^{2n+1}-x^2=2. \\] 1) Chứng minh với mỗi $n\\in\\mathbb N^*$, phương trình đã cho có nghiệm thực duy nhất, ký hiệu là $x_n$. 2) Đặt \\[ y_n=\\frac{nx_n}{n+2025x_n},\\qquad n\\in\\mathbb N^*. \\] Tính $\\displaystyle"
+        "excerpt": "Với $n\\in\\mathbb N^*$, xét phương trình \\[ 2x^{2n+1}-x^2=2. \\] 1) Chứng minh với mỗi $n\\in\\mathbb N^*$, phương trình đã cho có nghiệm thực duy nhất, ký hiệu là $x_n$. 2) Đặt \\[ y_n=\\frac{nx_n}{n+2025x_n},\\qquad n\\in\\mathbb N^*. \\] Tính $\\displaystyle$"
       },
       {
         "number": 2,
@@ -1461,7 +1461,7 @@ export const historicalExams = [
       {
         "number": 2,
         "topic": "Dãy số",
-        "excerpt": "Cho dãy $(u_n)$ xác định bởi \\[ u_1=4,\\qquad u_{n+1}=\\frac19u_n^2+\\frac13u_n+1,\\qquad \\forall n\\in\\mathbb N^*. \\] a) Chứng minh dãy $u_n$ tăng nhưng không bị chặn trên. b) Đặt \\[ v_n=\\sum_{k=1}^{n}\\frac{1}{u_k+6},\\qquad n\\in\\mathbb N^*. \\] Tìm $\\disp"
+        "excerpt": "Cho dãy $(u_n)$ xác định bởi \\[ u_1=4,\\qquad u_{n+1}=\\frac19u_n^2+\\frac13u_n+1,\\qquad \\forall n\\in\\mathbb N^*. \\] a) Chứng minh dãy $u_n$ tăng nhưng không bị chặn trên. b) Đặt \\[ v_n=\\sum_{k=1}^{n}\\frac{1}{u_k+6},\\qquad n\\in\\mathbb N^*. \\] Tìm $\\disp$"
       },
       {
         "number": 3,
@@ -1476,7 +1476,7 @@ export const historicalExams = [
       {
         "number": 5,
         "topic": "Hình học",
-        "excerpt": "Cho $(O;R)$ và hai điểm $A,B$ thỏa $R"
+        "excerpt": "Cho $(O;R)$ và hai điểm $A,B$ thỏa $R$"
       },
       {
         "number": 6,
@@ -1506,7 +1506,7 @@ export const historicalExams = [
       {
         "number": 3,
         "topic": "Hình học",
-        "excerpt": "Cho đường tròn $(O)$ và dây cung $BC$ khác đường kính. Điểm $A$ di động trên cung lớn $BC$ sao cho tam giác $ABC$ không cân tại $A$. Gọi $M$ là giao điểm của hai tiếp tuyến với $(O)$ tại $B$ và $C$, $AM$ cắt $(O)$ tại $D$ khác $A$. Dựng đường kính $D"
+        "excerpt": "Cho đường tròn $(O)$ và dây cung $BC$ khác đường kính. Điểm $A$ di động trên cung lớn $BC$ sao cho tam giác $ABC$ không cân tại $A$. Gọi $M$ là giao điểm của hai tiếp tuyến với $(O)$ tại $B$ và $C$, $AM$ cắt $(O)$ tại $D$ khác $A$. Dựng đường kính $D$"
       },
       {
         "number": 4,
@@ -1596,7 +1596,7 @@ export const historicalExams = [
       {
         "number": 3,
         "topic": "Hình học",
-        "excerpt": "Cho tam giác $ABC$ nhọn, không cân nội tiếp đường tròn tâm $O$. Điểm $M$ di động trên cạnh $BC$ ($M\\ne B,M\\ne C$). Gọi $(X),(Y)$ lần lượt là đường tròn ngoại tiếp các tam giác $MAB$ và $MAC$. Lấy điểm $S\\in(X)$ sao cho $MS\\parallel AB$; lấy điểm $T\\i"
+        "excerpt": "Cho tam giác $ABC$ nhọn, không cân nội tiếp đường tròn tâm $O$. Điểm $M$ di động trên cạnh $BC$ ($M\\ne B,M\\ne C$). Gọi $(X),(Y)$ lần lượt là đường tròn ngoại tiếp các tam giác $MAB$ và $MAC$. Lấy điểm $S\\in(X)$ sao cho $MS\\parallel AB$; lấy điểm $T\\i$"
       },
       {
         "number": 4,
@@ -1641,7 +1641,7 @@ export const historicalExams = [
       {
         "number": 3,
         "topic": "Hình học",
-        "excerpt": "Cho tam giác $ABC$ nhọn, không cân $ABa) Chứng minh tam giác $DBI$ cân và tam giác $DSJ$ vuông. b) Gọi $X$ là hình chiếu của điểm $S$ trên đường thẳng $OI$ và $Y$ là giao điểm thứ hai của $MI$ và đường tròn ngoại tiếp tam giác $OMS$. Chứng minh ba đi"
+        "excerpt": "Cho tam giác $ABC$ nhọn, không cân $ABa) Chứng minh tam giác $DBI$ cân và tam giác $DSJ$ vuông. b) Gọi $X$ là hình chiếu của điểm $S$ trên đường thẳng $OI$ và $Y$ là giao điểm thứ hai của $MI$ và đường tròn ngoại tiếp tam giác $OMS$. Chứng minh ba đi$"
       },
       {
         "number": 4,
