@@ -1,6 +1,8 @@
 (() => {
   const byId = id => document.getElementById(id);
   const state = { image: '', uploadKey: '', confidence: '', busy: false, loaded: false, page: 1, pages: 1, loadToken: 0 };
+  const isEn = () => window.currentLang === 'en';
+  const t = (vi, en) => (isEn() ? en : vi);
   const status = (id, message) => { if (byId(id)) byId(id).textContent = message; };
   function busy(value, message = '') {
     state.busy = value;
@@ -119,25 +121,25 @@
   function renderProblem(problem) {
     const article = document.createElement('article'); article.className = 'exam-card math-support-card';
     article.id = `support-${problem.id || problem._id}`;
-    article.innerHTML = '<div class="exam-header"><h3 class="exam-title"></h3><p class="math-support-meta"></p></div><div class="exam-body"><div class="problem-item"><div class="problem-header"><div class="problem-id"><span></span><span class="badge-point"></span><span class="badge-topic"></span></div><button type="button" class="btn-copy">📋 Sao chép</button></div><div class="problem-content" data-no-i18n="true"></div></div></div>';
-    article.querySelector('.exam-title').textContent = problem.title || 'Bài toán riêng lẻ';
-    article.querySelector('.math-support-meta').textContent = `${problem.createdBy || ''} · ${problem.createdAt ? new Date(problem.createdAt).toLocaleDateString('vi-VN') : ''}`;
+    article.innerHTML = `<div class="exam-header"><h3 class="exam-title"></h3><p class="math-support-meta"></p></div><div class="exam-body"><div class="problem-item"><div class="problem-header"><div class="problem-id"><span></span><span class="badge-point"></span><span class="badge-topic"></span></div><button type="button" class="btn-copy">📋 ${t('Sao chép','Copy')}</button></div><div class="problem-content"></div></div></div>`;
+    article.querySelector('.exam-title').textContent = problem.title || t('Bài toán riêng lẻ','Standalone problem');
+    article.querySelector('.math-support-meta').textContent = `${problem.createdBy || ''} · ${problem.createdAt ? new Date(problem.createdAt).toLocaleDateString(isEn() ? 'en-US' : 'vi-VN') : ''}`;
     const item = article.querySelector('.problem-item');
     Object.assign(item.dataset, { contentKey: problem.contentKey, databaseProblem: 'true', setKey: problem.setKey,
-      setTitle: problem.setTitle || 'Hỗ trợ giải toán', sourceGroup: 'math_support', sourceType: 'standalone_question', contentType: 'standalone_problem', questionNumber: '1' });
-    item.querySelector('.problem-id span').textContent = problem.title || 'Bài toán';
-    item.querySelector('.badge-point').textContent = ` (${Number(problem.maxScore) || 5}đ) `;
-    item.querySelector('.badge-topic').textContent = problem.topic || 'Toán Olympic';
+      setTitle: problem.setTitle || t('Hỗ trợ giải toán','Math problem support'), sourceGroup: 'math_support', sourceType: 'standalone_question', contentType: 'standalone_problem', questionNumber: '1' });
+    item.querySelector('.problem-id span').textContent = problem.title || t('Bài toán','Problem');
+    item.querySelector('.badge-point').textContent = ` (${Number(problem.maxScore) || 5}${t('đ','pts')}) `;
+    item.querySelector('.badge-topic').textContent = problem.topic || t('Toán Olympic','Olympic Math');
     item.querySelector('.btn-copy').onclick = event => window.copyText(event.currentTarget);
-    const imageButton = document.createElement('button'); imageButton.type = 'button'; imageButton.className = 'btn-secondary'; imageButton.textContent = '🖼️ Xem ảnh nguồn';
+    const imageButton = document.createElement('button'); imageButton.type = 'button'; imageButton.className = 'btn-secondary'; imageButton.textContent = t('🖼️ Xem ảnh nguồn','🖼️ View source image');
     imageButton.onclick = async () => {
-      if (article.querySelector('.math-support-source-image')) { article.querySelector('.math-support-source-image').remove(); imageButton.textContent = '🖼️ Xem ảnh nguồn'; return; }
+      if (article.querySelector('.math-support-source-image')) { article.querySelector('.math-support-source-image').remove(); imageButton.textContent = t('🖼️ Xem ảnh nguồn','🖼️ View source image'); return; }
       imageButton.disabled = true;
       try {
         const image = await window.VMODataService.getMathSupportImage(problem.id || problem._id);
-        const img = document.createElement('img'); img.className = 'math-support-source-image'; img.alt = 'Ảnh nguồn của bài toán'; img.src = image.image;
-        article.querySelector('.exam-body').prepend(img); imageButton.textContent = 'Ẩn ảnh nguồn';
-      } catch (error) { status('supportListStatus', error.message || 'Không tải được ảnh nguồn.'); }
+        const img = document.createElement('img'); img.className = 'math-support-source-image'; img.alt = t('Ảnh nguồn của bài toán','Problem source image'); img.src = image.image;
+        article.querySelector('.exam-body').prepend(img); imageButton.textContent = t('Ẩn ảnh nguồn','Hide source image');
+      } catch (error) { status('supportListStatus', error.message || t('Không tải được ảnh nguồn.','Could not load source image.')); }
       finally { imageButton.disabled = false; }
     };
     article.querySelector('.exam-header').append(imageButton);
@@ -146,18 +148,19 @@
   window.loadMathSupportProblems = async function(page = state.page, force = false) {
     if (!byId('supportProblems') || (!force && state.loaded && page === state.page)) return;
     const token = ++state.loadToken;
-    status('supportListStatus', 'Đang tải bài toán...');
+    status('supportListStatus', t('Đang tải bài toán...','Loading problems…'));
     try {
       const result = await window.VMODataService.getMathSupportProblems(page, byId('supportSearch').value.trim());
       if (token !== state.loadToken) return;
       state.page = result.pagination.page; state.pages = result.pagination.pages; state.loaded = true;
       const root = byId('supportProblems'); root.replaceChildren(...result.items.map(renderProblem));
       await window.enhanceMathSupportProblems(root, result.items);
-      status('supportListStatus', result.items.length ? `${result.pagination.total} bài toán đã lưu` : 'Chưa có bài toán phù hợp. Tải ảnh lên để bắt đầu.');
-      byId('supportPageLabel').textContent = `Trang ${state.page}/${state.pages}`;
+      status('supportListStatus', result.items.length ? `${result.pagination.total} ${t('bài toán đã lưu','saved problems')}` : t('Chưa có bài toán phù hợp. Tải ảnh lên để bắt đầu.','No matching problems yet. Upload an image to start.'));
+      byId('supportPageLabel').textContent = `${t('Trang','Page')} ${state.page}/${state.pages}`;
       byId('supportPrevious').disabled = state.page <= 1; byId('supportNext').disabled = state.page >= state.pages;
-    } catch (error) { if (token === state.loadToken) status('supportListStatus', error.message || 'Không tải được bài toán. Hãy bấm Tải lại.'); }
+    } catch (error) { if (token === state.loadToken) status('supportListStatus', error.message || t('Không tải được bài toán. Hãy bấm Tải lại.','Could not load problems. Please retry.')); }
   };
+  window.addEventListener('langchange',()=>{if(state.loaded)window.loadMathSupportProblems(state.page,true);});
   async function loadImage(file) {
     if (state.busy) return;
     if (file && !/^image\/(jpeg|png|webp)$/.test(file.type)) {

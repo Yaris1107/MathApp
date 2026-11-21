@@ -52,7 +52,7 @@ for(const el of figure.querySelectorAll('line,circle,text'))for(const attr of el
 
 // Exercise the actual route with provider doubles: permissions precede generation,
 // the database statement wins over client text, and only audited coordinates return.
-const routeSource=fs.readFileSync(new URL('../api/ai-guide.js',import.meta.url),'utf8').replace(/^import .*;\n/gm,'').replaceAll('export function','function').replace('export default async function','async function');
+const routeSource=fs.readFileSync(new URL('../api/ai-guide.js',import.meta.url),'utf8').replace(/^import .*;\n/gm,'').replaceAll('export function','function').replaceAll('export const','const').replace('export default async function','async function');
 const { mathematicalAuditInstruction, auditEvidence }=await import('../lib/math-audit.js');
 let signedIn=true, blocked=false, approval=true, diagram=triangle;
 const calls=[];

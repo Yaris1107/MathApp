@@ -12,10 +12,10 @@ function harness(compact=true) {
   return{dom,window,doc,media,toggle:doc.getElementById('moduleNavigationToggle'),nav:doc.getElementById('moduleNavigation')};
 }
 const h=harness();
-assert.equal(h.nav.querySelectorAll('.tab-btn').length,14);assert.equal(h.nav.querySelectorAll('.navigation-group').length,4);
-assert.equal(new Set([...h.nav.querySelectorAll('.tab-btn')].map(x=>x.id)).size,14,'One real button per module, no duplicated IDs');
+assert.equal(h.nav.querySelectorAll('.tab-btn').length,15);assert.equal(h.nav.querySelectorAll('.navigation-group').length,4);
+assert.equal(new Set([...h.nav.querySelectorAll('.tab-btn')].map(x=>x.id)).size,15,'One real button per module, no duplicated IDs');
 assert.equal(h.nav.hidden,true);h.toggle.click();assert.equal(h.nav.hidden,false);assert.equal(h.toggle.getAttribute('aria-expanded'),'true');
-for(const key of ['danang','books','mock','support','admission','tst','vmo','history','olympic','olympic30','duyenhai']){
+for(const key of ['danang','books','mock','support','coach','admission','tst','vmo','history','olympic','olympic30','duyenhai']){
   if(h.nav.hidden)h.toggle.click();
   const button=h.doc.getElementById('tab-btn-'+key);button.focus();
   await h.window.switchTab('tab-'+key,button);
@@ -72,4 +72,4 @@ reading.window.matchMedia=()=>({matches:true});
 await reading.window.switchTab('tab-vmo');
 assert.equal(scroll.behavior,'instant','Reduced-motion users do not get animated module scrolling');
 reading.window.close();
-console.log('Grouped module navigation: all ten routes, disclosure, keyboard/focus, resize, languages and rapid switching: OK');
+console.log('Grouped module navigation: all thirteen routes, disclosure, keyboard/focus, resize, languages and rapid switching: OK');

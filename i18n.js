@@ -22,11 +22,20 @@
       'statArchive': 'Archived DN-QN Exams',
 
       // 2. Navigation Tabs
+      'tabPrimary': '🌱 Primary School',
+      'tabAdmission': '🎓 Specialized grade-10 admissions',
       'tabDanang': '📚 VMO Topic Materials',
       'tabMock': '🎯 VMO Mock Exams',
       'tabTst': '🏛️ TST Exams',
       'tabVmo': '🇻🇳 VMO Exams',
       'tabOlympic': '🌐 IMO–Olympiad Exams',
+      'tabOlympic30': '🏅 April 30 Olympiad',
+      'tabDuyenhai': '🌊 Northern Coastal Olympiad',
+      'tabUniversityMaterials': '📚 University Math Materials',
+      'tabBooks': '📖 Textbooks',
+      'tabUniversity': '🎓 University',
+      'tabCoach': '🧠 AI Coach',
+      'tabSupport': '🧩 Math Problem Support',
       'tabHistory': '🗂️ Da Nang–Quang Nam Archive',
 
       // 3. User Auth Bar
@@ -34,7 +43,7 @@
       'roleUser': 'Member',
       'btnManage': '⚙️ Account Management',
       'btnLogout': '🚪 Log out',
-      'idleTitle': 'Security session: Auto-logout after 5 minutes of inactivity',
+      'idleTitle': 'Security session: Auto-logout after 30 minutes of inactivity',
 
       // 4. Controls & Search
       'searchPlaceholder': 'Search Stolz, LTE, Miquel, interpolation, invariant, Chebyshev...',
@@ -389,22 +398,47 @@
     if (brandTag) brandTag.textContent = isEn ? 'Advanced math & Olympiads' : 'Toán chuyên & Olympic';
 
     // 3. Thanh Tab Navigation (Định vị chính xác theo ID và hành vi onclick, không dùng chỉ mục mảng)
-    const btnDanang = document.getElementById('tab-btn-danang') || document.querySelector('.tab-btn[onclick*="tab-danang"]');
-    const btnMock = document.getElementById('tab-btn-mock') || document.querySelector('.tab-btn[onclick*="tab-mock"]');
-    const btnTst = document.getElementById('tab-btn-tst') || document.querySelector('.tab-btn[onclick*="tab-tst"]');
-    const btnHistory = document.getElementById('tab-btn-history') || document.querySelector('.tab-btn[onclick*="tab-history"]');
+    const tabMap = [
+      ['tab-btn-primary', '🌱 Tiểu học', UI_TRANSLATIONS.en.tabPrimary],
+      ['tab-btn-admission', '🎓 Đề thi vào lớp 10 chuyên', UI_TRANSLATIONS.en.tabAdmission],
+      ['tab-btn-danang', '📚 Tài liệu chuyên đề VMO', UI_TRANSLATIONS.en.tabDanang],
+      ['tab-btn-mock', '🎯 Bộ đề thi thử VMO', UI_TRANSLATIONS.en.tabMock],
+      ['tab-btn-tst', '🏛️ Đề TST', UI_TRANSLATIONS.en.tabTst],
+      ['tab-btn-vmo', '🇻🇳 Đề VMO', UI_TRANSLATIONS.en.tabVmo],
+      ['tab-btn-history', '🗂️ Đề Đà Nẵng–Quảng Nam', UI_TRANSLATIONS.en.tabHistory],
+      ['tab-btn-olympic', '🌐 Đề IMO–Olympic', UI_TRANSLATIONS.en.tabOlympic],
+      ['tab-btn-olympic30', '🏅 Đề Olympic 30/4', UI_TRANSLATIONS.en.tabOlympic30],
+      ['tab-btn-duyenhai', '🌊 Đề Duyên hải miền Bắc', UI_TRANSLATIONS.en.tabDuyenhai],
+      ['tab-btn-university-materials', '📚 Tài liệu Toán–Đại học', UI_TRANSLATIONS.en.tabUniversityMaterials],
+      ['tab-btn-books', '📖 Sách học', UI_TRANSLATIONS.en.tabBooks],
+      ['tab-btn-university', '🎓 Đại học', UI_TRANSLATIONS.en.tabUniversity],
+      ['tab-btn-coach', '🧠 AI Coach', UI_TRANSLATIONS.en.tabCoach],
+      ['tab-btn-support', '🧩 Hỗ trợ giải toán', UI_TRANSLATIONS.en.tabSupport]
+    ];
+    tabMap.forEach(([id, vi, en]) => {
+      const btn = document.getElementById(id);
+      if (btn) setNodeText(btn, vi, en, isEn);
+    });
 
-    if (btnDanang) setNodeText(btnDanang, '📚 Tài liệu chuyên đề VMO', UI_TRANSLATIONS.en.tabDanang, isEn);
-    if (btnMock) setNodeText(btnMock, '🎯 Bộ đề thi thử VMO', UI_TRANSLATIONS.en.tabMock, isEn);
-    if (btnTst) setNodeText(btnTst, '🏛️ Đề TST', UI_TRANSLATIONS.en.tabTst, isEn);
-    const btnVmo = document.getElementById('tab-btn-vmo');
-    if (document.getElementById('tab-btn-support')) setNodeText(document.getElementById('tab-btn-support'), '🧩 Hỗ trợ giải toán', '🧩 Math Problem Support', isEn);
-    const btnOlympic = document.getElementById('tab-btn-olympic');
-    if (document.getElementById('tab-btn-olympic30')) setNodeText(document.getElementById('tab-btn-olympic30'), '🏅 Đề Olympic 30/4', '🏅 April 30 Olympiad', isEn);
-    if (document.getElementById('tab-btn-duyenhai')) setNodeText(document.getElementById('tab-btn-duyenhai'), '🌊 Đề Duyên hải miền Bắc', '🌊 Northern Coastal Olympiad', isEn);
-    if (btnVmo) setNodeText(btnVmo, '🇻🇳 Đề VMO', UI_TRANSLATIONS.en.tabVmo, isEn);
-    if (btnOlympic) setNodeText(btnOlympic, '🌐 Đề IMO–Olympic', UI_TRANSLATIONS.en.tabOlympic, isEn);
-    if (btnHistory) setNodeText(btnHistory, '🗂️ Đề Đà Nẵng–Quảng Nam', UI_TRANSLATIONS.en.tabHistory, isEn);
+    // Hub Tab buttons
+    const hubTabs = [
+      ['hub-tab-events', '📅 Sự kiện & Lịch thi', '📅 Events & Schedule'],
+      ['hub-tab-docs', '📚 Tài liệu & Kỷ yếu', '📚 Materials & Yearbooks'],
+      ['hub-tab-exams', '📑 Đề thi mới', '📑 New Exams'],
+      ['hub-tab-subs', '✍️ Bài nộp học sinh', '✍️ Student Submissions'],
+      ['hub-tab-progress', '📊 Hoạt động & kết quả', '📊 Activity & Results']
+    ];
+    hubTabs.forEach(([id, vi, en]) => {
+      const btn = document.getElementById(id);
+      if (btn) setNodeText(btn, vi, en, isEn);
+    });
+    const hubHeading = document.getElementById('hubModalHeading');
+    if (hubHeading) setNodeText(hubHeading, 'Trung tâm Quản trị Dữ liệu', 'Data Administration Hub', isEn);
+    const dataMgmtBtn = document.getElementById('btnOpenDataMgmt');
+    if (dataMgmtBtn) {
+      dataMgmtBtn.innerHTML = `🗄️ ${isEn ? 'Data Hub' : 'Kho dữ liệu'}`;
+      dataMgmtBtn.title = isEn ? 'Manage materials, exams and events in database' : 'Quản lý Tài liệu, Đề thi và Sự kiện trên cơ sở dữ liệu';
+    }
 
     [
       ['navGroupLearning', 'Học tập & luyện tập', 'Learning & practice'],
@@ -413,8 +447,6 @@
       ['moduleNavigationCaption', 'Đang xem', 'Currently viewing'],
       ['moduleNavigationAction', 'Chọn mục', 'Choose section']
     ].forEach(([id, vi, en]) => { const node = document.getElementById(id); if (node) setNodeText(node, vi, en, isEn); });
-    const admissionTab = document.getElementById('tab-btn-admission');
-    if (admissionTab) setNodeText(admissionTab, '🎓 Đề thi vào lớp 10 chuyên', '🎓 Specialized grade-10 admissions', isEn);
     window.refreshModuleNavigation?.();
 
     // 4. User Auth Bar
@@ -432,7 +464,7 @@
 
     const userInfoChip = document.querySelector('.user-info-chip');
     if (userInfoChip) {
-      userInfoChip.title = isEn ? UI_TRANSLATIONS.en.idleTitle : 'Phiên bảo mật: Tự động đăng xuất sau 5 phút không hoạt động';
+      userInfoChip.title = isEn ? UI_TRANSLATIONS.en.idleTitle : 'Phiên bảo mật: Tự động đăng xuất sau 30 phút không hoạt động';
     }
 
     const roleOptions = { student: ['Thành viên (Học tập và AI xu hướng đề)', 'Member (Learning and exam trends)'], teacher: ['Giáo viên (Quản trị dữ liệu)', 'Teacher (Content management)'], admin: ['Quản trị viên (Toàn quyền quản lý)', 'Admin (Full access)'] };
@@ -484,13 +516,57 @@
 
     // 6. Sidebar titles
     const sbDanangTitle = document.querySelector('#sidebar-danang .sidebar-title');
-    if (sbDanangTitle) setNodeText(sbDanangTitle, 'Mục lục tài liệu chuyên đề VMO', UI_TRANSLATIONS.en.sidebarDanangTitle, isEn);
+    if (sbDanangTitle) setNodeText(sbDanangTitle, 'Mục lục tài liệu 85 trang', UI_TRANSLATIONS.en.sidebarDanangTitle, isEn);
 
     const sbMockTitle = document.querySelector('#sidebar-mock .sidebar-title');
     if (sbMockTitle) setNodeText(sbMockTitle, 'Bộ Đề Thi Thử VMO', 'VMO MOCK EXAMS', isEn);
 
     const sbTstTitle = document.querySelector('#sidebar-tst .sidebar-title');
     if (sbTstTitle) setNodeText(sbTstTitle, 'Mục Lục Đề TST', UI_TRANSLATIONS.en.sidebarTstTitle, isEn);
+
+    const sbVmoTitle = document.querySelector('#sidebar-vmo .sidebar-title');
+    if (sbVmoTitle) setNodeText(sbVmoTitle, 'Đề VMO', 'VMO EXAM INDEX', isEn);
+
+    const sbOlympicTitle = document.querySelector('#sidebar-olympic .sidebar-title');
+    if (sbOlympicTitle) setNodeText(sbOlympicTitle, 'Đề IMO–Olympic', 'IMO & OLYMPIAD EXAMS', isEn);
+
+    const sbAdmissionTitle = document.querySelector('#sidebar-admission .sidebar-title');
+    if (sbAdmissionTitle) setNodeText(sbAdmissionTitle, 'Đề thi vào lớp 10 chuyên', 'Specialized Grade-10 Admissions', isEn);
+    const sbAdmLabel = document.querySelector('#sidebar-admission label[for="admissionSchoolSearch"]');
+    if (sbAdmLabel) setNodeText(sbAdmLabel, 'Tìm tỉnh/thành, trường chuyên', 'Search province, school', isEn);
+    const sbAdmInput = document.getElementById('admissionSchoolSearch');
+    if (sbAdmInput) sbAdmInput.placeholder = isEn ? 'Province or school name...' : 'Tên tỉnh/thành hoặc trường...';
+    const sbAdmP = document.querySelector('#sidebar-admission p');
+    if (sbAdmP) setNodeText(sbAdmP, '34 tỉnh/thành · 81 trường', '34 provinces · 81 schools', isEn);
+
+    const sbOlympic30Title = document.querySelector('#sidebar-olympic30 .sidebar-title');
+    if (sbOlympic30Title) setNodeText(sbOlympic30Title, 'Đề Olympic 30/4', 'April 30 Olympiad Exams', isEn);
+
+    const sbDuyenhaiTitle = document.querySelector('#sidebar-duyenhai .sidebar-title');
+    if (sbDuyenhaiTitle) setNodeText(sbDuyenhaiTitle, 'Đề Duyên hải miền Bắc', 'Northern Coastal Olympiad Exams', isEn);
+
+    document.querySelectorAll('#sidebar-olympic30 [data-grade], #sidebar-duyenhai [data-grade]').forEach(group => {
+      const title = group.querySelector('.nav-year-title');
+      if (title) {
+        const grade = group.dataset.grade;
+        setNodeText(title, `LỚP ${grade}`, `GRADE ${grade}`, isEn);
+      }
+    });
+
+    const sbSupportTitle = document.querySelector('#sidebar-support .sidebar-title');
+    if (sbSupportTitle) setNodeText(sbSupportTitle, 'Hỗ trợ giải toán', 'Math Problem Support', isEn);
+    const sbSupLinks = document.querySelectorAll('#sidebar-support a.nav-link');
+    if (sbSupLinks[0]) setNodeText(sbSupLinks[0], '📷 Tải ảnh và OCR', '📷 Upload Image & OCR', isEn);
+    if (sbSupLinks[1]) setNodeText(sbSupLinks[1], '📝 Bài toán đã lưu', '📝 Saved Problems', isEn);
+
+    const sbBooksTitle = document.querySelector('#sidebar-books .sidebar-title');
+    if (sbBooksTitle) setNodeText(sbBooksTitle, 'Sách học', 'Textbooks', isEn);
+
+    const sbUniMatTitle = document.querySelector('#sidebar-university-materials .sidebar-title');
+    if (sbUniMatTitle) setNodeText(sbUniMatTitle, 'Tài liệu Toán–Đại học', 'University Math Materials', isEn);
+
+    const sbUniTitle = document.querySelector('#sidebar-university .sidebar-title');
+    if (sbUniTitle) setNodeText(sbUniTitle, 'Các học phần Đại học', 'University Courses', isEn);
 
     const sbHistTitle = document.querySelector('#sidebar-history .sidebar-title');
     if (sbHistTitle) setNodeText(sbHistTitle, 'Đề Đà Nẵng – Quảng Nam', UI_TRANSLATIONS.en.sidebarHistoryTitle, isEn);
@@ -501,6 +577,151 @@
 
     const mockP = document.querySelector('#tab-mock .section-header-box p');
     if (mockP) setNodeText(mockP, 'Đầy đủ 2 bộ đề thi thử 2 ngày chuẩn cấu trúc VMO (tổng cộng 4 buổi thi 180 phút), cấu trúc bám sát Sở GD&ĐT Đà Nẵng: Ngày 1 (4 câu × 5 điểm), Ngày 2 (3 câu 7-6-7 điểm). Mỗi bài tập đều tích hợp AI Hướng dẫn giải, lời giải chi tiết và barem điểm từng bước.', 'Complete 2 sets of standard 2-day VMO mock exams (4 exam sessions of 180 minutes each), strictly matching Da Nang DOET exam specifications: Day 1 (4 problems × 5 points), Day 2 (3 problems 7-6-7 points). Each problem includes AI Solution Guide, detailed solutions, and step-by-step scoring rubrics.', isEn);
+
+    // Primary tab
+    const primaryTitle = document.querySelector('#tab-primary [data-level-title="primary"]');
+    if (primaryTitle) setNodeText(primaryTitle, 'Tiểu học', 'Primary School', isEn);
+    const primaryEmpty = document.querySelector('#tab-primary [data-level-empty]');
+    if (primaryEmpty) setNodeText(primaryEmpty, 'Kho học liệu của cấp học này đang được xây dựng. Bạn có thể sử dụng Hỗ trợ giải toán.', 'Learning materials for this level are under construction. You can use Math Problem Support.', isEn);
+
+    // Books tab
+    const booksH2 = document.querySelector('#tab-books .book-dashboard h2');
+    if (booksH2) setNodeText(booksH2, '📖 Sách học', '📖 Textbooks', isEn);
+    const booksP = document.querySelector('#tab-books .book-dashboard p');
+    if (booksP) setNodeText(booksP, 'Chọn nhóm sách, chọn sách và mở mục lục để học từng phần.', 'Choose a category, select a book, and browse the table of contents.', isEn);
+
+    // University materials tab
+    const uniMatEyebrow = document.querySelector('#tab-university-materials .eyebrow');
+    if (uniMatEyebrow) setNodeText(uniMatEyebrow, 'TOÁN ĐẠI HỌC', 'UNIVERSITY MATHEMATICS', isEn);
+    const uniMatH2 = document.querySelector('#tab-university-materials .book-dashboard h2');
+    if (uniMatH2) setNodeText(uniMatH2, '📚 Tài liệu Toán–Đại học', '📚 University Math Materials', isEn);
+    const uniMatP = document.querySelector('#tab-university-materials .book-dashboard p');
+    if (uniMatP) setNodeText(uniMatP, 'Lý thuyết cốt lõi · Phương pháp giải · Ví dụ từng bước · Nguồn đối chiếu', 'Core Theory · Problem Methods · Step-by-Step Examples · Source Citations', isEn);
+    const uniMatCourseLabel = document.querySelector('label[for="universityMaterialsCourse"]');
+    if (uniMatCourseLabel) setNodeText(uniMatCourseLabel, 'Học phần', 'Course', isEn);
+    const uniMatSearchLabel = document.querySelector('label[for="universityMaterialsSearch"]');
+    if (uniMatSearchLabel) setNodeText(uniMatSearchLabel, 'Tìm trong học phần', 'Search in Course', isEn);
+    const uniMatSearchInput = document.getElementById('universityMaterialsSearch');
+    if (uniMatSearchInput) uniMatSearchInput.placeholder = isEn ? 'Search concepts, theorems, examples…' : 'Tìm khái niệm, định lý, ví dụ…';
+    const uniMatSolutions = document.getElementById('universityMaterialsSolutions');
+    if (uniMatSolutions) setNodeText(uniMatSolutions, 'Ẩn/hiện lời giải', 'Toggle Solutions', isEn);
+    const uniMatPrint = document.getElementById('universityMaterialsPrint');
+    if (uniMatPrint) setNodeText(uniMatPrint, '🖨️ In học phần / PDF', '🖨️ Print Course / PDF', isEn);
+
+    // University tab
+    const uniLabel = document.querySelector('#tab-university [data-university-label]');
+    if (uniLabel) setNodeText(uniLabel, 'Các học phần Đại học', 'University Courses', isEn);
+    const uniCourseSelectLabel = document.querySelector('label[for="universityCourseSelect"]');
+    if (uniCourseSelectLabel) setNodeText(uniCourseSelectLabel, 'Chọn học phần', 'Select Course', isEn);
+    const uniSectionSelectLabel = document.querySelector('label[for="universitySectionSelect"]');
+    if (uniSectionSelectLabel) setNodeText(uniSectionSelectLabel, 'Chuyên đề con', 'Subtopic', isEn);
+
+    // Admission tab
+    const admH2 = document.querySelector('#tab-admission .section-header-box h2');
+    if (admH2) setNodeText(admH2, 'NGÂN HÀNG ĐỀ THI VÀO LỚP 10 CHUYÊN', 'SPECIALIZED GRADE-10 ENTRANCE EXAM BANK', isEn);
+
+    // History tab
+    const histH2 = document.querySelector('#tab-history .section-header-box h2');
+    if (histH2) setNodeText(histH2, 'NGÂN HÀNG ĐỀ ĐÀ NẴNG – QUẢNG NAM QUA CÁC NĂM', 'DA NANG & QUANG NAM EXAM BANK THROUGH THE YEARS', isEn);
+
+    // Math support tab
+    const supH2 = document.querySelector('#tab-support .section-header-box h2');
+    if (supH2) setNodeText(supH2, 'HỖ TRỢ GIẢI TOÁN', 'MATH PROBLEM SUPPORT', isEn);
+    const supP = document.querySelector('#tab-support .section-header-box p');
+    if (supP) setNodeText(supP, 'Tải ảnh một bài toán, nhận diện OCR và kiểm tra nội dung trước khi lưu. Bài toán của bạn được lưu riêng theo tài khoản.', 'Upload an image of a math problem, run OCR recognition, and review before saving. Your problems are stored privately under your account.', isEn);
+    const supImgLabel = document.querySelector('label[for="supportImage"]');
+    if (supImgLabel) setNodeText(supImgLabel, 'Ảnh bài toán (JPEG, PNG hoặc WEBP)', 'Problem Image (JPEG, PNG or WEBP)', isEn);
+    const supPasteHint = document.getElementById('supportPasteHint');
+    if (supPasteHint) {
+      supPasteHint.innerHTML = isEn
+        ? '📋 Copy a math problem image, click here, and press <kbd>Ctrl+V</kbd> (Mac: <kbd>⌘+V</kbd>) to paste. You can also choose a file above.'
+        : '📋 Sao chép ảnh bài toán, bấm vào đây rồi nhấn <kbd>Ctrl+V</kbd> (Mac: <kbd>⌘+V</kbd>) để dán ảnh. Bạn cũng có thể chọn tệp ở trên.';
+    }
+    const supOcrBtn = document.getElementById('supportOcrButton');
+    if (supOcrBtn) setNodeText(supOcrBtn, '🔎 OCR bài toán', '🔎 OCR Problem', isEn);
+    const supTopicHint = document.getElementById('supportTopicHint');
+    if (supTopicHint) setNodeText(supTopicHint, 'Chuyên đề được tự động đề xuất sau OCR; hãy kiểm tra và điều chỉnh trước khi lưu.', 'Topic is suggested automatically after OCR; please check and adjust before saving.', isEn);
+    const supContentLabel = document.querySelector('label[for="supportContent"]');
+    if (supContentLabel) setNodeText(supContentLabel, 'Nội dung OCR — kiểm tra, chỉnh sửa trước khi lưu', 'OCR Content — review and edit before saving', isEn);
+    const supPrevBtn = document.getElementById('supportPreviewButton');
+    if (supPrevBtn) setNodeText(supPrevBtn, '👁️ Xem trước công thức', '👁️ Preview Math', isEn);
+    const supSolveBtn = document.getElementById('supportSolveButton');
+    if (supSolveBtn) setNodeText(supSolveBtn, '🧠 Giải bài toán bằng AI', '🧠 Solve with AI', isEn);
+    const supSaveBtn = document.getElementById('supportSaveButton');
+    if (supSaveBtn) setNodeText(supSaveBtn, '💾 Lưu bài toán', '💾 Save Problem', isEn);
+    const supSearchInput = document.getElementById('supportSearch');
+    if (supSearchInput) supSearchInput.placeholder = isEn ? 'Title, topic, or content...' : 'Tên bài, chuyên đề hoặc nội dung...';
+    const supReloadBtn = document.getElementById('supportReload');
+    if (supReloadBtn) setNodeText(supReloadBtn, '↻ Tải lại', '↻ Reload', isEn);
+    const supPrev = document.getElementById('supportPrevious');
+    if (supPrev) setNodeText(supPrev, '← Trang trước', '← Previous', isEn);
+    const supNext = document.getElementById('supportNext');
+    if (supNext) setNodeText(supNext, 'Trang sau →', 'Next →', isEn);
+
+    // Account Management Modal
+    const acctModalTitle = document.querySelector('#accountMgmtModal .vmo-modal-title span:last-child');
+    if (acctModalTitle) setNodeText(acctModalTitle, 'Quản lý Tài khoản & Phân quyền Hệ thống', 'User Accounts & System Permissions', isEn);
+    const acctListTitle = document.querySelector('#accountMgmtModal .modal-section-card:first-of-type .modal-section-title span:first-child');
+    if (acctListTitle) setNodeText(acctListTitle, '👥 Danh sách người dùng hiện có', '👥 Existing Users Directory', isEn);
+    const acctAddTitle = document.querySelector('#accountMgmtModal .modal-section-card:last-of-type .modal-section-title span');
+    if (acctAddTitle) setNodeText(acctAddTitle, '➕ Thêm người dùng mới (Chỉ dành cho Admin)', '➕ Add New User (Admin Only)', isEn);
+    const acctThs = document.querySelectorAll('#accountMgmtModal .users-table th');
+    const acctThLabels = ['#', isEn ? 'Account' : 'Tài khoản', isEn ? 'Role' : 'Phân quyền', isEn ? 'Education Levels' : 'Cấp học', isEn ? 'Created' : 'Ngày tạo', isEn ? 'Actions' : 'Thao tác'];
+    acctThs.forEach((th, i) => { if (acctThLabels[i]) th.textContent = acctThLabels[i]; });
+    const acctUserLabel = document.querySelector('label[for="newUsername"]');
+    if (acctUserLabel) setNodeText(acctUserLabel, 'Tên đăng nhập *', 'Username *', isEn);
+    const acctUserInput = document.getElementById('newUsername');
+    if (acctUserInput) acctUserInput.placeholder = isEn ? 'e.g. teacher1' : 'vd: giaovien1';
+    const acctPwLabel = document.querySelector('label[for="newPassword"]');
+    if (acctPwLabel) setNodeText(acctPwLabel, 'Mật khẩu *', 'Password *', isEn);
+    const acctPwInput = document.getElementById('newPassword');
+    if (acctPwInput) acctPwInput.placeholder = isEn ? 'At least 8 characters' : 'Tối thiểu 8 ký tự';
+    const acctNameLabel = document.querySelector('label[for="newName"]');
+    if (acctNameLabel) setNodeText(acctNameLabel, 'Họ và tên / Ghi chú', 'Full Name / Note', isEn);
+    const acctNameInput = document.getElementById('newName');
+    if (acctNameInput) acctNameInput.placeholder = isEn ? 'e.g. Teacher Tuan' : 'vd: Thầy Tuấn';
+    const acctRoleLabel = document.querySelector('label[for="newRole"]');
+    if (acctRoleLabel) setNodeText(acctRoleLabel, 'Phân quyền *', 'Role *', isEn);
+    const acctSubmitSpan = document.querySelector('#addUserForm .btn-submit-user span');
+    if (acctSubmitSpan) setNodeText(acctSubmitSpan, '➕ Tạo tài khoản', '➕ Create Account', isEn);
+
+    // Submission Modal
+    const subModalTitle = document.getElementById('subModalTitle');
+    if (subModalTitle) setNodeText(subModalTitle, 'Nộp bài giải & Đánh giá bởi Gia sư Toán AI', 'Submit Solution & AI Assessment', isEn);
+    const tabBtnSubComposer = document.getElementById('tabBtnSubComposer');
+    if (tabBtnSubComposer) {
+      const span = tabBtnSubComposer.querySelectorAll('span')[1];
+      if (span) span.textContent = isEn ? 'Write & Upload' : 'Soạn bài & Tải lên';
+    }
+    const tabBtnSubEvaluation = document.getElementById('tabBtnSubEvaluation');
+    if (tabBtnSubEvaluation) {
+      const span = tabBtnSubEvaluation.querySelectorAll('span')[1];
+      if (span) span.textContent = isEn ? 'AI Assessment Results' : 'Kết quả thẩm định AI';
+    }
+    const btnToggleStatement = document.getElementById('btnToggleProblemStatement');
+    if (btnToggleStatement) setNodeText(btnToggleStatement, '📖 Xem nội dung đề bài', '📖 View Problem Statement', isEn);
+    const btnPrevImg = document.getElementById('btnPreviewImageMathJax');
+    if (btnPrevImg) {
+      btnPrevImg.textContent = isEn ? '👁️ Preview MathJax' : '👁️ Xem trước MathJax';
+      btnPrevImg.title = isEn ? 'Recognize handwriting and render formulas with MathJax' : 'Nhận diện chữ viết tay và hiển thị các công thức toán bằng MathJax';
+    }
+    const dropzone = document.getElementById('subImageDropzone');
+    if (dropzone) {
+      const dropDivs = dropzone.querySelectorAll('div');
+      if (dropDivs[1]) dropDivs[1].textContent = isEn ? 'Click to select solution image or drag and drop here' : 'Nhấp để chọn ảnh bài giải hoặc kéo thả file ảnh vào đây';
+      if (dropDivs[2]) dropDivs[2].innerHTML = isEn ? 'Supports handwritten photos, phone camera (JPG, PNG, WEBP), or paste with <strong>Ctrl + V</strong>' : 'Hỗ trợ ảnh viết tay, chụp camera điện thoại (JPG, PNG, WEBP) hoặc dán trực tiếp bằng <strong>Ctrl + V</strong>';
+    }
+    const subSolLabel = document.querySelector('label[for="subSolutionText"]');
+    if (subSolLabel) setNodeText(subSolLabel, '✍️ Lời giải văn bản / Ký hiệu LaTeX (tùy chọn hoặc bổ trợ cho ảnh):', '✍️ Solution text / LaTeX formulas (optional or auxiliary to image):', isEn);
+    const subSolTextarea = document.getElementById('subSolutionText');
+    if (subSolTextarea) subSolTextarea.placeholder = isEn ? 'Enter solution summary or type math formulas $...$ if not uploading an image...' : 'Nhập tóm tắt lời giải hoặc gõ ký hiệu toán học $...$ nếu không chụp ảnh...';
+    const btnEvaluate = document.getElementById('btnEvaluateSolution');
+    if (btnEvaluate) {
+      const span = btnEvaluate.querySelectorAll('span')[1];
+      if (span) span.textContent = isEn ? 'Assess Solution (AI Tutor)' : 'Đánh giá bài giải (Gia sư Toán AI)';
+    }
+    const btnConfirmSub = document.getElementById('btnConfirmSubmit');
+    if (btnConfirmSub) setNodeText(btnConfirmSub, '🚀 Lưu bài giải', '🚀 Save Solution', isEn);
 
     const tocCoverLink = document.querySelector('.toc-cover');
     if (tocCoverLink) setNodeText(tocCoverLink, 'Thông tin tài liệu', UI_TRANSLATIONS.en.tocCover, isEn);

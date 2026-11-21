@@ -12,7 +12,7 @@ import { trendAnalysisSettings } from '../lib/exam-trends.js';
 
 const source = path => fs.readFileSync(new URL('../'+path, import.meta.url), 'utf8');
 function route(path, dependencies) {
-  const code = source(path).replace(/^import[\s\S]*?;\n/gm, '').replaceAll('export default async function', 'async function').replaceAll('export function', 'function');
+  const code = source(path).replace(/^import[\s\S]*?;\n/gm, '').replaceAll('export default async function', 'async function').replaceAll('export function', 'function').replaceAll('export const', 'const');
   return new Function(...Object.keys({educationDb,assigned,valid,allows,...dependencies}), code+'\nreturn handler;')(...Object.values({educationDb,assigned,valid,allows,...dependencies}));
 }
 const response = () => ({ code:0, setHeader(){}, status(code){this.code=code;return this;}, json(body){this.body=body;return this;}, end(){return this;} });

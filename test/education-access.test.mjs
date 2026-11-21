@@ -73,7 +73,7 @@ const deniedReference=await retrieveVerifiedContext({problemRef:'tst:q1',stateme
 assert.equal(deniedReference.blocked,true,'Guide and geometry cannot use a registered problem outside the level');
 const response=()=>({code:0,headers:{},setHeader(k,v){this.headers[k]=v;},status(n){this.code=n;return this;},json(body){this.body=body;return this;},send(body){this.body=body;return this;},end(){return this;}});
 let session=lower;
-function route(path,deps){const code=read(path).replace(/^import[\s\S]*?;\n/gm,'').replace('export default async function','async function').replaceAll('export function','function');return new Function(...Object.keys(deps),code+';return handler;')(...Object.values(deps));}
+function route(path,deps){const code=read(path).replace(/^import[\s\S]*?;\n/gm,'').replace('export default async function','async function').replaceAll('export function','function').replaceAll('export const','const');return new Function(...Object.keys(deps),code+';return handler;')(...Object.values(deps));}
 const auth=route('api/auth.js',{getDb:async()=>db,getSession:()=>session,assigned,valid,recordActivity:async()=>{}});
 async function assign(user,educationLevels){session=user;const res=response();await auth({method:'POST',body:{action:'update_education_levels',targetUsername:'member',educationLevels}},res);return res;}
 for(const user of [lower,teacher])assert.equal((await assign(user,['primary'])).code,403);

@@ -46,6 +46,25 @@ guideSchema.required.push('geometry');
 Object.assign(verifierSchema.properties, { geometryApproved: { type: 'boolean' }, correctedGeometryApproved: { type: 'boolean' }, correctedGeometry: geometrySchema });
 verifierSchema.required.push('geometryApproved', 'correctedGeometryApproved', 'correctedGeometry');
 
+export const socraticSchema = { type: 'object', properties: {
+  message: { type: 'string' }, question: { type: 'string' }, focus: { type: 'string' },
+  hintLevel: { type: 'integer' }, stage: { type: 'string' }, correctSoFar: { type: 'boolean' },
+  mistake: { type: 'string' }, nextPrompt: { type: 'string' }, isComplete: { type: 'boolean' }
+}, required: ['message', 'question', 'focus', 'hintLevel', 'stage', 'correctSoFar', 'mistake', 'nextPrompt', 'isComplete'], additionalProperties: false };
+
+export const planSchema = { type: 'object', properties: {
+  summary: { type: 'string' },
+  knowledgeMap: { type: 'array', items: { type: 'object', properties: {
+    topic: { type: 'string' }, mastery: { type: 'integer' }, status: { type: 'string' },
+    evidence: { type: 'string' }, gap: { type: 'string' }, priority: { type: 'string' }
+  }, required: ['topic', 'mastery', 'status', 'evidence', 'gap', 'priority'], additionalProperties: false } },
+  plan: { type: 'array', items: { type: 'object', properties: {
+    week: { type: 'integer' }, focus: { type: 'string' },
+    goals: stringArray, activities: stringArray, checkpoints: stringArray
+  }, required: ['week', 'focus', 'goals', 'activities', 'checkpoints'], additionalProperties: false } },
+  recommendations: stringArray
+}, required: ['summary', 'knowledgeMap', 'plan', 'recommendations'], additionalProperties: false };
+
 const genericPatterns = [/thực hiện các phép thế thích hợp/i, /xây dựng một ví dụ cụ thể/i, /thiết lập (?:một )?đánh giá phù hợp/i, /apply appropriate substitutions/i, /construct a suitable example/i, /derive an appropriate estimate/i];
 const scoreOf = value => Number.isFinite(Number(value)) ? Math.max(0, Math.min(5, Number(value))) : 0;
 
@@ -138,9 +157,123 @@ export default async function handler(req, res) {
   const body = parseBody(req);
   if (!body) return res.status(400).json({ success: false, error: 'JSON không hợp lệ' });
   let problemContent = text(body.problemContent);
-  if (!problemContent) return res.status(400).json({ success: false, error: 'Thiếu nội dung bài toán' });
   const startedAt = Date.now();
   const outputLanguage = body.lang === 'en' ? 'English' : 'Vietnamese';
+  const pipelineBudget = () => Math.max(0, FUNCTION_BUDGET_MS - (Date.now() - startedAt) - BUDGET_SAFETY_MS);
+
+  // ── Socratic tutor: guiding questions only, never the full solution ─────
+  if (body.mode === 'socratic') {
+    if (!problemContent) return res.status(400).json({ success: false, error: 'Thiếu nội dung bài toán' });
+    if (!checkRateLimit(`socratic:${session.username}`, 60)) {
+      return res.status(429).json({ success: false, error: 'Bạn đang gửi câu hỏi quá nhanh. Vui lòng chờ một chút.' });
+    }
+    const history = (Array.isArray(body.history) ? body.history : []).slice(-14).map(turn => ({
+      role: turn?.role === 'assistant' ? 'assistant' : 'user',
+      text: text(turn?.text, 4000)
+    })).filter(turn => turn.text);
+    const studentMessage = text(body.message, 4000);
+    const transcript = history.length
+      ? history.map((turn, index) => `${turn.role === 'assistant' ? 'TUTOR' : 'STUDENT'} ${index + 1}: ${turn.text}`).join('\n')
+      : '(new conversation)';
+    const prompt = `You are a Socratic mathematics tutor for a high-school Olympiad student. Guide the student step by step using questions and small hints. NEVER give the full solution, the final answer, or a complete proof. Reply in ${outputLanguage}.
+PROBLEM:
+${problemContent}
+CONVERSATION SO FAR:
+${transcript}
+STUDENT'S NEW MESSAGE:
+${studentMessage || '(The student is starting the problem. Ask one opening question about how they interpret the statement.)'}
+RULES:
+- Ask at most one or two focused questions per turn.
+- If the student made a mistake, point to the exact step and ask a question that helps them detect it.
+- If the student is correct so far, confirm briefly and ask the next guiding question.
+- Increase support gradually (hintLevel 1 = gentle nudge, 2 = targeted hint, 3 = near-explicit hint), but never reveal the final answer.
+- If the problem is essentially solved by the student, set isComplete=true and ask them to write the final conclusion themselves.
+- Keep the reply concise (under 180 words), warm and mathematically precise.
+- Use MathJax $...$ for formulas, no HTML.`;
+    try {
+      const result = await generateVerifierJson({
+        input: prompt, schema: socraticSchema,
+        systemInstruction: `You are a patient Socratic tutor. Write entirely in ${outputLanguage}. Never provide a complete solution or final answer.`,
+        model: process.env.GEMINI_TUTOR_MODEL || process.env.GEMINI_VERIFY_MODEL || 'gemini-3.5-flash',
+        timeoutMs: Math.max(15_000, Math.min(90_000, pipelineBudget())),
+        maxOutputTokens: 4_000, reasoningEffort: 'medium'
+      });
+      const data = result.data || {};
+      return res.status(200).json({ success: true, source: 'gemini_socratic', data: {
+        message: text(data.message, 12_000), question: text(data.question, 4_000),
+        focus: text(data.focus, 1_000), hintLevel: Math.max(1, Math.min(3, Number(data.hintLevel) || 1)),
+        stage: text(data.stage, 200), correctSoFar: data.correctSoFar === true,
+        mistake: text(data.mistake, 4_000), nextPrompt: text(data.nextPrompt, 4_000),
+        isComplete: data.isComplete === true, model: result.model
+      } });
+    } catch (error) {
+      console.error('[AI GUIDE socratic]', error);
+      const failure = describeGuideError(error, 'socratic');
+      return res.status(failure.status).json({ success: false, error: failure.error, code: text(error?.code, 80) || 'AI_PIPELINE_ERROR' });
+    }
+  }
+
+  // ── Knowledge-gap diagnosis and personalised 2–4 week roadmap ───────────
+  if (body.mode === 'plan') {
+    const profile = body.profile && typeof body.profile === 'object' ? body.profile : {};
+    const dna = Array.isArray(body.dna) ? body.dna.slice(0, 60).map(item => ({
+      topic: text(item?.topic, 200), title: text(item?.title, 300),
+      primaryTechnique: text(item?.primaryTechnique?.label || item?.primaryTechnique?.id || '', 200),
+      difficulty: Number(item?.difficulty) || 0, insight: text(item?.insight, 800)
+    })) : [];
+    const weeks = Math.max(2, Math.min(4, Number(body.weeks) || 3));
+    const goal = text(body.goal, 500) || (outputLanguage === 'English' ? 'VMO / national Olympiad preparation' : 'Ôn thi VMO / đội tuyển quốc gia');
+    const compactProfile = JSON.stringify({
+      totals: profile.totals || {}, evaluations: (profile.evaluations || []).slice(0, 80),
+      guides: (profile.guides || []).slice(0, 80)
+    }).slice(0, 24_000);
+    const prompt = `Build a knowledge-gap diagnosis and a ${weeks}-week personalised study roadmap for a high-school Olympiad student. Write entirely in ${outputLanguage}.
+GOAL: ${goal}
+LEARNING HISTORY (saved AI guides and graded submissions):
+${compactProfile}
+MATH DNA RECORDS (technique fingerprints):
+${JSON.stringify(dna)}
+RULES:
+- Produce 6 knowledge-map entries aligned to: Sequences & Limits, Functional Equations, Number Theory, Plane Geometry, Polynomials, Combinatorics. Use the student's actual titles and scores as evidence; never invent solved problems.
+- mastery is 0–100 based on evidence. If evidence is thin, say so explicitly and keep mastery conservative.
+- status must be one of: strong, developing, gap, insufficient-evidence.
+- priority must be one of: high, medium, low.
+- The roadmap must contain exactly ${weeks} weeks. Each week needs concrete goals, activities (specific problem types / techniques), and measurable checkpoints.
+- Recommendations must be actionable and concise. Do not promise exam results.
+- Use MathJax $...$ where useful. No HTML.`;
+    try {
+      const result = await generateVerifierJson({
+        input: prompt, schema: planSchema,
+        systemInstruction: `You are a mathematics learning diagnostician. Ground every claim in the supplied history. Write entirely in ${outputLanguage}.`,
+        model: process.env.GEMINI_PLAN_MODEL || process.env.GEMINI_VERIFY_MODEL || 'gemini-3.5-flash',
+        timeoutMs: Math.max(20_000, Math.min(120_000, pipelineBudget())),
+        maxOutputTokens: 8_000, reasoningEffort: 'medium'
+      });
+      const data = result.data || {};
+      const knowledgeMap = (Array.isArray(data.knowledgeMap) ? data.knowledgeMap : []).slice(0, 12).map(item => ({
+        topic: text(item?.topic, 200), mastery: Math.max(0, Math.min(100, Number(item?.mastery) || 0)),
+        status: text(item?.status, 60) || 'insufficient-evidence', evidence: text(item?.evidence, 2_000),
+        gap: text(item?.gap, 2_000), priority: text(item?.priority, 20) || 'medium'
+      }));
+      const plan = (Array.isArray(data.plan) ? data.plan : []).slice(0, weeks).map((week, index) => ({
+        week: Number(week?.week) || index + 1, focus: text(week?.focus, 400),
+        goals: (Array.isArray(week?.goals) ? week.goals : []).slice(0, 8).map(goalItem => text(goalItem, 500)),
+        activities: (Array.isArray(week?.activities) ? week.activities : []).slice(0, 10).map(item => text(item, 500)),
+        checkpoints: (Array.isArray(week?.checkpoints) ? week.checkpoints : []).slice(0, 8).map(item => text(item, 500))
+      }));
+      return res.status(200).json({ success: true, source: 'gemini_plan', data: {
+        summary: text(data.summary, 6_000), knowledgeMap, plan,
+        recommendations: (Array.isArray(data.recommendations) ? data.recommendations : []).slice(0, 12).map(item => text(item, 800)),
+        weeks, generatedAt: new Date().toISOString(), model: result.model
+      } });
+    } catch (error) {
+      console.error('[AI GUIDE plan]', error);
+      const failure = describeGuideError(error, 'plan');
+      return res.status(failure.status).json({ success: false, error: failure.error, code: text(error?.code, 80) || 'AI_PIPELINE_ERROR' });
+    }
+  }
+
+  if (!problemContent) return res.status(400).json({ success: false, error: 'Thiếu nội dung bài toán' });
 
   try {
     const reference = await retrieveVerifiedContext({ problemRef: text(body.contentKey || body.problemKey || body.problemId, 180),

@@ -27,22 +27,49 @@ const VERDICT_COLORS = {
   INCORRECT: '#dc2626'
 };
 
-const schema = {
+const stringArray = { type: 'array', items: { type: 'string' } };
+
+const rubricItemSchema = {
+  type: 'object', properties: {
+    step: { type: 'string' }, criterion: { type: 'string' },
+    maxScore: { type: 'number' }, earnedScore: { type: 'number' },
+    status: { type: 'string', enum: ['correct', 'partial', 'missing', 'incorrect'] },
+    feedback: { type: 'string' }, fix: { type: 'string' }
+  }, required: ['step', 'criterion', 'maxScore', 'earnedScore', 'status', 'feedback', 'fix'],
+  additionalProperties: false
+};
+
+const mistakeItemSchema = {
+  type: 'object', properties: {
+    step: { type: 'string' }, mistake: { type: 'string' }, correction: { type: 'string' }
+  }, required: ['step', 'mistake', 'correction'], additionalProperties: false
+};
+
+const rigorSchema = {
+  type: 'object', properties: {
+    level: { type: 'string', enum: ['rigorous', 'mostly-rigorous', 'gaps', 'insufficient'] },
+    justification: { type: 'string' }
+  }, required: ['level', 'justification'], additionalProperties: false
+};
+
+export const schema = {
   type: 'object',
   properties: {
     verdict: { type: 'string', enum: VERDICTS }, verdictLabel: { type: 'string' },
     estimatedScore: { type: 'string' }, summary: { type: 'string' }, approachAnalysis: { type: 'string' },
     stepByStep: { type: 'string' }, criticalFlaws: { type: 'string' }, recommendations: { type: 'string' },
-    verificationNotes: { type: 'string' }, studentWorkTranscription: { type: 'string' }
+    verificationNotes: { type: 'string' }, studentWorkTranscription: { type: 'string' },
+    rubric: { type: 'array', items: rubricItemSchema },
+    mistakes: { type: 'array', items: mistakeItemSchema },
+    rigor: rigorSchema
   },
   required: [
     'verdict', 'verdictLabel', 'estimatedScore', 'summary', 'approachAnalysis',
-    'stepByStep', 'criticalFlaws', 'recommendations', 'verificationNotes', 'studentWorkTranscription'
+    'stepByStep', 'criticalFlaws', 'recommendations', 'verificationNotes', 'studentWorkTranscription',
+    'rubric', 'mistakes', 'rigor'
   ]
 };
-
-const stringArray = { type: 'array', items: { type: 'string' } };
-const verifierSchema = {
+export const verifierSchema = {
   type: 'object',
   properties: {
     approved: { type: 'boolean', description: 'True when the final verifier report is complete and publishable, even if the student solution is wrong or incomplete.' },
@@ -52,17 +79,21 @@ const verifierSchema = {
     scoreConsistent: { type: 'boolean', description: 'True when the final score is consistent with the actual degree of completion of the student solution.' },
     noInventedStudentWork: { type: 'boolean', description: 'True when the final report attributes only steps that the student actually wrote.' },
     referenceMatched: { type: 'boolean', description: 'True when the final report is consistent with the trusted reference, or with an independent solution when no trusted reference exists.' },
+    rubricConsistent: { type: 'boolean', description: 'True when the rubric totals 5.0, its earned total matches the estimated score, and every listed mistake really occurs in the student work.' },
     criticalIssues: stringArray,
     verdict: { type: 'string', enum: VERDICTS }, verdictLabel: { type: 'string' },
     estimatedScore: { type: 'string' }, summary: { type: 'string' }, approachAnalysis: { type: 'string' },
     stepByStep: { type: 'string' }, criticalFlaws: { type: 'string' }, recommendations: { type: 'string' },
-    verificationNotes: { type: 'string' }
+    verificationNotes: { type: 'string' },
+    rubric: { type: 'array', items: rubricItemSchema },
+    mistakes: { type: 'array', items: mistakeItemSchema },
+    rigor: rigorSchema
   },
   required: [
     'approved', 'corrected', 'allClaimsChecked', 'mathCorrect', 'scoreConsistent',
-    'noInventedStudentWork', 'referenceMatched', 'criticalIssues', 'verdict', 'verdictLabel',
+    'noInventedStudentWork', 'referenceMatched', 'rubricConsistent', 'criticalIssues', 'verdict', 'verdictLabel',
     'estimatedScore', 'summary', 'approachAnalysis', 'stepByStep', 'criticalFlaws',
-    'recommendations', 'verificationNotes'
+    'recommendations', 'verificationNotes', 'rubric', 'mistakes', 'rigor'
   ],
   additionalProperties: false
 };
@@ -83,6 +114,24 @@ function normalizeEvaluation(value) {
     estimatedScore = '0.0/5.0';
   }
 
+  const rubric = (Array.isArray(data.rubric) ? data.rubric : []).slice(0, 20).map((item, index) => {
+    const maxScore = Math.max(0, Math.min(20, Number(item?.maxScore) || 0));
+    return {
+      step: text(item?.step, 500) || `Bước ${index + 1}`,
+      criterion: text(item?.criterion, 1_000),
+      maxScore,
+      earnedScore: Math.max(0, Math.min(maxScore, Number(item?.earnedScore) || 0)),
+      status: ['correct', 'partial', 'missing', 'incorrect'].includes(item?.status) ? item.status : 'partial',
+      feedback: text(item?.feedback, 4_000),
+      fix: text(item?.fix, 4_000)
+    };
+  });
+  const mistakes = (Array.isArray(data.mistakes) ? data.mistakes : []).slice(0, 20).map(item => ({
+    step: text(item?.step, 500), mistake: text(item?.mistake, 4_000), correction: text(item?.correction, 4_000)
+  })).filter(item => item.mistake || item.correction);
+  const rigorLevel = ['rigorous', 'mostly-rigorous', 'gaps', 'insufficient'].includes(data?.rigor?.level)
+    ? data.rigor.level : 'gaps';
+
   return {
     verdict,
     verdictLabel: text(data.verdictLabel, 500) || verdict,
@@ -93,7 +142,13 @@ function normalizeEvaluation(value) {
     stepByStep: text(data.stepByStep, 20_000),
     criticalFlaws: text(data.criticalFlaws, 12_000),
     recommendations: text(data.recommendations, 12_000),
-    verificationNotes: text(data.verificationNotes, 8_000)
+    verificationNotes: text(data.verificationNotes, 8_000),
+    rubric,
+    rubricScore: rubric.length
+      ? `${rubric.reduce((sum, item) => sum + item.earnedScore, 0).toFixed(1)}/${rubric.reduce((sum, item) => sum + item.maxScore, 0).toFixed(1)}`
+      : '',
+    mistakes,
+    rigor: { level: rigorLevel, justification: text(data?.rigor?.justification, 4_000) }
   };
 }
 
@@ -106,7 +161,8 @@ export function verifierChecks(data, hasTrustedReference) {
     noInventedStudentWork: data?.noInventedStudentWork === true,
     // Không có nguồn admin xác minh thì bước kiểm định phải tự giải độc lập;
     // không được biến một cờ "không có gì để đối chiếu" thành lỗi chặn toàn bộ kết quả.
-    referenceMatched: !hasTrustedReference || data?.referenceMatched === true
+    referenceMatched: !hasTrustedReference || data?.referenceMatched === true,
+    rubricConsistent: data?.rubricConsistent === true
   };
 }
 
@@ -188,6 +244,9 @@ ${mathematicalAuditInstruction}\n\nQUY TRÌNH CHẤM BẮT BUỘC
 - verificationNotes ghi ngắn gọn các phép tính hoặc đẳng thức quan trọng mà giám khảo đã tự kiểm tra lại.
 - studentWorkTranscription chép lại trung thực bài làm học sinh; nếu đầu vào là văn bản thì giữ nguyên nội dung, nếu là ảnh thì OCR đầy đủ để lớp kiểm định độc lập sử dụng.
 - Nêu điểm, đánh giá hướng tiếp cận, rà soát từng bước, lỗi logic và khuyến nghị.
+- rubric: barem chấm từng bước. Mỗi dòng gồm bước, tiêu chí, điểm tối đa, điểm đạt, trạng thái (correct/partial/missing/incorrect), nhận xét và cách sửa. Tổng điểm tối đa của rubric phải bằng 5.0 và tổng điểm đạt phải khớp estimatedScore.
+- mistakes: danh sách lỗi cụ thể theo bước (bước, lỗi sai, cách sửa). Để mảng rỗng nếu không có lỗi.
+- rigor: mức độ chặt chẽ (rigorous / mostly-rigorous / gaps / insufficient) kèm giải thích ngắn.
 - Dùng LaTeX MathJax với $...$ hoặc $$...$$.
 - Không dùng môi trường itemize, enumerate, align hoặc lệnh textbf; dùng Markdown cho danh sách.`;
   const startedAt = Date.now();
@@ -277,7 +336,8 @@ ${mathematicalAuditInstruction}\n\nYÊU CẦU KIỂM ĐỊNH
 6. Khi không có nguồn tham khảo, referenceMatched=true chỉ khi đã tự giải và đối chiếu độc lập.
 7. mathCorrect đánh giá tính đúng đắn của BÁO CÁO CUỐI, không phải tính đúng đắn của bài học sinh. Bài học sinh sai hoặc chưa hoàn thành vẫn phải được chấm và có thể cho mathCorrect=true nếu báo cáo cuối phân tích đúng lỗi đó.
 8. allClaimsChecked đánh giá mức độ kiểm tra của báo cáo cuối; không đặt false chỉ vì học sinh bỏ dở hoặc thiếu chứng minh.
-9. Dùng MathJax $...$ hoặc $$...$$; không dùng align, aligned, tag, itemize, enumerate hoặc textbf.`,
+9. Dùng MathJax $...$ hoặc $$...$$; không dùng align, aligned, tag, itemize, enumerate hoặc textbf.
+10. Kiểm tra rubric: tổng điểm tối đa đúng 5.0, tổng điểm đạt khớp estimatedScore, mọi lỗi trong mistakes phải thực sự xuất hiện trong bài làm.`,
       schema: verifierSchema,
       systemInstruction: `Bạn là giám khảo phản biện ${reference?.educationLevel === 'university' ? 'Toán Đại học (' + (reference.courseName || 'học phần tương ứng') + ')' : 'VMO/IMO'} độc lập. Hãy kiểm tra bài làm gốc và báo cáo sơ bộ của ${provisional.provider} bằng ${outputLanguage}. Ưu tiên tính đúng đắn; không bịa nội dung học sinh. Trả về đúng structured JSON.`,
       timeoutMs: Math.max(15_000, Math.min(180_000, 290_000 - (Date.now() - startedAt))),
@@ -313,6 +373,14 @@ ${mathematicalAuditInstruction}\n\nYÊU CẦU KIỂM ĐỊNH
     // để đối chiếu. Frontend lưu trường này vào solutionContent để bài đánh giá
     // từ ảnh có thể được admin chỉnh sửa, xem MathJax và xác minh về sau.
     finalData.studentWorkTranscription = text(observedStudentWork, 50_000);
+    // Rubric reports are AI drafts until a teacher/admin approves the submission.
+    finalData.publication = {
+      requiresTeacherApproval: true,
+      status: 'pending_teacher_review',
+      note: outputLanguage === 'English'
+        ? 'This rubric report must be approved by a teacher before it is published to the class.'
+        : 'Báo cáo theo barem cần giáo viên duyệt trước khi công bố cho lớp.'
+    };
     finalData.quality = {
       verified: true,
       corrected: verified.data.corrected === true,

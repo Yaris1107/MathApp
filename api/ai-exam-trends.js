@@ -5,9 +5,90 @@ import { checkRateLimit, handleAiError, parseBody, prepare, text } from '../lib/
 import { generateVerifierJson } from '../lib/ai-verifier.js';
 import { loadExamEvidence } from '../lib/exam-evidence-db.js';
 import {
-  TREND_TOPICS, balancedEvidenceSample, normalizeTrendReport,
+  TREND_TOPICS, balancedEvidenceSample, classifyTrendTopic, normalizeTrendReport,
   selectTrendEvidence, selectTrendPracticeEvidence, trendAnalysisSettings
 } from '../lib/exam-trends.js';
+
+const DIFFICULTY_LEVELS = ['easy', 'medium', 'hard'];
+const DIFFICULTY_LABELS = { easy: 'Cơ bản', medium: 'Trung bình', hard: 'Khó / Olympic' };
+
+export const practiceSchema = {
+  type: 'object', properties: {
+    questions: { type: 'array', items: { type: 'object', properties: {
+      topic: { type: 'string' }, difficulty: { type: 'string', enum: DIFFICULTY_LEVELS },
+      content: { type: 'string' }, answer: { type: 'string' }, solution: { type: 'string' }
+    }, required: ['topic', 'difficulty', 'content', 'answer', 'solution'], additionalProperties: false } }
+  }, required: ['questions'], additionalProperties: false
+};
+
+export function difficultyBucket(value) {
+  const raw = String(value ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/gi, 'd').toLowerCase();
+  const numeric = Number((raw.match(/\d+(?:[.,]\d+)?/) || [])[0]?.replace(',', '.'));
+  if (Number.isFinite(numeric) && numeric > 0) {
+    if (numeric <= 2) return 'easy';
+    if (numeric <= 3) return 'medium';
+    return 'hard';
+  }
+  if (/kho|hard|olympic|nang cao|very hard|advanced/.test(raw)) return 'hard';
+  if (/de|easy|co ban|basic|routine/.test(raw)) return 'easy';
+  return 'medium';
+}
+
+// Matrix input: [{ topic, easy, medium, hard }]; totals are capped so one
+// request cannot ask for an unbounded amount of generated content.
+export function practiceMatrix(value) {
+  const rows = Array.isArray(value) ? value.slice(0, 12) : [];
+  const matrix = rows.map(row => {
+    const topic = text(row?.topic, 200);
+    const counts = {};
+    let total = 0;
+    for (const level of DIFFICULTY_LEVELS) {
+      const count = Math.max(0, Math.min(5, Math.floor(Number(row?.[level]) || 0)));
+      counts[level] = count;
+      total += count;
+    }
+    return { topic, ...counts, total };
+  }).filter(row => row.topic && row.total > 0);
+  const total = matrix.reduce((sum, row) => sum + row.total, 0);
+  if (!matrix.length) throw new Error('Ma trận đề luyện còn trống. Hãy chọn ít nhất một chuyên đề và số câu.');
+  if (total > 15) throw new Error('Mỗi lần chỉ sinh tối đa 15 câu để bảo đảm chất lượng và thời gian xử lý.');
+  return { matrix, total };
+}
+
+function cleanPracticeBankRow(row) {
+  const content = text(row?.content, 20_000);
+  const solution = text(row?.referenceSolution, 40_000);
+  if (!content || !solution) return null;
+  const topic = classifyTrendTopic(row?.topic) || text(row?.topic, 120) || 'Toán Olympic';
+  return {
+    topic, difficulty: difficultyBucket(row?.difficulty), content, solution,
+    answer: text(row?.referenceAnswer || row?.answer, 4_000),
+    title: text(row?.title, 300), contentKey: text(row?.contentKey || row?._id, 180), source: 'bank'
+  };
+}
+
+async function selectBankPractice(db, matrix) {
+  const wanted = new Map(matrix.map(row => [row.topic, { ...row }]));
+  const candidates = await db.collection('problems').find({
+    status: 'published', referenceSolution: { $type: 'string', $ne: '' }
+  }, { projection: {
+    contentKey: 1, title: 1, topic: 1, content: 1, referenceSolution: 1, difficulty: 1
+  } }).limit(1600).toArray();
+  const items = [];
+  for (const row of candidates) {
+    const normalized = cleanPracticeBankRow(row);
+    if (!normalized) continue;
+    const bucket = DIFFICULTY_LEVELS.includes(normalized.difficulty) ? normalized.difficulty : 'medium';
+    const target = wanted.get(normalized.topic) || [...wanted.values()].find(entry => entry[bucket] > 0);
+    if (!target || target[bucket] <= 0) continue;
+    if (items.some(item => item.contentKey && item.contentKey === normalized.contentKey)) continue;
+    target[bucket] -= 1;
+    items.push(normalized);
+  }
+  const remaining = [...wanted.values()].map(row => ({ ...row }))
+    .filter(row => DIFFICULTY_LEVELS.some(level => row[level] > 0));
+  return { items, remaining };
+}
 
 const methodSchema = {
   type: 'object', properties: {
@@ -95,6 +176,77 @@ export default async function handler(req, res) {
   if (!session) return res.status(401).json({ success: false, error: 'Vui lòng đăng nhập lại' });
   if (!allows(session, 'upper_secondary')) return res.status(403).json({ success: false, error: 'Chức năng này thuộc cấp Trung học phổ thông' });
   const body = parseBody(req) || {};
+
+  // ── Personalised practice generator (reuses this endpoint, no new API file) ──
+  if (body.mode === 'practice') {
+    let parsed;
+    try { parsed = practiceMatrix(body.matrix); }
+    catch (error) { return res.status(400).json({ success: false, error: error.message }); }
+    if (!checkRateLimit(`practice:${session.username}`, 6, 10 * 60_000)) {
+      return res.status(429).json({ success: false, error: 'Vui lòng chờ trước khi sinh đề luyện tiếp theo.' });
+    }
+    const outputLanguage = body.lang === 'en' ? 'English' : 'Vietnamese';
+    try {
+      const db = await getDb();
+      const { items: bankItems, remaining } = await selectBankPractice(db, parsed.matrix);
+      let generated = [];
+      if (remaining.length) {
+        const requestList = remaining.flatMap(row => DIFFICULTY_LEVELS
+          .filter(level => row[level] > 0)
+          .map(level => ({ topic: row.topic, difficulty: level, count: row[level] })));
+        const requestTotal = requestList.reduce((sum, entry) => sum + entry.count, 0);
+        const prompt = `Generate ${requestTotal} new high-school Olympiad mathematics practice problems in ${outputLanguage}, following this exact matrix.
+MATRIX (topic, difficulty, count): ${JSON.stringify(requestList)}
+DIFFICULTY MEANING: easy = foundational technique drill; medium = multi-step national-Olympiad level; hard = deep Olympic problem.
+RULES:
+- Produce exactly ${requestTotal} questions, grouped by topic and difficulty as requested.
+- Every question must be new, self-contained, well-posed, with a verified answer.
+- "content" is the full statement only. "answer" is the final answer. "solution" is a complete rigorous step-by-step solution.
+- Do not copy the supplied bank titles: ${JSON.stringify(bankItems.map(item => item.title).filter(Boolean).slice(0, 40))}.
+- Use MathJax $...$ for inline formulas and $$...$$ for display formulas. No HTML.
+- Match the requested topics exactly using these labels: ${JSON.stringify(TREND_TOPICS)}.`;
+        const result = await generateVerifierJson({
+          input: prompt, schema: practiceSchema,
+          systemInstruction: `You are an Olympiad mathematics problem setter and verifier. Write entirely in ${outputLanguage}. Check every answer and solution before returning it.`,
+          model: process.env.GEMINI_PRACTICE_MODEL || process.env.GEMINI_VERIFY_MODEL || 'gemini-3.5-flash',
+          timeoutMs: 220_000, totalTimeoutMs: 260_000, maxOutputTokens: 24_000, reasoningEffort: 'high'
+        });
+        const questions = Array.isArray(result.data?.questions) ? result.data.questions : [];
+        generated = questions.slice(0, requestTotal).map((question, index) => {
+          const slot = requestList[Math.min(requestList.length - 1, Math.floor(index * requestList.length / Math.max(1, questions.length)))];
+          return {
+            topic: classifyTrendTopic(question?.topic) || text(question?.topic, 120) || slot?.topic || 'Toán Olympic',
+            difficulty: DIFFICULTY_LEVELS.includes(question?.difficulty) ? question.difficulty : (slot?.difficulty || 'medium'),
+            content: text(question?.content, 20_000), answer: text(question?.answer, 6_000),
+            solution: text(question?.solution, 40_000), source: 'generated', model: result.model
+          };
+        }).filter(question => question.content.length >= 35 && question.solution.length >= 40);
+      }
+      const items = [...bankItems, ...generated];
+      if (!items.length) {
+        return res.status(422).json({ success: false, error: 'Chưa tạo được câu hỏi phù hợp. Hãy giảm số câu hoặc thử lại.' });
+      }
+      return res.status(200).json({ success: true, source: 'practice_matrix', data: {
+        title: outputLanguage === 'English' ? 'Personalised practice set' : 'Đề luyện cá nhân hóa',
+        matrix: parsed.matrix, items,
+        bankCount: bankItems.length, generatedCount: generated.length,
+        note: bankItems.length
+          ? (outputLanguage === 'English'
+            ? `${bankItems.length} question(s) reused from the verified bank; ${generated.length} newly generated.`
+            : `Đã ưu tiên ${bankItems.length} câu có lời giải trong kho; sinh mới ${generated.length} câu còn thiếu.`)
+          : (outputLanguage === 'English'
+            ? 'No matching bank questions with a verified solution were found; all questions were generated.'
+            : 'Không tìm thấy câu phù hợp có lời giải trong kho; toàn bộ được sinh mới.'),
+        generatedAt: new Date().toISOString()
+      } });
+    } catch (error) {
+      console.error('[PRACTICE]', error);
+      if (error?.code === 'AI_TIMEOUT') return res.status(504).json({ success: false, error: 'Gia sư Toán AI chưa kịp sinh đủ đề trong thời gian cho phép. Vui lòng thử lại với ít câu hơn.' });
+      if (error?.code === 'AI_NOT_CONFIGURED') return res.status(503).json({ success: false, error: 'Gia sư Toán AI tạm thời chưa sẵn sàng.' });
+      return handleAiError(res, error);
+    }
+  }
+
   let settings;
   try { settings = trendAnalysisSettings(body); }
   catch (error) { return res.status(400).json({ success: false, error: error.message }); }

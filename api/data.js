@@ -448,7 +448,15 @@ export default async function handler(req, res) {
           return res.status(200).json({ success: true, items: item ? [item] : [] });
         }
         if (!technique) {
-          return res.status(400).json({ success: false, error: 'Cần mã bài toán hoặc kỹ thuật để tra cứu Math DNA' });
+          // Recent fingerprints for the signed-in learner (or everyone for content managers).
+          const limit = cleanNumber(req.query?.limit, 40, 1, 80);
+          const manager = ['admin', 'teacher'].includes(session.role);
+          const filter = manager ? {} : { $or: [{ updatedBy: session.username }, { createdBy: session.username }] };
+          const items = await db.collection('math_dna').find(filter, { projection: {
+            problemKey: 1, title: 1, topic: 1, primaryTechnique: 1, techniqueTags: 1,
+            difficulty: 1, insight: 1, updatedAt: 1
+          } }).sort({ updatedAt: -1 }).limit(limit).toArray();
+          return res.status(200).json({ success: true, items });
         }
         const limit = cleanNumber(req.query?.limit, 30, 1, 60);
         const items = await db.collection('math_dna').find({

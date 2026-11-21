@@ -2,6 +2,8 @@
   const directory = JSON.parse(document.getElementById('specialized-school-registry')?.textContent || '{"schools":[]}');
   const schools = directory.schools;
   window.VMO_SPECIALIZED_SCHOOLS = schools;
+  const isEn = () => window.currentLang === 'en';
+  const t = (vi, en) => (isEn() ? en : vi);
   const normalize = value => String(value).normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/gi, 'd').toLowerCase();
   function init() {
     const root = document.getElementById('admissionDirectory');
@@ -14,8 +16,8 @@
       for (const school of schools.filter(item => item.province === province).sort((a,b) => a.name.localeCompare(b.name, 'vi'))) {
         const child = document.createElement('details'); child.className = 'nav-year-group admission-school'; child.dataset.schoolId = school.id;
         child.dataset.search = normalize(`${province} ${school.name} ${school.authority} ${school.aliases.join(' ')}`);
-        const title = document.createElement('summary'); title.textContent = school.name + (school.kind === 'university' ? ' · trực thuộc ĐH' : ''); title.title = school.authority;
-        const empty = document.createElement('small'); empty.className = 'admission-empty'; empty.textContent = 'Chưa có đề được tải lên.';
+        const title = document.createElement('summary'); title.textContent = school.name + (school.kind === 'university' ? (isEn() ? ' · Univ. affiliated' : ' · trực thuộc ĐH') : ''); title.title = school.authority;
+        const empty = document.createElement('small'); empty.className = 'admission-empty'; empty.textContent = t('Chưa có đề được tải lên.', 'No exams uploaded yet.');
         child.append(title, empty); group.append(child);
       }
       root.append(group);
@@ -30,11 +32,11 @@
   window.populateAdmissionSchoolOptions = () => {
     const select = document.getElementById('docSchoolId');
     if (!select || select.options.length) return;
-    const placeholder = document.createElement('option'); placeholder.value = ''; placeholder.textContent = '— Chọn trường chuyên —'; select.append(placeholder);
+    const placeholder = document.createElement('option'); placeholder.value = ''; placeholder.textContent = t('— Chọn trường chuyên —', '— Select specialized school —'); select.append(placeholder);
     for (const province of [...new Set(schools.map(school => school.province))].sort((a,b) => a.localeCompare(b, 'vi'))) {
       const group = document.createElement('optgroup'); group.label = province;
       for (const school of schools.filter(school => school.province === province).sort((a,b) => a.name.localeCompare(b.name, 'vi'))) {
-        const option = document.createElement('option'); option.value = school.id; option.textContent = school.name + (school.kind === 'university' ? ' · trực thuộc ĐH' : ''); group.append(option);
+        const option = document.createElement('option'); option.value = school.id; option.textContent = school.name + (school.kind === 'university' ? (isEn() ? ' · Univ. affiliated' : ' · trực thuộc ĐH') : ''); group.append(option);
       }
       select.append(group);
     }
@@ -44,7 +46,7 @@
     const province = document.getElementById('docProvince'), region = document.getElementById('docRegion'), display = document.getElementById('docRegionDisplay');
     if (province) province.value = school?.province || '';
     if (region) region.value = school?.region || '';
-    if (display) display.value = ({ BAC: 'Miền Bắc', TRUNG: 'Miền Trung', NAM: 'Miền Nam' })[school?.region] || '';
+    if (display) display.value = ({ BAC: t('Miền Bắc', 'Northern Region'), TRUNG: t('Miền Trung', 'Central Region'), NAM: t('Miền Nam', 'Southern Region') })[school?.region] || '';
   };
   window.resetAdmissionNavigation = () => {
     const root = document.getElementById('admissionDirectory');
@@ -59,8 +61,9 @@
     group.querySelector('.admission-empty')?.remove();
     let link = Array.from(group.querySelectorAll('a')).find(item => item.hash === `#${exam.targetAnchor}`);
     if (!link) { link = document.createElement('a'); link.className = 'nav-link db-exam-sidebar-link'; link.href = `#${exam.targetAnchor}`; group.append(link); }
-    link.textContent = exam.year || 'Đề thi'; link.dataset.year = exam.year || '';
+    link.textContent = exam.year || t('Đề thi', 'Exam'); link.dataset.year = exam.year || '';
     [...group.querySelectorAll('a')].sort((a,b) => b.dataset.year.localeCompare(a.dataset.year)).forEach(link => group.append(link));
   };
+  window.addEventListener('langchange', () => { window.resetAdmissionNavigation?.(); });
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true }); else init();
 })();

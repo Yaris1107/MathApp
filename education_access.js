@@ -9,7 +9,7 @@
   const modules = {
     danang: 'upper_secondary', mock: 'upper_secondary', tst: 'upper_secondary', vmo: 'upper_secondary',
     history: 'upper_secondary', olympic: 'upper_secondary', olympic30: 'upper_secondary', duyenhai: 'upper_secondary',
-    admission: 'lower_secondary', books: 'university', 'university-materials': 'university', primary: 'primary', university: 'university', support: 'shared', trends: 'upper_secondary'
+    admission: 'lower_secondary', books: 'university', 'university-materials': 'university', primary: 'primary', university: 'university', support: 'shared', coach: 'shared', trends: 'upper_secondary'
   };
   function valid(value) { return Array.isArray(value) && value.length <= 4 && value.every(v => levels.includes(v)) && new Set(value).size === value.length; }
   function assigned(user) {

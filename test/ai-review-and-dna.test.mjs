@@ -170,6 +170,7 @@ assert.equal(model, 'gemini-3.5-flash');
 const routeSource = fs.readFileSync(new URL('../api/ai-guide.js', import.meta.url), 'utf8')
   .replace(/^import .*;\n/gm, '')
   .replaceAll('export function', 'function')
+  .replaceAll('export const', 'const')
   .replace('export default async function', 'async function');
 const fakeRedTeam = async () => ({
   verdict: 'passed', confidence: 0.9, summary: 'Ổn.', revisedScore: '5.0/5.0',

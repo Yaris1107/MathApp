@@ -165,7 +165,13 @@
     const problemItems = root.querySelectorAll?.('.problem-item') || [];
     problemItems.forEach(item => {
       const header = item.querySelector('.problem-header');
-      if (!header || item.querySelector('.btn-submit-solution')) return;
+      if (!header) return;
+      const existingBtn = item.querySelector('.btn-submit-solution');
+      if (existingBtn) {
+        existingBtn.innerHTML = `✍️ ${isEn ? 'Submit Solution' : 'Nộp bài giải'}`;
+        existingBtn.title = isEn ? 'Submit your own solution to database' : 'Nộp lời giải cá nhân của bạn lên cơ sở dữ liệu';
+        return;
+      }
 
       const problemIdEl = header.querySelector('.problem-id') || item.querySelector('.problem-id');
       const problemTitle = problemIdEl ? (problemIdEl.innerText || problemIdEl.textContent || '').trim() : 'Câu hỏi';
@@ -206,7 +212,12 @@
     const exampleBoxes = root.querySelectorAll?.('.examplebox') || [];
     exampleBoxes.forEach(box => {
       const heading = box.querySelector('.box-heading');
-      if (!heading || box.querySelector('.btn-submit-solution')) return;
+      if (!heading) return;
+      const existingBtn = box.querySelector('.btn-submit-solution');
+      if (existingBtn) {
+        existingBtn.innerHTML = `✍️ ${isEn ? 'Submit' : 'Nộp bài giải'}`;
+        return;
+      }
       const title = headingTextWithoutActions(heading);
       const identity = getProblemIdentity(box, title);
       box.dataset.contentKey = identity.problemKey;
@@ -991,6 +1002,7 @@ Vậy giới hạn cần tìm là $\\sqrt{2}$.`;
         <div class="card"><div class="title">1. Nhận định tổng quan:</div><div>${formatMathMarkdown(evalData.summary || '')}</div></div>
         <div class="card"><div class="title">2. Hướng tiếp cận &amp; Phương pháp:</div><div>${formatMathMarkdown(evalData.approachAnalysis || '')}</div></div>
         <div class="card"><div class="title">3. Rà soát chi tiết từng bước:</div><div>${formatMathMarkdown(evalData.stepByStep || '')}</div></div>
+        <div class="card"><div class="title">3b. Barem điểm từng bước:</div>${(evalData.rubric || []).map(item => `<div style="margin-bottom:8px;"><strong>${escapeHtmlText(item.step)}</strong> — ${escapeHtmlText(String(item.earnedScore))}/${escapeHtmlText(String(item.maxScore))} · ${formatMathMarkdown(item.feedback || item.criterion || '')}</div>`).join('') || '<div>Chưa có barem chi tiết.</div>'}<div><em>Mức độ chặt chẽ: ${escapeHtmlText(evalData.rigor?.level || 'gaps')}</em></div></div>
         <div class="card"><div class="title">4. Lỗ hổng logic / Lưu ý:</div><div>${formatMathMarkdown(evalData.criticalFlaws || '')}</div></div>
         <div class="card"><div class="title">5. Lời khuyên của Gia sư Toán AI:</div><div>${formatMathMarkdown(evalData.recommendations || '')}</div></div>
         <div class="card"><div class="title">6. Hậu kiểm công thức:</div><div>${formatMathMarkdown(evalData.verificationNotes || '')}</div></div>
@@ -1001,6 +1013,58 @@ Vậy giới hạn cần tìm là $\\sqrt{2}$.`;
     printWin.focus();
     setTimeout(() => { printWin.print(); }, 500);
   };
+
+  // Barem chấm từng bước + mức độ chặt chẽ (rubric-based grading)
+  function generateRubricHtml(evalData) {
+    const rubric = Array.isArray(evalData?.rubric) ? evalData.rubric : [];
+    const mistakes = Array.isArray(evalData?.mistakes) ? evalData.mistakes : [];
+    const rigor = evalData?.rigor && typeof evalData.rigor === 'object' ? evalData.rigor : null;
+    if (!rubric.length && !mistakes.length && !rigor) return '';
+    const isEn = window.currentLang === 'en';
+    const statusStyle = {
+      correct: ['#dcfce7', '#166534', isEn ? 'Correct' : 'Đúng'],
+      partial: ['#fef3c7', '#92400e', isEn ? 'Partial' : 'Một phần'],
+      missing: ['#e2e8f0', '#334155', isEn ? 'Missing' : 'Thiếu'],
+      incorrect: ['#fee2e2', '#991b1b', isEn ? 'Incorrect' : 'Sai']
+    };
+    const rigorLabels = {
+      rigorous: [isEn ? 'Rigorous' : 'Chặt chẽ', '#166534', '#dcfce7'],
+      'mostly-rigorous': [isEn ? 'Mostly rigorous' : 'Khá chặt chẽ', '#92400e', '#fef3c7'],
+      gaps: [isEn ? 'Gaps in proof' : 'Còn lỗ hổng', '#c2410c', '#ffedd5'],
+      insufficient: [isEn ? 'Insufficient work' : 'Chưa đủ căn cứ', '#991b1b', '#fee2e2']
+    };
+    const rigorBadge = rigor ? (() => {
+      const [label, color, bg] = rigorLabels[rigor.level] || rigorLabels.gaps;
+      return `<div style="display:inline-flex;align-items:center;gap:6px;background:${bg};color:${color};border-radius:999px;padding:3px 10px;font-size:.78rem;font-weight:800;">🔎 ${isEn ? 'Rigor level' : 'Mức độ chặt chẽ'}: ${label}</div>${rigor.justification ? `<div style="color:#475569;font-size:.85rem;margin-top:6px;">${formatMathMarkdown(rigor.justification)}</div>` : ''}`;
+    })() : '';
+    const rubricRows = rubric.map(item => {
+      const [bg, color, label] = statusStyle[item.status] || statusStyle.partial;
+      return `<tr>
+        <td style="padding:8px;border-bottom:1px solid #e2e8f0;vertical-align:top;font-weight:600;color:#0f172a;">${escapeHtmlText(item.step)}</td>
+        <td style="padding:8px;border-bottom:1px solid #e2e8f0;vertical-align:top;">${formatMathMarkdown(item.criterion || '')}${item.feedback ? `<div style="color:#475569;font-size:.85rem;margin-top:4px;">${formatMathMarkdown(item.feedback)}</div>` : ''}${item.fix ? `<div style="color:#047857;font-size:.85rem;margin-top:4px;">🛠️ ${formatMathMarkdown(item.fix)}</div>` : ''}</td>
+        <td style="padding:8px;border-bottom:1px solid #e2e8f0;vertical-align:top;text-align:center;white-space:nowrap;font-weight:700;">${escapeHtmlText(Number(item.earnedScore).toFixed(1))}/${escapeHtmlText(Number(item.maxScore).toFixed(1))}</td>
+        <td style="padding:8px;border-bottom:1px solid #e2e8f0;vertical-align:top;text-align:center;"><span style="display:inline-block;background:${bg};color:${color};border-radius:999px;padding:2px 8px;font-size:.72rem;font-weight:800;">${label}</span></td>
+      </tr>`;
+    }).join('');
+    const mistakeList = mistakes.length ? `<ul style="margin:8px 0 0;padding-left:20px;color:#991b1b;">${mistakes.map(item => `<li style="margin-bottom:6px;"><strong>${escapeHtmlText(item.step || '')}:</strong> ${formatMathMarkdown(item.mistake || '')}${item.correction ? `<div style="color:#047857;margin-top:2px;">🛠️ ${formatMathMarkdown(item.correction)}</div>` : ''}</li>`).join('')}</ul>` : '';
+    return `
+      <div style="margin-bottom:16px;">
+        <h5 style="margin:0 0 6px 0;color:#0f172a;font-size:.95rem;display:flex;align-items:center;gap:6px;"><span>📊</span> <strong>${isEn ? 'Rubric-based step scoring' : 'Chấm điểm theo barem từng bước'}:</strong> ${evalData.rubricScore ? `<span style="margin-left:auto;background:#eef2ff;color:#4338ca;border-radius:999px;padding:2px 10px;font-size:.8rem;font-weight:800;">${escapeHtmlText(evalData.rubricScore)}</span>` : ''}</h5>
+        ${rigorBadge}
+        ${rubric.length ? `<div style="overflow-x:auto;margin-top:10px;"><table style="width:100%;border-collapse:collapse;font-size:.86rem;background:#fff;border:1px solid #e2e8f0;border-radius:8px;">
+          <thead><tr style="background:#f1f5f9;color:#334155;text-align:left;">
+            <th style="padding:8px;">${isEn ? 'Step' : 'Bước'}</th>
+            <th style="padding:8px;">${isEn ? 'Criterion / feedback' : 'Tiêu chí / nhận xét'}</th>
+            <th style="padding:8px;text-align:center;">${isEn ? 'Score' : 'Điểm'}</th>
+            <th style="padding:8px;text-align:center;">${isEn ? 'Status' : 'Trạng thái'}</th>
+          </tr></thead>
+          <tbody>${rubricRows}</tbody>
+        </table></div>` : ''}
+        ${mistakeList ? `<div style="margin-top:12px;background:#fff1f2;border:1px solid #fecdd3;border-radius:8px;padding:10px 14px;"><strong style="color:#991b1b;">${isEn ? 'Detected mistakes and fixes' : 'Lỗi sai và cách sửa'}:</strong>${mistakeList}</div>` : ''}
+        <div style="margin-top:10px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:8px 12px;color:#92400e;font-size:.84rem;font-weight:600;">⏳ ${isEn ? 'This rubric is an AI draft and must be approved by a teacher before publication.' : 'Barem này là bản nháp của AI, cần giáo viên duyệt trước khi công bố.'}</div>
+      </div>
+    `;
+  }
 
   // Tạo khung HTML hoàn chỉnh cho báo cáo thẩm định
   function generateEvaluationReportHtml(evalData, isFullView = false) {
@@ -1018,6 +1082,9 @@ Vậy giới hạn cần tìm là $\\sqrt{2}$.`;
     const verificationBadge = evalData.quality?.verified
       ? `<div style="display:inline-flex;align-items:center;gap:5px;margin-top:6px;padding:3px 9px;border-radius:999px;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.45);font-size:.75rem;font-weight:700;">✓ Đã kiểm định độc lập${evalData.quality.corrected ? ' · Đã hiệu chỉnh' : ''}</div>`
       : '';
+    const publicationBadge = evalData.publication?.requiresTeacherApproval
+      ? `<div style="display:inline-flex;align-items:center;gap:5px;margin-top:6px;margin-left:6px;padding:3px 9px;border-radius:999px;background:rgba(255,255,255,.22);border:1px dashed rgba(255,255,255,.6);font-size:.75rem;font-weight:800;">⏳ ${window.currentLang === 'en' ? 'Pending teacher approval' : 'Chờ giáo viên duyệt'}</div>`
+      : '';
 
     return `
       <!-- Banner Kết luận Tổng quan & Điểm số -->
@@ -1027,7 +1094,7 @@ Vậy giới hạn cần tìm là $\\sqrt{2}$.`;
           <div style="font-size: 1.15rem; font-weight: 800; text-shadow: 0 1px 2px rgba(0,0,0,0.2);">
             ${escapeHtmlText(evalData.verdictLabel || evalData.verdict || 'ĐÚNG HOÀN TOÀN (TỐI ƯU)')}
           </div>
-          ${verificationBadge}${ragNotice}
+          ${verificationBadge}${publicationBadge}${ragNotice}
         </div>
         <div style="background: rgba(255,255,255,0.25); border: 1.5px solid rgba(255,255,255,0.5); border-radius: 8px; padding: 6px 16px; font-weight: 800; font-size: 1.15rem; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
           Điểm: ${escapeHtmlText(evalData.estimatedScore ?? '5.0/5.0đ')}
@@ -1064,6 +1131,8 @@ Vậy giới hạn cần tìm là $\\sqrt{2}$.`;
             ${formatMathMarkdown(evalData.stepByStep || 'Các bước lập luận hoàn chỉnh.')}
           </div>
         </div>
+
+        ${generateRubricHtml(evalData)}
 
         <!-- 4. Lỗ hổng logic / Thiếu sót -->
         <div style="margin-bottom: 16px;">
@@ -1248,12 +1317,12 @@ Vậy giới hạn cần tìm là $\\sqrt{2}$.`;
       tabMainContent.innerHTML = `
         <div style="text-align: center; padding: 40px 20px; color: #64748b;">
           <div style="font-size: 2.5rem; margin-bottom: 10px;">🤖</div>
-          <div style="font-weight: 600; font-size: 1.05rem; margin-bottom: 6px; color: #1e293b;">Chưa có kết quả thẩm định</div>
+          <div style="font-weight: 600; font-size: 1.05rem; margin-bottom: 6px; color: #1e293b;">${isEn ? 'No evaluation result yet' : 'Chưa có kết quả thẩm định'}</div>
           <div style="font-size: 0.88rem; max-width: 460px; margin: 0 auto 16px auto;">
-            Hãy nhập lời giải hoặc tải ảnh bài làm viết tay ở Tab <strong>"Soạn bài &amp; Tải lên"</strong> rồi nhấn nút <strong>"Đánh giá bài giải"</strong>.
+            ${isEn ? 'Enter your solution or upload a handwritten image in the <strong>"Write &amp; Upload"</strong> tab and click <strong>"Assess Solution"</strong>.' : 'Hãy nhập lời giải hoặc tải ảnh bài làm viết tay ở Tab <strong>"Soạn bài &amp; Tải lên"</strong> rồi nhấn nút <strong>"Đánh giá bài giải"</strong>.'}
           </div>
           <button type="button" onclick="switchSubmissionTab('composer')" style="padding: 8px 18px; background: #4f46e5; color: #fff; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">
-            ✍️ Đến trang Soạn bài
+            ✍️ ${isEn ? 'Go to Write tab' : 'Đến trang Soạn bài'}
           </button>
         </div>
       `;
@@ -5652,7 +5721,7 @@ if (card) card.dataset.databaseCard = 'true';
       const topic = repeatedTopic ? repeatedTopic[1] : rawTopic;
       const topicAlreadyInLabel = topic && label.toLocaleLowerCase('vi').includes(topic.toLocaleLowerCase('vi'));
       const score = Number(problem.maxScore) || Number(scoreInLabel?.[1]?.replace(',', '.')) || 0;
-      item.innerHTML = `<div class="problem-header"><div class="problem-id"><span>${escapeHtmlText(label)}</span><span class="badge-point"> (${String(score).replace('.', ',')}đ) </span><span class="badge-topic"${topicAlreadyInLabel ? ' style="display:none" aria-hidden="true"' : ''}>${escapeHtmlText(topic)}</span></div><button class="btn-copy" onclick="copyText(this)">📋 Sao chép</button></div><div class="problem-content" data-no-i18n="true"></div>`;
+      item.innerHTML = `<div class="problem-header"><div class="problem-id"><span>${escapeHtmlText(label)}</span><span class="badge-point"> (${String(score).replace('.', ',')}đ) </span><span class="badge-topic"${topicAlreadyInLabel ? ' style="display:none" aria-hidden="true"' : ''}>${escapeHtmlText(topic)}</span></div><button class="btn-copy" onclick="copyText(this)">📋 Sao chép</button></div><div class="problem-content"></div>`;
       section.appendChild(item);
       const content = item.querySelector('.problem-content');
       content.setAttribute('data-raw-math', problem.content || '');

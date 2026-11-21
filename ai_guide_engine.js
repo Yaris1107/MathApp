@@ -1840,6 +1840,16 @@
           header.appendChild(btn);
         }
       }
+      if (!header.querySelector('.btn-socratic-tutor')) {
+        const socraticBtn = document.createElement('button');
+        socraticBtn.type = 'button';
+        socraticBtn.className = 'btn-socratic-tutor';
+        socraticBtn.innerHTML = '🧠 Gia sư Socratic';
+        socraticBtn.title = 'Chỉ đặt câu hỏi gợi mở từng bước, không đưa lời giải ngay';
+        socraticBtn.onclick = function() { window.openSocraticTutor(this); };
+        const guideBtn = header.querySelector('.btn-ai-guide');
+        if (guideBtn) guideBtn.after(socraticBtn); else header.appendChild(socraticBtn);
+      }
     });
 
     // 2. Quét các câu hỏi trong ví dụ của chuyên đề VMO (.examplebox)
@@ -1855,6 +1865,13 @@
         btn.innerHTML = '<span class="guide-sparkle">✨</span> AI Hướng dẫn giải';
         btn.onclick = function() { window.openAIGuide(this); };
         btnWrap.appendChild(btn);
+        const socraticBtn = document.createElement('button');
+        socraticBtn.type = 'button';
+        socraticBtn.className = 'btn-socratic-tutor';
+        socraticBtn.innerHTML = '🧠 Gia sư Socratic';
+        socraticBtn.title = 'Chỉ đặt câu hỏi gợi mở từng bước, không đưa lời giải ngay';
+        socraticBtn.onclick = function() { window.openSocraticTutor(this); };
+        btnWrap.appendChild(socraticBtn);
         
         const toggleBtn = box.querySelector('.solution-toggle');
         if (toggleBtn) {
@@ -1882,15 +1899,193 @@
           btn.innerHTML = isEn ? '<span class="guide-sparkle">✨</span> AI Solution Guide' : '<span class="guide-sparkle">✨</span> AI Hướng dẫn giải';
           btn.onclick = function() { window.openAIGuide(this); };
           btnWrap.appendChild(btn);
+          const socraticBtn = document.createElement('button');
+          socraticBtn.type = 'button';
+          socraticBtn.className = 'btn-socratic-tutor';
+          socraticBtn.innerHTML = isEn ? '🧠 Socratic tutor' : '🧠 Gia sư Socratic';
+          socraticBtn.onclick = function() { window.openSocraticTutor(this); };
+          btnWrap.appendChild(socraticBtn);
           h3.after(btnWrap);
         }
       }
     });
   }
 
+  // ── Gia sư Socratic: hội thoại gợi mở từng bước, lưu theo problemKey ─────
+  const SOCRATIC_STORE_PREFIX = 'vmo_socratic_dialog_v1:';
+
+  function socraticStorageKey(problemKey) {
+    // Keep one conversation per language so switching VI/EN never mixes text.
+    const lang = window.currentLang === 'en' ? 'en' : 'vi';
+    return `${SOCRATIC_STORE_PREFIX}${lang}:${problemKey}`;
+  }
+
+  function loadSocraticHistory(problemKey) {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(socraticStorageKey(problemKey)) || '[]');
+      return Array.isArray(parsed) ? parsed.slice(-40) : [];
+    } catch { return []; }
+  }
+
+  function saveSocraticHistory(problemKey, history) {
+    try { localStorage.setItem(socraticStorageKey(problemKey), JSON.stringify(history.slice(-40))); } catch { /* storage may be full */ }
+  }
+
+  function socraticMessageHtml(turn) {
+    const isUser = turn.role === 'user';
+    return `<div class="socratic-turn ${isUser ? 'socratic-student' : 'socratic-tutor'}">
+      <div class="socratic-role">${isUser ? '👤' : '🧠'}</div>
+      <div class="socratic-bubble">${formatMarkdownToHtml(turn.text || '')}</div>
+    </div>`;
+  }
+
+  function renderSocraticThread(panel, history) {
+    const thread = panel.querySelector('.socratic-messages');
+    if (!thread) return;
+    const isEn = window.currentLang === 'en';
+    if (!history.length) {
+      thread.innerHTML = `<div class="socratic-empty">${isEn ? 'Ask how to start, or type your first step. The tutor will only guide you with questions.' : 'Hãy hỏi cách bắt đầu hoặc nhập bước làm đầu tiên. Gia sư chỉ gợi mở bằng câu hỏi, không đưa lời giải ngay.'}</div>`;
+    } else {
+      thread.innerHTML = history.map(socraticMessageHtml).join('');
+    }
+    thread.scrollTop = thread.scrollHeight;
+    if (window.MathJax?.typesetPromise) window.MathJax.typesetPromise([thread]).catch(() => {});
+  }
+
+  window.openSocraticTutor = async function(btn) {
+    const card = btn.closest('.problem-item') || btn.closest('.examplebox') || btn.closest('.book-subsection') || btn.closest('article');
+    if (!card) return;
+    const isEn = window.currentLang === 'en';
+    const contentEl = card.querySelector('.problem-content') || card.querySelector('p');
+    const idEl = card.querySelector('.problem-id span:first-child') || card.querySelector('.problem-id') || card.querySelector('.box-heading') || card.querySelector('h3');
+    const sourceText = extractMathText(contentEl) || cleanElementText(card);
+    const cleanTitle = cleanElementText(idEl) || (isEn ? 'Olympiad problem' : 'Bài toán Olympic');
+    const problemId = (card.id || cleanTitle).replace(/[^a-zA-Z0-9_-]/g, '-').toLowerCase() + '-' + Math.abs(hashCode(sourceText.slice(0, 50) || 'vmo'));
+    const problemKey = card.dataset.contentKey || problemId;
+    const problemTitle = cleanTitle;
+    const problemTopic = card.dataset.topic || (card.querySelector('.badge-topic')?.textContent || '').trim();
+    const problemContent = sourceText;
+
+    let panel = card.querySelector('.socratic-panel');
+    if (panel) {
+      const visible = panel.style.display !== 'none';
+      panel.style.display = visible ? 'none' : 'block';
+      btn.classList.toggle('active', !visible);
+      if (!visible && window.MathJax?.typesetPromise) window.MathJax.typesetPromise([panel]).catch(() => {});
+      return;
+    }
+
+    panel = document.createElement('div');
+    panel.className = 'socratic-panel';
+    panel.id = `socratic-panel-${problemId}`;
+    panel.dataset.problemKey = problemKey;
+    panel.innerHTML = `
+      <div class="socratic-header">
+        <div class="socratic-title">🧠 <strong>${isEn ? 'Socratic tutor' : 'Gia sư Socratic'}</strong><span>${isEn ? 'Guiding questions only — no instant solution' : 'Chỉ gợi mở từng bước — không đưa lời giải ngay'}</span></div>
+        <div class="socratic-header-actions">
+          <button type="button" class="socratic-reset" title="${isEn ? 'Clear this conversation' : 'Xóa hội thoại này'}">🗑️</button>
+          <button type="button" class="socratic-close" title="${isEn ? 'Close' : 'Đóng'}">✕</button>
+        </div>
+      </div>
+      <div class="socratic-messages" role="log" aria-live="polite"></div>
+      <form class="socratic-form">
+        <textarea rows="2" placeholder="${isEn ? 'Type your step or question… (Ctrl+Enter to send)' : 'Nhập bước làm hoặc câu hỏi… (Ctrl+Enter để gửi)'}" aria-label="${isEn ? 'Message to Socratic tutor' : 'Tin nhắn cho gia sư Socratic'}"></textarea>
+        <button type="submit">${isEn ? 'Send' : 'Gửi'}</button>
+      </form>
+    `;
+    if (contentEl && contentEl.nextSibling) contentEl.parentNode.insertBefore(panel, contentEl.nextSibling);
+    else card.appendChild(panel);
+    btn.classList.add('active');
+
+    const history = loadSocraticHistory(problemKey);
+    renderSocraticThread(panel, history);
+    const thread = panel.querySelector('.socratic-messages');
+    const form = panel.querySelector('.socratic-form');
+    const textarea = form.querySelector('textarea');
+    const submit = form.querySelector('button[type="submit"]');
+
+    panel.querySelector('.socratic-close').onclick = () => {
+      panel.style.display = 'none';
+      btn.classList.remove('active');
+    };
+    panel.querySelector('.socratic-reset').onclick = () => {
+      if (!window.confirm(isEn ? 'Clear the Socratic conversation for this problem?' : 'Xóa toàn bộ hội thoại Socratic của bài này?')) return;
+      const empty = [];
+      saveSocraticHistory(problemKey, empty);
+      history.length = 0;
+      renderSocraticThread(panel, empty);
+    };
+
+    async function sendMessage(message) {
+      if (!message || submit.disabled) return;
+      const nextHistory = [...history, { role: 'user', text: message }];
+      history.push({ role: 'user', text: message });
+      saveSocraticHistory(problemKey, history);
+      renderSocraticThread(panel, history);
+      textarea.value = '';
+      submit.disabled = true;
+      submit.textContent = isEn ? 'Thinking…' : 'Đang gợi mở…';
+      const thinking = document.createElement('div');
+      thinking.className = 'socratic-thinking';
+      thinking.textContent = isEn ? 'The tutor is preparing a guiding question…' : 'Gia sư đang chuẩn bị câu hỏi gợi mở…';
+      thread.appendChild(thinking);
+      thread.scrollTop = thread.scrollHeight;
+      try {
+        const response = await fetch('/api/ai-guide', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin',
+          body: JSON.stringify({
+            mode: 'socratic', problemId, problemKey, problemTitle, topic: problemTopic,
+            problemContent, message, history: nextHistory,
+            lang: window.currentLang === 'en' ? 'en' : 'vi'
+          })
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok || !payload.success) throw new Error(payload.error || `HTTP ${response.status}`);
+        const data = payload.data || {};
+        const reply = [data.message, data.question && data.question !== data.message ? data.question : '']
+          .filter(Boolean).join('\n\n') || (isEn ? 'What is your next step?' : 'Bước tiếp theo của em là gì?');
+        history.push({ role: 'assistant', text: reply, hintLevel: data.hintLevel, isComplete: data.isComplete === true, focus: data.focus });
+        saveSocraticHistory(problemKey, history);
+        renderSocraticThread(panel, history);
+        if (data.isComplete) {
+          const done = document.createElement('div');
+          done.className = 'socratic-complete';
+          done.textContent = isEn ? 'You have essentially solved it. Write the final conclusion yourself.' : 'Em đã đi gần hết lời giải. Hãy tự viết kết luận cuối cùng.';
+          thread.appendChild(done);
+          thread.scrollTop = thread.scrollHeight;
+        }
+      } catch (error) {
+        const failed = document.createElement('div');
+        failed.className = 'socratic-error';
+        failed.textContent = `${isEn ? 'Could not reach the tutor' : 'Không kết nối được gia sư'}: ${error.message}`;
+        thread.appendChild(failed);
+      } finally {
+        thinking.remove();
+        submit.disabled = false;
+        submit.textContent = isEn ? 'Send' : 'Gửi';
+        textarea.focus();
+      }
+    }
+
+    form.addEventListener('submit', event => {
+      event.preventDefault();
+      sendMessage(textarea.value.trim());
+    });
+    textarea.addEventListener('keydown', event => {
+      if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
+        event.preventDefault();
+        sendMessage(textarea.value.trim());
+      }
+    });
+  };
+
   // Cập nhật giao diện khi chuyển đổi ngôn ngữ
   window.addEventListener('langchange', (e) => {
     const isEn = (e.detail?.lang === 'en');
+    // Socratic transcripts are language-specific: drop the open panel so the
+    // next open builds header/placeholder in the new language (history persists).
+    document.querySelectorAll('.socratic-panel').forEach(panel => panel.remove());
+    document.querySelectorAll('.btn-socratic-tutor.active').forEach(button => button.classList.remove('active'));
     // Cập nhật tất cả các nút AI Hướng dẫn giải
     document.querySelectorAll('.btn-ai-guide').forEach(btn => {
       const isOpened = btn.classList.contains('active');
@@ -1899,6 +2094,11 @@
       } else {
         btn.innerHTML = isEn ? '<span class="guide-sparkle">✨</span> AI Solution Guide' : '<span class="guide-sparkle">✨</span> AI Hướng dẫn giải';
       }
+    });
+
+    document.querySelectorAll('.btn-socratic-tutor').forEach(button => {
+      button.textContent = isEn ? '🧠 Socratic tutor' : '🧠 Gia sư Socratic';
+      button.title = isEn ? 'Guiding questions step by step, without revealing the solution' : 'Chỉ đặt câu hỏi gợi mở từng bước, không đưa lời giải ngay';
     });
 
     document.querySelectorAll('.btn-ai-guide-refresh').forEach(button=>{button.textContent=isEn?'🔄 Recheck sources / Regenerate':'🔄 Đối chiếu nguồn / Tạo lại';});

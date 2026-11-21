@@ -2,7 +2,7 @@
  * Hệ thống Xác thực & Quản lý Tài khoản VMO Đà Nẵng 2026 - 2027
  * Tích hợp:
  * - MongoDB password authentication qua cookie phiên HttpOnly
- * - Giám sát tương tác & Tự động Đăng xuất sau 5 phút không hoạt động (Auto-Logout Idle Tracker)
+ * - Giám sát tương tác & Tự động Đăng xuất sau 30 phút không hoạt động (Auto-Logout Idle Tracker)
  * - Đồng bộ phiên đa tab thời gian thực
  */
 const VMOAuth = (() => {
@@ -188,17 +188,17 @@ const VMOAuth = (() => {
       return null;
     }
 
-    // Kiểm tra xem phiên làm việc có bị quá 5 phút không hoạt động từ trước không
+    // Kiểm tra xem phiên làm việc có bị quá 30 phút không hoạt động từ trước không
     const lastAct = parseInt(localStorage.getItem(LAST_ACTIVITY_KEY) || '0', 10);
     const now = Date.now();
-    const TIMEOUT = 5 * 60 * 1000; // 5 phút
+    const TIMEOUT = 30 * 60 * 1000; // 30 phút
 
     if (lastAct && (now - lastAct) > TIMEOUT) {
       logout('idle_timeout');
       return null;
     }
 
-    // Khởi động giám sát 5 phút không tác động
+    // Khởi động giám sát 30 phút không tác động
     if (window.VMOIdleTracker) {
       window.VMOIdleTracker.start();
     }
@@ -224,7 +224,7 @@ const VMOAuth = (() => {
     // Kiểm tra tính hợp lệ về thời gian
     const lastAct = parseInt(localStorage.getItem(LAST_ACTIVITY_KEY) || '0', 10);
     const now = Date.now();
-    const TIMEOUT = 5 * 60 * 1000; // 5 phút
+    const TIMEOUT = 30 * 60 * 1000; // 30 phút
     if (lastAct && (now - lastAct) > TIMEOUT) {
       clearSession();
       return false;
@@ -265,18 +265,18 @@ const VMOAuth = (() => {
 
 /**
  * =========================================================================
- * VMOIdleTracker: Bộ giám sát tự động đăng xuất sau 5 phút không tương tác
+ * VMOIdleTracker: Bộ giám sát tự động đăng xuất sau 30 phút không tương tác
  * =========================================================================
  * - Chuẩn thương mại hóa bảo mật cấp cao
- * - Thời gian chờ tối đa: 5 phút (300,000 ms)
- * - Cảnh báo trước 30 giây (ở phút thứ 4:30) kèm đồng hồ đếm ngược
+ * - Thời gian chờ tối đa: 30 phút (1,800,000 ms)
+ * - Cảnh báo trước 30 giây (ở phút thứ 29:30) kèm đồng hồ đếm ngược
  * - Tự động đồng bộ liên tab (Cross-tab activity synchronization)
  * - Tối ưu hiệu năng: throttle bắt sự kiện chuột & cuộn
  */
 const VMOIdleTracker = (() => {
-  const IDLE_LIMIT_MS = 5 * 60 * 1000; // 5 phút = 300,000 ms
+  const IDLE_LIMIT_MS = 30 * 60 * 1000; // 30 phút = 1,800,000 ms
   const WARNING_TIME_MS = 30 * 1000;   // 30 giây cảnh báo đếm ngược trước khi logout
-  const WARNING_THRESHOLD_MS = IDLE_LIMIT_MS - WARNING_TIME_MS; // 4 phút 30 giây
+  const WARNING_THRESHOLD_MS = IDLE_LIMIT_MS - WARNING_TIME_MS; // 29 phút 30 giây
 
   let checkInterval = null;
   let isWarningVisible = false;
@@ -316,7 +316,7 @@ const VMOIdleTracker = (() => {
           <div class="idle-icon-wrap">⏱️</div>
           <h2 id="idleModalTitle" class="idle-modal-title">Cảnh báo hết hạn phiên làm việc</h2>
           <p class="idle-modal-desc">
-            Bạn đã không có thao tác nào trong gần 5 phút. Để bảo vệ dữ liệu và bảo mật phiên truy cập, hệ thống sẽ tự động đăng xuất sau:
+            Bạn đã không có thao tác nào trong gần 30 phút. Để bảo vệ dữ liệu và bảo mật phiên truy cập, hệ thống sẽ tự động đăng xuất sau:
           </p>
           <div class="idle-timer-badge">
             <span>⏳</span>
@@ -354,9 +354,20 @@ const VMOIdleTracker = (() => {
 
   function showWarningModal(remainingSeconds) {
     const overlay = ensureWarningModal();
+    const isEn = window.currentLang === 'en';
+    const title = document.getElementById('idleModalTitle');
+    const desc = overlay.querySelector('.idle-modal-desc');
+    const btnStay = document.getElementById('btnStayLoggedIn');
+    const btnLogout = document.getElementById('btnIdleLogoutNow');
+    if (title) title.textContent = isEn ? 'Session Expiration Warning' : 'Cảnh báo hết hạn phiên làm việc';
+    if (desc) desc.textContent = isEn
+      ? 'You have been inactive for nearly 30 minutes. To protect your data and security, you will be logged out automatically in:'
+      : 'Bạn đã không có thao tác nào trong gần 30 phút. Để bảo vệ dữ liệu và bảo mật phiên truy cập, hệ thống sẽ tự động đăng xuất sau:';
+    if (btnStay) btnStay.textContent = isEn ? '✅ Continue learning' : '✅ Tiếp tục học tập';
+    if (btnLogout) btnLogout.textContent = isEn ? '🚪 Log out now' : '🚪 Đăng xuất ngay';
     const textEl = document.getElementById('idleCountdownText');
     if (textEl) {
-      textEl.textContent = `${remainingSeconds} giây`;
+      textEl.textContent = isEn ? `${remainingSeconds}s` : `${remainingSeconds} giây`;
     }
     if (!isWarningVisible) {
       isWarningVisible = true;
@@ -384,16 +395,16 @@ const VMOIdleTracker = (() => {
     const last = getLastActivity();
     const elapsed = now - last;
 
-    // Trường hợp 1: Đã đủ 5 phút không tương tác -> TỰ ĐỘNG ĐĂNG XUẤT
+    // Trường hợp 1: Đã đủ 30 phút không tương tác -> TỰ ĐỘNG ĐĂNG XUẤT
     if (elapsed >= IDLE_LIMIT_MS) {
       stop();
       hideWarningModal();
-      console.warn('VMOIdleTracker: Đăng xuất tự động do không có tương tác sau 5 phút.');
+      console.warn('VMOIdleTracker: Đăng xuất tự động do không có tương tác sau 30 phút.');
       VMOAuth.logout('idle_timeout');
       return;
     }
 
-    // Trường hợp 2: Đạt mốc 4 phút 30 giây -> BẬT CẢNH BÁO ĐẾM NGƯỢC 30s
+    // Trường hợp 2: Đạt mốc 29 phút 30 giây -> BẬT CẢNH BÁO ĐẾM NGƯỢC 30s
     if (elapsed >= WARNING_THRESHOLD_MS) {
       const remainingMs = IDLE_LIMIT_MS - elapsed;
       const remainingSec = Math.max(1, Math.ceil(remainingMs / 1000));

@@ -110,8 +110,10 @@ const conciseInvariantProof = 'Xét số bóng đang bật modulo 2. Mỗi thao 
 assert.equal(substantive(conciseInvariantProof, ['n chẵn'], 1), true, 'A complete concise invariant proof passes without filler');
 assert.equal(substantive('Hãy thực hiện các phép thế thích hợp.', ['n chẵn'], 1), false, 'Generic advice is still rejected');
 assert.equal(verifierChecks({ allClaimsChecked:true, mathCorrect:true, scoreConsistent:true, noInventedStudentWork:true }, false).degeneraciesChecked, false);
-const finalReport = { allClaimsChecked:true, mathCorrect:true, scoreConsistent:true, noInventedStudentWork:true,
+const finalReport = { allClaimsChecked:true, mathCorrect:true, scoreConsistent:true, noInventedStudentWork:true, rubricConsistent:true,
   degeneraciesChecked:true, degeneracyChecks:['Đã kiểm tra mẫu số bằng không và giải riêng trường hợp các điểm trùng nhau.'] };
 assert.equal(verifierApproved({ ...finalReport, approved:false }, false), false);
 assert.equal(verifierApproved({ ...finalReport, approved:true }, false), true);
+assert.equal(verifierApproved({ ...finalReport, approved:true, rubricConsistent:false }, false), false, 'Rubric mismatch blocks approval');
+assert.equal(verifierApproved({ ...finalReport, approved:true, rubricConsistent:undefined }, false), false, 'Missing rubric verification blocks approval');
 console.log('RAG hardening: Unicode/topics, specific tags, cache/invalidation, metadata reuse, benchmark labels/Admin, degeneracy approval gates OK');

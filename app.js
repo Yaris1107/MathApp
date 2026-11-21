@@ -328,6 +328,7 @@
     const isV = (tabId === 'tab-vmo');
     const isO = (tabId === 'tab-olympic');
     const isSupport = tabId === 'tab-support';
+    const isCoach = tabId === 'tab-coach';
     if (qs('#sidebar-support')) qs('#sidebar-support').style.display = isSupport ? 'block' : 'none';
     const isBooks = tabId === 'tab-books';
     if(qs('#sidebar-books'))qs('#sidebar-books').style.display=isBooks?'block':'none';
@@ -350,7 +351,7 @@
     const sbTst = qs('#sidebar-tst');
     const sbHistory = qs('#sidebar-history');
 
-    if (sbDanang) sbDanang.style.display = (!isM && !isT && !isH && !isV && !isO && !isGradeCatalog && !isSupport && !isAdmission && !isUniversity && !isUniversityMaterials && !isBooks) ? 'block' : 'none';
+    if (sbDanang) sbDanang.style.display = (!isM && !isT && !isH && !isV && !isO && !isGradeCatalog && !isSupport && !isCoach && !isAdmission && !isUniversity && !isUniversityMaterials && !isBooks) ? 'block' : 'none';
     if (sbMock) sbMock.style.display = isM ? 'block' : 'none';
     if (sbTst) sbTst.style.display = isT ? 'block' : 'none';
     if (sbHistory) sbHistory.style.display = isH ? 'block' : 'none';
