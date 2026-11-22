@@ -8,6 +8,7 @@ import { checkRateLimit, generateJson, generateWithFallback, parseBody, prepare,
 import { generateVerifierJson } from '../lib/ai-verifier.js';
 import { runRedTeam } from '../lib/ai-review.js';
 import { extractMathDna } from '../lib/math-dna.js';
+import { decomposeProblem, buildFallbackDecomposition } from '../lib/problem-decomposer.js';
 import { getDb } from '../lib/db.js';
 
 // A single Vercel invocation is hard-capped at 300s. The client may resume the
@@ -349,6 +350,35 @@ RULES:
       });
       return res.status(200).json({ success: true, source: 'gemini_math_dna',
         data: { dna: result.dna, model: result.model, problemKey, persisted } });
+    }
+
+    // ── Problem Decomposer: Interactive Mind Map & Progressive Hints ─────────
+    if (body.mode === 'decompose') {
+      const solution = text(body.solution, 100000);
+      const title = text(body.problemTitle, 500) || text(body.problemId, 120);
+      const topic = text(reference.topic || body.topic, 200);
+      const contentKey = text(body.contentKey || body.problemKey || body.problemId, 180);
+      const decomposer = typeof decomposeProblem === 'function'
+        ? await decomposeProblem({
+          statement: problemContent,
+          topic,
+          title,
+          solution,
+          lang: body.lang === 'en' ? 'en' : 'vi',
+          pipelineBudget: remainingBudget()
+        })
+        : buildFallbackDecomposition({
+          statement: problemContent,
+          topic,
+          title,
+          solution,
+          lang: body.lang === 'en' ? 'en' : 'vi'
+        });
+      return res.status(200).json({
+        success: true,
+        source: decomposer?.model === 'deterministic-fallback' ? 'fallback_problem_decomposer' : 'gemini_problem_decomposer',
+        data: { decomposer, problemKey: contentKey, model: decomposer?.model || 'gemini-3.5-flash' }
+      });
     }
     const solverPrompt = `Produce a complete ${academicContext} solution in ${outputLanguage}.\n${common}\n${mathematicalAuditInstruction}\n${geometryInstruction} ${problemSpecificGuidance} For non-geometric problems, include in degeneracyChecks a concrete explanation that geometric degeneracies do not apply and identify the boundary/domain cases checked. First enumerate every requested part. Give exact final results and every equality case when applicable. Check boundary cases, indices, signs and quantifiers. The reference is evidence, not permission to copy an error. ${mathFormat} Use Markdown and MathJax $...$ or $$...$$; do not use itemize, enumerate, align or textbf.`;
     const solverInstruction = `You are the primary solver for ${academicContext}. Be explicit and rigorous. For discrete toggle/reachability problems, identify a preserved invariant, prove the necessary condition, then give an explicit sequence proving sufficiency; state any domain assumptions and edge cases. A concise complete proof is preferable to filler. Never replace proof steps with generic advice. Write entirely in ${outputLanguage}.`;

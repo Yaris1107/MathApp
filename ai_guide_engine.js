@@ -352,6 +352,7 @@
             <span style="font-size: 0.8rem; font-weight: 500; color: #64748b; margin-left: 4px;">• ${topic || guideData.branch || defaultTopic}</span>
           </div>
           <div class="ai-guide-actions">
+            <button type="button" class="btn-guide-action btn-ai-guide-decomposer" onclick="openProblemDecomposer('${problemId}')" title="${isEn ? 'Decompose problem into an interactive mind map with progressive hints' : 'Xé nhỏ bài toán thành sơ đồ tư duy tương tác & mở gợi ý từng bước'}">🧩 Decomposer</button>
             <button type="button" class="btn-guide-action btn-ai-guide-redteam" onclick="openRedTeam('${problemId}')" title="${isEn ? 'Three independent AI reviewers attack this proof, then a judge rules on evidence' : 'Ba AI độc lập phản biện lời giải, trọng tài chỉ kết luận dựa trên bằng chứng kiểm chứng được'}">🛡️ AI Red Team</button>
             <button type="button" class="btn-guide-action btn-ai-guide-dna" onclick="openMathDna('${problemId}')" title="${isEn ? 'Extract techniques, hypothesis dependencies and prerequisites' : 'Trích xuất kỹ thuật, phụ thuộc giả thiết và kiến thức tiên quyết'}">🧬 Math DNA</button>
             <button type="button" class="btn-guide-action btn-ai-guide-refresh" onclick="regenerateAIGuide('${problemId}',this)">${isEn ? '🔄 Recheck sources / Regenerate' : '🔄 Đối chiếu nguồn / Tạo lại'}</button>
@@ -417,6 +418,8 @@
           <div class="ai-guide-insight ai-guide-redteam" data-redteam-panel hidden></div>
           <!-- Phần 6: Math DNA (cấu trúc kỹ thuật) -->
           <div class="ai-guide-insight ai-guide-dna" data-dna-panel hidden></div>
+          <!-- Phần 7: Problem Decomposer (Sơ đồ tư duy xé nhỏ bài toán) -->
+          <div class="ai-guide-insight ai-guide-decomposer" data-decomposer-panel hidden></div>
         </div>
       </div>
     `;
@@ -1822,6 +1825,7 @@
 
   // TỰ ĐỘNG GẮN NÚT "AI HƯỚNG DẪN GIẢI" VÀO TẤT CẢ CÁC CÂU HỎI TRONG ĐỀ THI
   function injectAIGuideButtons(root = document) {
+    const isEn = window.currentLang === 'en';
     // 1. Quét tất cả các bài tập trong thẻ .problem-item (TST và Đề Đà Nẵng - Quảng Nam)
     const problemHeaders = root.querySelectorAll?.('.problem-item .problem-header') || [];
     problemHeaders.forEach(header => {
@@ -1850,6 +1854,16 @@
         const guideBtn = header.querySelector('.btn-ai-guide');
         if (guideBtn) guideBtn.after(socraticBtn); else header.appendChild(socraticBtn);
       }
+      if (!header.querySelector('.btn-problem-decomposer')) {
+        const decompBtn = document.createElement('button');
+        decompBtn.type = 'button';
+        decompBtn.className = 'btn-problem-decomposer';
+        decompBtn.innerHTML = isEn ? '🧩 Decomposer' : '🧩 Xé nhỏ bài toán';
+        decompBtn.title = isEn ? 'Decompose problem into interactive mind map & hints' : 'Xé nhỏ bài toán thành sơ đồ tư duy tương tác & mở gợi ý từng bước';
+        decompBtn.onclick = function() { window.openProblemDecomposer(this); };
+        const socraticBtn = header.querySelector('.btn-socratic-tutor');
+        if (socraticBtn) socraticBtn.after(decompBtn); else header.appendChild(decompBtn);
+      }
     });
 
     // 2. Quét các câu hỏi trong ví dụ của chuyên đề VMO (.examplebox)
@@ -1872,6 +1886,12 @@
         socraticBtn.title = 'Chỉ đặt câu hỏi gợi mở từng bước, không đưa lời giải ngay';
         socraticBtn.onclick = function() { window.openSocraticTutor(this); };
         btnWrap.appendChild(socraticBtn);
+        const decompBtn = document.createElement('button');
+        decompBtn.type = 'button';
+        decompBtn.className = 'btn-problem-decomposer';
+        decompBtn.innerHTML = isEn ? '🧩 Decomposer' : '🧩 Xé nhỏ bài toán';
+        decompBtn.onclick = function() { window.openProblemDecomposer(this); };
+        btnWrap.appendChild(decompBtn);
         
         const toggleBtn = box.querySelector('.solution-toggle');
         if (toggleBtn) {
@@ -1905,6 +1925,12 @@
           socraticBtn.innerHTML = isEn ? '🧠 Socratic tutor' : '🧠 Gia sư Socratic';
           socraticBtn.onclick = function() { window.openSocraticTutor(this); };
           btnWrap.appendChild(socraticBtn);
+          const decompBtn = document.createElement('button');
+          decompBtn.type = 'button';
+          decompBtn.className = 'btn-problem-decomposer';
+          decompBtn.innerHTML = isEn ? '🧩 Decomposer' : '🧩 Xé nhỏ bài toán';
+          decompBtn.onclick = function() { window.openProblemDecomposer(this); };
+          btnWrap.appendChild(decompBtn);
           h3.after(btnWrap);
         }
       }
@@ -2099,6 +2125,16 @@
     document.querySelectorAll('.btn-socratic-tutor').forEach(button => {
       button.textContent = isEn ? '🧠 Socratic tutor' : '🧠 Gia sư Socratic';
       button.title = isEn ? 'Guiding questions step by step, without revealing the solution' : 'Chỉ đặt câu hỏi gợi mở từng bước, không đưa lời giải ngay';
+    });
+
+    document.querySelectorAll('.btn-problem-decomposer').forEach(button => {
+      button.textContent = isEn ? '🧩 Decomposer' : '🧩 Xé nhỏ bài toán';
+      button.title = isEn ? 'Decompose problem into interactive mind map & hints' : 'Xé nhỏ bài toán thành sơ đồ tư duy tương tác & mở gợi ý từng bước';
+    });
+
+    document.querySelectorAll('.btn-ai-guide-decomposer').forEach(button => {
+      button.textContent = isEn ? '🧩 Decomposer' : '🧩 Sơ đồ phân tích';
+      button.title = isEn ? 'Decompose problem into an interactive mind map with progressive hints' : 'Xé nhỏ bài toán thành sơ đồ tư duy tương tác & mở gợi ý từng bước';
     });
 
     document.querySelectorAll('.btn-ai-guide-refresh').forEach(button=>{button.textContent=isEn?'🔄 Recheck sources / Regenerate':'🔄 Đối chiếu nguồn / Tạo lại';});
