@@ -62,6 +62,10 @@
       "destination": "/api/data?resource=blocked_static"
     },
     {
+      "source": "/archive/:path*",
+      "destination": "/api/data?resource=blocked_static"
+    },
+    {
       "source": "/src/:path*",
       "destination": "/api/data?resource=blocked_static"
     },

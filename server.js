@@ -68,7 +68,7 @@ app.all('/api/ai-exam-trends', trendsHandler);
 app.all('/api/ai-trend-theory', trendTheoryHandler);
 app.get(['/', '/index.html'], (req, res) => { req.query.resource = 'app_shell';return dataHandler(req, res); });
 app.get('/assets/*', (req, res) => { req.query.resource = 'protected_asset';req.query.file = req.params[0];return dataHandler(req, res); });
-app.use(['/src', '/data', '/lib', '/scripts', '/test', '/docs', '/index_backup_before_auth.html'], (_req, res) => res.status(404).end());
+app.use(['/src', '/data', '/lib', '/scripts', '/test', '/docs', '/archive', '/index_backup_before_auth.html'], (_req, res) => res.status(404).end());
 
 // Model Cooldown Tracker for transient 503/429/overload errors
 const modelCooldownMap = new Map();

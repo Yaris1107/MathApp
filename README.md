@@ -24,18 +24,23 @@ Hệ thống web tài liệu chuyên sâu bồi dưỡng đội tuyển VMO Đà
 │   └── modals/
 │       └── account-modal.html         # Hộp thoại Quản lý tài khoản & Phân quyền Admin
 │
-├── build.js                           # Build shell + tab mặc định; 3 kho còn lại lazy-load từ src/content
-├── styles.css                         # CSS giao diện, Dark mode, Print, Responsive
-├── app.js                             # Logic tương tác chính (Tabs, Tìm kiếm, Bộ lọc, Copy, Lời giải)
-├── tst-sources.js                     # Cơ sở dữ liệu link nguồn tham khảo các đề TST
-├── auth.js & auth.css                 # Hệ thống xác thực và phân quyền (RBAC)
-├── account_mgmt.js                    # Quản lý tài khoản người dùng & mật khẩu
-├── vmo_data_service.js                 # Giao tiếp API MongoDB từ trình duyệt
-├── api/data.js                         # API dữ liệu có xác thực/phân quyền trên Vercel
-├── ai_guide_engine.js & ai_guide.css  # AI Hướng dẫn giải toán chuyên sâu
-├── i18n.js & i18n.css                 # Chuyển đổi ngôn ngữ Tiếng Việt / English
-├── server.js                          # Máy chủ Express & API Gemini (tự động build khi start/request)
-└── index.html                         # Application shell + nội dung chuyên đề mặc định
+├── data/
+│   ├── sources/                           # Dữ liệu nguồn tham khảo (tst-sources.js, history-sources.js)
+│   ├── books/                             # Dữ liệu giáo trình đại học và phổ thông
+│   ├── university-materials/              # Tài liệu các học phần đại học
+│   └── specialized-schools.json           # Danh mục trường chuyên 34 tỉnh thành
+├── archive/                               # Các tệp cấu hình cũ & bản lưu trữ lịch sử
+├── build.js                               # Build shell + tab mặc định; 3 kho còn lại lazy-load từ src/content
+├── styles.css                             # CSS giao diện, Dark mode, Print, Responsive
+├── app.js                                 # Logic tương tác chính (Tabs, Tìm kiếm, Bộ lọc, Copy, Lời giải)
+├── auth.js & auth.css                     # Hệ thống xác thực và phân quyền (RBAC)
+├── account_mgmt.js                        # Quản lý tài khoản người dùng & mật khẩu
+├── vmo_data_service.js                    # Giao tiếp API MongoDB từ trình duyệt
+├── api/data.js                            # API dữ liệu có xác thực/phân quyền trên Vercel
+├── ai_guide_engine.js & ai_guide.css      # AI Hướng dẫn giải toán chuyên sâu
+├── i18n.js & i18n.css                     # Chuyển đổi ngôn ngữ Tiếng Việt / English
+├── server.js                              # Máy chủ Express & API Gemini (tự động build khi start/request)
+└── index.html                             # Application shell + nội dung chuyên đề mặc định
 ```
 
 ---
