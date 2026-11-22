@@ -1,6 +1,7 @@
 /**
  * AI PROBLEM DECOMPOSER (Frontend Client)
  * Bản đồ tư duy xé nhỏ bài toán & Gợi ý từng tầng (Progressive Hints)
+ * Tự động chuẩn hóa công thức toán học (kể cả x_{n+1} = x_n + 1/x_n) và render MathJax hoàn hảo.
  */
 
 (() => {
@@ -17,6 +18,68 @@
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#39;');
+  }
+
+  /**
+   * Tự động phát hiện và chuyển đổi các biểu thức toán học dạng trần (bare math)
+   * như x_{n+1} = x_n + 1/x_n, u_n, x_{2n}, a/b thành LaTeX chuẩn \( ... \)
+   */
+  function autoFormatLatex(input) {
+    if (!input || typeof input !== 'string') return '';
+    let s = input;
+    const protectedMath = [];
+    function protect(math) {
+      protectedMath.push(math);
+      return `__MATH_BLOCK_${protectedMath.length - 1}__`;
+    }
+
+    // 1. Bảo vệ các khối toán đã có delimiter: \(...\), \[...\], $...$, $$...$$
+    s = s.replace(/(\\\[[\s\S]*?\\\]|\\\([\s\S]*?\\\)|\$\$[\s\S]*?\$\$|\$[^$\n]+\$)/g, m => protect(m));
+
+    // 2. Chuyển đổi phương trình, hệ thức (=, <=, >=, <, >, !=, \le, \ge, \equiv, \to, \implies)
+    // Ví dụ: x_{n+1} = x_n + 1/x_n, L = f(L), x_{n+1} - x_n = f(x_n) - x_n, g(x+y) = g(x) + g(y)
+    s = s.replace(/(?<![a-zA-Z0-9_\\])([a-zA-Z](?:_[a-zA-Z0-9]+|_{[^{}]+}|(?:\([a-zA-Z0-9_+*-]+\)))?(?:\s*(?:=|<|>|<=|>=|!=|\+|-|\*|\/|\^)\s*(?:[a-zA-Z0-9]+(?:_[a-zA-Z0-9]+|_{[^{}]+})?(?:\([a-zA-Z0-9_+*-]+\))?|[0-9]+(?:\/[a-zA-Z0-9]+(?:_[a-zA-Z0-9]+|_{[^{}]+})?)?|\([a-zA-Z0-9_\s+-]+\)))+)(?![a-zA-Z0-9_])/g, m => {
+      if (!/(=|<|>|<=|>=|!=|\+|-|\*|\/|_)/.test(m)) return m;
+      let formatted = m
+        .replace(/(\b[0-9]+)\/([a-zA-Z](?:_[a-zA-Z0-9]+|_{[^{}]+})|[0-9]+)/g, '\\frac{$1}{$2}')
+        .replace(/>=/g, '\\ge ')
+        .replace(/<=/g, '\\le ')
+        .replace(/!=/g, '\\ne ')
+        .replace(/=>/g, '\\implies ')
+        .replace(/<=>/g, '\\iff ');
+      return protect(`\\(${formatted}\\)`);
+    });
+
+    // 3. TeX macro trần: \frac, \sqrt, \mathbb, \angle, \sum, \lim, \le, \ge, \in, v.v.
+    s = s.replace(/(\\(?:frac\{[^{}]*\}\{[^{}]*\}|sqrt(?:\[[^{}]*\])?\{[^{}]*\}|mathbb\{[A-Z]\}|angle\s+[A-Za-z]+|mathcal\{[A-Za-z]+\}(?:_[a-zA-Z0-9{}]+)?(?:\([a-zA-Z0-9]+\))?|pmod\{[^{}]*\}|sum|prod|int|lim(?:_[a-zA-Z0-9{}]+)?|perp|parallel|subset|cap|cup|in|le|ge|ne|times|cdot|approx|equiv|sim|infty|pi|alpha|beta|gamma|delta|lambda|omega|sigma|theta|phi|psi)(?:\s*=\s*[^\s,.;]+)?)/g, m => protect(`\\(${m}\\)`));
+
+    // 4. Biến có chỉ số dưới trần: x_{n+1}, x_n, u_n, x_1, x_2, (x_n), (u_n), P_1
+    s = s.replace(/(?<![a-zA-Z0-9_\\])(\(?[a-zA-Z](?:_[a-zA-Z0-9]+|_{[^{}]+})\)?)(?![a-zA-Z0-9_])/g, m => protect(`\\(${m}\\)`));
+
+    // 5. Khoảng chặn [a, b]
+    s = s.replace(/(?<![a-zA-Z0-9_\\])(\[[a-zA-Z0-9_+\-*]+,\s*[a-zA-Z0-9_+\-*]+\])(?![a-zA-Z0-9_])/g, m => protect(`\\(${m}\\)`));
+
+    // 6. Phục hồi các khối toán đã bảo vệ
+    s = s.replace(/__MATH_BLOCK_(\d+)__/g, (_, idx) => protectedMath[Number(idx)]);
+    return s;
+  }
+
+  /**
+   * Escape HTML bên ngoài công thức toán, giữ nguyên cú pháp TeX bên trong
+   */
+  function formatMathHtml(input) {
+    if (!input || typeof input !== 'string') return '';
+    const formatted = autoFormatLatex(input);
+
+    const math = [];
+    const marker = '\uE120';
+    const textWithoutMath = formatted.replace(/(\\\[[\s\S]*?\\\]|\\\([\s\S]*?\\\)|\$\$[\s\S]*?\$\$|\$[^$\n]+\$)/g, m => {
+      math.push(m);
+      return `${marker}${math.length - 1}${marker}`;
+    });
+
+    const escaped = esc(textWithoutMath);
+    return escaped.replace(new RegExp(`${marker}(\\d+)${marker}`, 'g'), (_, idx) => math[Number(idx)]);
   }
 
   function typesetMath(container) {
@@ -204,8 +267,8 @@
     wrap.innerHTML = `
       <div class="decomp-header">
         <div class="decomp-title-group">
-          <h4>🧩 ${esc(decomposer.title)}</h4>
-          <p>${esc(decomposer.summary)}</p>
+          <h4>🧩 ${formatMathHtml(decomposer.title)}</h4>
+          <p>${formatMathHtml(decomposer.summary)}</p>
         </div>
         <div class="decomp-header-badges">
           <span class="decomp-badge">★ ${isEn() ? 'Difficulty' : 'Độ khó'}: ${decomposer.difficulty}/5</span>
@@ -255,9 +318,9 @@
                     <span class="decomp-node-cat ${catClass}">${catName}</span>
                     <span class="decomp-node-status">${statusIcon}</span>
                   </div>
-                  <div class="decomp-node-title">${esc(node.title)}</div>
-                  <p class="decomp-node-desc">${esc(node.description || '')}</p>
-                  ${node.keyFormula ? `<div class="decomp-node-formula">${esc(node.keyFormula)}</div>` : ''}
+                  <div class="decomp-node-title">${formatMathHtml(node.title)}</div>
+                  <p class="decomp-node-desc">${formatMathHtml(node.description || '')}</p>
+                  ${node.keyFormula ? `<div class="decomp-node-formula">${formatMathHtml(node.keyFormula)}</div>` : ''}
                 </div>
                 ${idx < nodes.length - 1 ? `
                   <div class="decomp-connector">
@@ -292,11 +355,11 @@
         <span class="decomp-node-cat cat-${node.category || 'observation'}" style="margin-bottom:6px;display:inline-block;">
           ${esc(node.category?.toUpperCase() || 'STEP')}
         </span>
-        <h3>${esc(node.title)}</h3>
-        <p>${esc(node.description || '')}</p>
+        <h3>${formatMathHtml(node.title)}</h3>
+        <p>${formatMathHtml(node.description || '')}</p>
         ${node.keyFormula ? `
           <div class="decomp-node-formula" style="margin-top:10px;font-size:0.95rem;">
-            <strong>${isEn() ? 'Key Formulation' : 'Công thức trọng tâm'}:</strong> ${esc(node.keyFormula)}
+            <strong>${isEn() ? 'Key Formulation' : 'Công thức trọng tâm'}:</strong> ${formatMathHtml(node.keyFormula)}
           </div>
         ` : ''}
       </div>
@@ -312,7 +375,7 @@
             return `
               <div class="decomp-hint-box locked">
                 <span class="decomp-hint-level-tag ${levelTagClass}" style="margin-bottom:8px;display:inline-block;">
-                  ${esc(hint.label)}
+                  ${formatMathHtml(hint.label)}
                 </span>
                 <p style="margin:0 0 10px 0;font-size:0.85rem;opacity:0.8;">
                   🔒 ${isEn() ? 'Hint level is locked. Try thinking first!' : 'Gợi ý tầng này đang khóa. Hãy tự suy nghĩ trước khi mở!'}
@@ -327,11 +390,11 @@
           return `
             <div class="decomp-hint-box">
               <div class="decomp-hint-header">
-                <span class="decomp-hint-level-tag ${levelTagClass}">${esc(hint.label)}</span>
+                <span class="decomp-hint-level-tag ${levelTagClass}">${formatMathHtml(hint.label)}</span>
                 <span style="font-size:0.75rem;font-weight:700;color:#10b981;">✓ ${isEn() ? 'Unlocked' : 'Đã mở'}</span>
               </div>
               <div class="decomp-hint-content">
-                ${esc(hint.content)}
+                ${formatMathHtml(hint.content)}
               </div>
             </div>
           `;
@@ -342,7 +405,7 @@
       ${node.checkQuestion ? `
         <div class="decomp-quiz-box">
           <div class="decomp-quiz-question">
-            🎯 ${isEn() ? 'Checkpoint Mini-Quiz' : 'Thử thách tự kiểm tra'}: ${esc(node.checkQuestion.question)}
+            🎯 ${isEn() ? 'Checkpoint Mini-Quiz' : 'Thử thách tự kiểm tra'}: ${formatMathHtml(node.checkQuestion.question)}
           </div>
           <div class="decomp-quiz-options">
             ${(node.checkQuestion.options || []).map((opt, optIdx) => {
@@ -359,7 +422,7 @@
                 <button type="button" class="decomp-quiz-option-btn ${btnClass}"
                         onclick="window.decompAnswerQuiz('${esc(problemId)}', '${esc(node.id)}', ${optIdx})"
                         ${answered ? 'disabled' : ''}>
-                  ${String.fromCharCode(65 + optIdx)}. ${esc(opt)}
+                  ${String.fromCharCode(65 + optIdx)}. ${formatMathHtml(opt)}
                 </button>
               `;
             }).join('')}
@@ -367,8 +430,8 @@
           ${quizAnswers.has(node.id) ? `
             <div class="decomp-quiz-feedback ${quizAnswers.get(node.id).isCorrect ? 'success' : 'error'}">
               ${quizAnswers.get(node.id).isCorrect
-                ? `🎉 ${isEn() ? 'Spot on!' : 'Chính xác!'} ${esc(node.checkQuestion.explanation)}`
-                : `❌ ${isEn() ? 'Not quite.' : 'Chưa chính xác.'} ${esc(node.checkQuestion.explanation)}`}
+                ? `🎉 ${isEn() ? 'Spot on!' : 'Chính xác!'} ${formatMathHtml(node.checkQuestion.explanation)}`
+                : `❌ ${isEn() ? 'Not quite.' : 'Chưa chính xác.'} ${formatMathHtml(node.checkQuestion.explanation)}`}
             </div>
           ` : ''}
         </div>

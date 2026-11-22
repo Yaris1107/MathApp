@@ -3,10 +3,17 @@ import fs from 'node:fs';
 import { JSDOM } from 'jsdom';
 import {
   decomposerSchema,
+  autoFormatLatex,
   normalizeDecomposition,
   buildFallbackDecomposition,
   decomposeProblem
 } from '../lib/problem-decomposer.js';
+
+// ── 0. Auto LaTeX formatting for bare math ─────────────────────────────────
+const bareFormulaSample = 'Xét dãy số x_{n+1} = x_n + 1/x_n với mọi n >= 1.';
+const formattedFormula = autoFormatLatex(bareFormulaSample);
+assert.ok(formattedFormula.includes('\\(x_{n+1} = x_n + \\frac{1}{x_n}\\)'), 'Must convert x_{n+1} = x_n + 1/x_n to LaTeX with fraction');
+assert.ok(formattedFormula.includes('\\(n \\ge  1\\)'), 'Inequality n >= 1 must be formatted in LaTeX');
 
 // ── 1. Schema & Validation ──────────────────────────────────────────────────
 assert.ok(decomposerSchema.properties.nodes);
@@ -51,7 +58,7 @@ const rawSample = {
       keyFormula: '\\(f(x+y)=f(x)+f(y)\\)',
       hints: [
         { level: 1, label: 'Định hướng', content: 'Cộng tính trên Q' },
-        { level: 2, label: 'Kỹ thuật', content: 'Mở rộng lên R' },
+        { level: 2, label: 'Kỹ thuật', content: 'Xét hệ thức x_{n+1} = x_n + 1/x_n' },
         { level: 3, label: 'Lời giải', content: 'Kết luận f(x)=cx' }
       ]
     }
@@ -156,9 +163,11 @@ window.decompSelectNode('prob-test-1', 'step-1-sub');
 window.decompAnswerQuiz('prob-test-1', 'step-1-sub', 0);
 assert.ok(container.querySelector('.decomp-quiz-feedback.success'));
 
-// Simulate selecting node 2
+// Simulate selecting node 2 and revealing hint 2
 window.decompSelectNode('prob-test-1', 'step-2-cauchy');
 assert.ok(container.querySelector('.decomp-node-card.active'));
+window.decompRevealHint('prob-test-1', 'step-2-cauchy', 2);
+assert.ok(container.innerHTML.includes('\\(x_{n+1} = x_n + \\frac{1}{x_n}\\)'), 'Hint 2 must render x_{n+1} = x_n + 1/x_n as valid LaTeX formula');
 
 // Simulate marking node completed
 window.decompMarkCompleted('prob-test-1', 'step-1-sub');
