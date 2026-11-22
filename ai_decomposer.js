@@ -27,40 +27,57 @@
   function autoFormatLatex(input) {
     if (!input || typeof input !== 'string') return '';
     let s = input;
+
     const protectedMath = [];
     function protect(math) {
       protectedMath.push(math);
-      return `__MATH_BLOCK_${protectedMath.length - 1}__`;
+      return `@@MATH_${protectedMath.length - 1}@@`;
     }
 
     // 1. Bảo vệ các khối toán đã có delimiter: \(...\), \[...\], $...$, $$...$$
     s = s.replace(/(\\\[[\s\S]*?\\\]|\\\([\s\S]*?\\\)|\$\$[\s\S]*?\$\$|\$[^$\n]+\$)/g, m => protect(m));
 
-    // 2. Chuyển đổi phương trình, hệ thức (=, <=, >=, <, >, !=, \le, \ge, \equiv, \to, \implies)
-    // Ví dụ: x_{n+1} = x_n + 1/x_n, L = f(L), x_{n+1} - x_n = f(x_n) - x_n, g(x+y) = g(x) + g(y)
-    s = s.replace(/(?<![a-zA-Z0-9_\\])([a-zA-Z](?:_[a-zA-Z0-9]+|_{[^{}]+}|(?:\([a-zA-Z0-9_+*-]+\)))?(?:\s*(?:=|<|>|<=|>=|!=|\+|-|\*|\/|\^)\s*(?:[a-zA-Z0-9]+(?:_[a-zA-Z0-9]+|_{[^{}]+})?(?:\([a-zA-Z0-9_+*-]+\))?|[0-9]+(?:\/[a-zA-Z0-9]+(?:_[a-zA-Z0-9]+|_{[^{}]+})?)?|\([a-zA-Z0-9_\s+-]+\)))+)(?![a-zA-Z0-9_])/g, m => {
-      if (!/(=|<|>|<=|>=|!=|\+|-|\*|\/|_)/.test(m)) return m;
+    // 2. Bảo vệ các chuỗi lệnh LaTeX trần bắt đầu bằng gạch chéo ngược (như \infty, \to, \implies, \frac{...}{...}, \sqrt{...}, v.v.)
+    // Xử lý \text{...} đơn lẻ để đưa về văn bản tự nhiên, tránh để MathJax báo lỗi bên ngoài toán
+    s = s.replace(/(\\(?:[a-zA-Z]+)(?:\{[^{}]*\}|\[[^\[\]]*\])*(?:_[a-zA-Z0-9]+|_{[^{}]*})*(?:\^[a-zA-Z0-9]+|\^{[^{}]*})*(?:\s*(?:=|<|>|<=|>=|!=|\+|-|\*|\/|\\to|\\implies|\\iff)\s*(?:\\?[a-zA-Z0-9]+(?:\{[^{}]*\}|\[[^\[\]]*\])*(?:_[a-zA-Z0-9]+|_{[^{}]*})*(?:\^[a-zA-Z0-9]+|\^{[^{}]*})*|[0-9]+))*)/g, (m) => {
+      if (/^\\[nrtbfv]$/.test(m)) return m;
+      const textMatch = m.match(/^\\text\{([^{}]*)\}$/);
+      if (textMatch) return textMatch[1];
+      return protect(`\\(${m}\\)`);
+    });
+
+    // 3. Nhận diện các phương trình / hệ thức truy hồi hoàn chỉnh:
+    // Quan trọng: Lookaround không được cho phép khớp bên trong nhóm chỉ số dưới {n+1} (tránh sinh \(x_{\(n+1\)}\))
+    const mathToken = "(?:[a-zA-Z](?:_[a-zA-Z0-9]+|_{[^{}]+})?(?:\\^[a-zA-Z0-9]+|\\^{[^{}]+})?(?:\\([a-zA-Z0-9_+\\-*\\/\\\\,\\s]+\\))?|[0-9]+(?:\\/[a-zA-Z0-9_]+|\\/[a-zA-Z](?:_[a-zA-Z0-9]+|_{[^{}]+}))?|\\\\[a-zA-Z]+(?:\\{[^{}]*\\})*)";
+    const mathOp = "(?:\\s*(?:=|<|>|<=|>=|!=|\\+|-|\\*|\\/|\\^|=>|<=>|->)\\s*)";
+    const eqRegex = new RegExp(`(?<![a-zA-Z0-9_\\\\{])(${mathToken}(?:${mathOp}${mathToken})+)(?![a-zA-Z0-9_\\\\}])`, "g");
+
+    s = s.replace(eqRegex, (m) => {
+      if (!/(=|<|>|\+|-|\*|\/|_|\^|=>|->)/.test(m)) return m;
       let formatted = m
         .replace(/(\b[0-9]+)\/([a-zA-Z](?:_[a-zA-Z0-9]+|_{[^{}]+})|[0-9]+)/g, '\\frac{$1}{$2}')
         .replace(/>=/g, '\\ge ')
         .replace(/<=/g, '\\le ')
         .replace(/!=/g, '\\ne ')
         .replace(/=>/g, '\\implies ')
-        .replace(/<=>/g, '\\iff ');
+        .replace(/<=>/g, '\\iff ')
+        .replace(/->/g, '\\to ');
       return protect(`\\(${formatted}\\)`);
     });
 
-    // 3. TeX macro trần: \frac, \sqrt, \mathbb, \angle, \sum, \lim, \le, \ge, \in, v.v.
-    s = s.replace(/(\\(?:frac\{[^{}]*\}\{[^{}]*\}|sqrt(?:\[[^{}]*\])?\{[^{}]*\}|mathbb\{[A-Z]\}|angle\s+[A-Za-z]+|mathcal\{[A-Za-z]+\}(?:_[a-zA-Z0-9{}]+)?(?:\([a-zA-Z0-9]+\))?|pmod\{[^{}]*\}|sum|prod|int|lim(?:_[a-zA-Z0-9{}]+)?|perp|parallel|subset|cap|cup|in|le|ge|ne|times|cdot|approx|equiv|sim|infty|pi|alpha|beta|gamma|delta|lambda|omega|sigma|theta|phi|psi)(?:\s*=\s*[^\s,.;]+)?)/g, m => protect(`\\(${m}\\)`));
+    // 4. Biến có chỉ số dưới trần (x_{n+1}, x_n, u_n, x_1, x_2, (x_n), (x_{2n}))
+    s = s.replace(/(?<![a-zA-Z0-9_\\\\])(\(?[a-zA-Z](?:_[a-zA-Z0-9]+|_{[^{}]+})(?:\^[a-zA-Z0-9]+|\^{[^{}]+})?\)?)(?![a-zA-Z0-9_])/g, m => protect(`\\(${m}\\)`));
 
-    // 4. Biến có chỉ số dưới trần: x_{n+1}, x_n, u_n, x_1, x_2, (x_n), (u_n), P_1
-    s = s.replace(/(?<![a-zA-Z0-9_\\])(\(?[a-zA-Z](?:_[a-zA-Z0-9]+|_{[^{}]+})\)?)(?![a-zA-Z0-9_])/g, m => protect(`\\(${m}\\)`));
-
-    // 5. Khoảng chặn [a, b]
-    s = s.replace(/(?<![a-zA-Z0-9_\\])(\[[a-zA-Z0-9_+\-*]+,\s*[a-zA-Z0-9_+\-*]+\])(?![a-zA-Z0-9_])/g, m => protect(`\\(${m}\\)`));
+    // 5. Khoảng chặn [a, b], [x_1, x_2]
+    s = s.replace(/(?<![a-zA-Z0-9_\\\\])(\[[a-zA-Z0-9_+\\-]+,\s*[a-zA-Z0-9_+\\-]+\])(?![a-zA-Z0-9_])/g, m => protect(`\\(${m}\\)`));
 
     // 6. Phục hồi các khối toán đã bảo vệ
-    s = s.replace(/__MATH_BLOCK_(\d+)__/g, (_, idx) => protectedMath[Number(idx)]);
+    s = s.replace(/@@MATH_(\d+)@@/g, (_, idx) => protectedMath[Number(idx)]);
+
+    // 7. Dọn dẹp an toàn các cặp ngoặc kép vô ý
+    s = s.replace(/\\\(\s*\\\(([\s\S]*?)\\\)\s*\\\)/g, '\\($1\\)');
+    s = s.replace(/\\\(\s*\\\)/g, '');
+
     return s;
   }
 
