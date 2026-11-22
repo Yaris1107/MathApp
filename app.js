@@ -437,7 +437,15 @@
     const id = label?.innerText || label?.textContent || (isEn ? 'Problem' : 'Bài toán');
     const statement = card.querySelector('.problem-content');
     // Read the original TeX, never the typeset MathJax DOM or the answer/actions.
-    const content = statement?.getAttribute('data-raw-math') || statement?.innerText || statement?.textContent || '';
+    let rawContent = statement?.getAttribute('data-raw-math') || '';
+    if (!rawContent) {
+      rawContent = statement?.innerText || statement?.textContent || '';
+    } else if (/<[a-z][\s\S]*>/i.test(rawContent)) {
+      const tmp = document.createElement('div');
+      tmp.innerHTML = rawContent.replace(/<span class=["']math (?:display|inline)["']>([\s\S]*?)<\/span>/gi, '$1');
+      rawContent = (tmp.innerText || tmp.textContent || '').trim();
+    }
+    const content = rawContent;
     const text = `${id}:\n${content}`;
     const old = btn.textContent;
     const success = () => {

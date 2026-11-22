@@ -1594,6 +1594,9 @@ Vậy giới hạn cần tìm là $\\sqrt{2}$.`;
 
     let text = String(rawContent).trim();
 
+    // Loại bỏ các thẻ math inline/display bọc dư thừa nếu có
+    text = text.replace(/<span class=["']math (?:display|inline)["']>([\s\S]*?)<\/span>/gi, '$1');
+
     // 1. Loại bỏ các ký tự vô hình/zero-width và chuẩn hóa khoảng trắng
     text = text.replace(/[\u200B-\u200D\uFEFF]/g, '').replace(/\u00A0/g, ' ');
     // JSON/OCR cũ đôi khi escape delimiter thành \\$...\\$.
@@ -5496,8 +5499,15 @@ Vậy giới hạn cần tìm là $\\sqrt{2}$.`;
         if (displayed) {
           displayed.setAttribute('data-raw-math', content);
           if (problem.sourceGroup === 'university_books' && window.renderBookContent) await window.renderBookContent(displayed,{content,contentFormat:'html-latex'});
-          else if (window.safeRenderMathJaxToElement) window.safeRenderMathJaxToElement(displayed, content);
-          else displayed.textContent = content;
+          else if (/<\/?[a-z][\w:-]*(?:\s[^<>]*)?>/i.test(content)) {
+            if (window.MathJax?.typesetClear) window.MathJax.typesetClear([displayed]);
+            displayed.innerHTML = sanitizeCatalogHtml(content);
+            if (window.MathJax?.typesetPromise) window.MathJax.typesetPromise([displayed]).catch(() => {});
+          } else if (window.safeRenderMathJaxToElement) {
+            window.safeRenderMathJaxToElement(displayed, content);
+          } else {
+            displayed.textContent = content;
+          }
         }
         const answer = item.querySelector('[data-university-reference-solution]');
         if (answer) { if(window.safeRenderMathJaxToElement)window.safeRenderMathJaxToElement(answer,solution);else answer.textContent=solution; }
@@ -5737,8 +5747,15 @@ if (card) card.dataset.databaseCard = 'true';
       section.appendChild(item);
       const content = item.querySelector('.problem-content');
       content.setAttribute('data-raw-math', problem.content || '');
-      if (window.safeRenderMathJaxToElement) window.safeRenderMathJaxToElement(content, problem.content || '');
-      else content.textContent = problem.content || '';
+      if (/<\/?[a-z][\w:-]*(?:\s[^<>]*)?>/i.test(problem.content || '')) {
+        if (window.MathJax?.typesetClear) window.MathJax.typesetClear([content]);
+        content.innerHTML = sanitizeCatalogHtml(problem.content || '');
+        if (window.MathJax?.typesetPromise) window.MathJax.typesetPromise([content]).catch(() => {});
+      } else if (window.safeRenderMathJaxToElement) {
+        window.safeRenderMathJaxToElement(content, problem.content || '');
+      } else {
+        content.textContent = problem.content || '';
+      }
       content._renderedMongoContent = problem.content || '';
       if (isCurrentUserContentManager() && problem.predictionReview?.status === 'gpt_rejected') {
         const warning = document.createElement('div');

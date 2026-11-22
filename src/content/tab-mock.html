@@ -31,35 +31,35 @@
           <button class="btn-copy" onclick="copyText(this)">📋 Sao chép</button>
         </div>
         <div class="problem-content">
-<p>Cho dãy số dương <span class="math inline">\((x_n)\)</span> xác định
-bởi <span class="math display">\[x_1=1,\qquad
-x_{n+1}=x_n+\frac{1}{x_n},\qquad n\ge1.\]</span></p><ol>
-<li><p>Chứng minh <span class="math display">\[\lim_{n\to\infty}\frac{x_n}{\sqrt{2n}}=1.\]</span></p></li>
-<li><p>Tính giới hạn <span class="math display">\[\lim_{n\to\infty}\frac{x_n^2-2n}{\ln
-n}.\]</span></p></li>
+<p>Cho dãy số dương \((x_n)\) xác định
+bởi \[x_1=1,\qquad
+x_{n+1}=x_n+\frac{1}{x_n},\qquad n\ge1.\]</p><ol>
+<li><p>Chứng minh \[\lim_{n\to\infty}\frac{x_n}{\sqrt{2n}}=1.\]</p></li>
+<li><p>Tính giới hạn \[\lim_{n\to\infty}\frac{x_n^2-2n}{\ln
+n}.\]</p></li>
 </ol>
         </div>
         <button class="toggle-btn" onclick="toggleSolution(this)" type="button">👁️ Xem lời giải &amp; Thang điểm</button>
         <div class="solution-content" style="display:none">
           <h4 style="margin: 14px 0 8px 0; color: #1e3a8a; font-weight: 700; font-size: 1.05rem;">📖 Lời giải chi tiết &amp; Barem điểm</h4>
-<p><strong>Lời giải.</strong>  Từ truy hồi, <span class="math display">\[x_{n+1}^2=\left(x_n+\frac{1}{x_n}\right)^2
+<p><strong>Lời giải.</strong>  Từ truy hồi, \[x_{n+1}^2=\left(x_n+\frac{1}{x_n}\right)^2
 =x_n^2+2+\frac{1}{x_n^2}.
-\tag{1}\]</span></p><p><strong>a)</strong> Từ (1) suy ra <span class="math inline">\(x_{n+1}^2\ge x_n^2+2\)</span>, nên bằng quy nạp
-<span class="math display">\[x_n^2\ge 2n-1.\tag{2}\]</span> Cộng (1) từ
-<span class="math inline">\(k=1\)</span> đến <span class="math inline">\(n-1\)</span>, <span class="math display">\[x_n^2=1+2(n-1)+\sum_{k=1}^{n-1}\frac{1}{x_k^2}
-=2n-1+\sum_{k=1}^{n-1}\frac{1}{x_k^2}.\tag{3}\]</span> Theo (2), <span class="math display">\[0\le \sum_{k=1}^{n-1}\frac{1}{x_k^2}
-\le \sum_{k=1}^{n-1}\frac{1}{2k-1}=O(\ln n).\]</span> Chia (3) cho <span class="math inline">\(n\)</span>, <span class="math display">\[\frac{x_n^2}{n}=2-\frac{1}{n}+O\!\left(\frac{\ln
-n}{n}\right)\longrightarrow2.\]</span> Vì <span class="math inline">\(x_n&gt;0\)</span>, <span class="math display">\[\boxed{\displaystyle
-\frac{x_n}{\sqrt{2n}}\longrightarrow1}.\]</span></p><p><strong>b)</strong> Từ (3), <span class="math display">\[x_n^2-2n=-1+\sum_{k=1}^{n-1}\frac{1}{x_k^2}.\tag{4}\]</span>
-Đặt <span class="math display">\[A_n=\sum_{k=1}^{n-1}\frac{1}{x_k^2}.\]</span> Áp
-dụng Stolz–Cesàro cho <span class="math inline">\(A_n/\ln n\)</span>,
-<span class="math display">\[\lim_{n\to\infty}\frac{A_n}{\ln n}
+\tag{1}\]</p><p><strong>a)</strong> Từ (1) suy ra \(x_{n+1}^2\ge x_n^2+2\), nên bằng quy nạp
+\[x_n^2\ge 2n-1.\tag{2}\] Cộng (1) từ
+\(k=1\) đến \(n-1\), \[x_n^2=1+2(n-1)+\sum_{k=1}^{n-1}\frac{1}{x_k^2}
+=2n-1+\sum_{k=1}^{n-1}\frac{1}{x_k^2}.\tag{3}\] Theo (2), \[0\le \sum_{k=1}^{n-1}\frac{1}{x_k^2}
+\le \sum_{k=1}^{n-1}\frac{1}{2k-1}=O(\ln n).\] Chia (3) cho \(n\), \[\frac{x_n^2}{n}=2-\frac{1}{n}+O\!\left(\frac{\ln
+n}{n}\right)\longrightarrow2.\] Vì \(x_n&gt;0\), \[\boxed{\displaystyle
+\frac{x_n}{\sqrt{2n}}\longrightarrow1}.\]</p><p><strong>b)</strong> Từ (3), \[x_n^2-2n=-1+\sum_{k=1}^{n-1}\frac{1}{x_k^2}.\tag{4}\]
+Đặt \[A_n=\sum_{k=1}^{n-1}\frac{1}{x_k^2}.\] Áp
+dụng Stolz–Cesàro cho \(A_n/\ln n\),
+\[\lim_{n\to\infty}\frac{A_n}{\ln n}
 =\lim_{n\to\infty}
 \frac{A_{n+1}-A_n}{\ln(n+1)-\ln n}
 =\lim_{n\to\infty}
-\frac{1/x_n^2}{\ln(1+1/n)}.\]</span> Do <span class="math inline">\(n\ln(1+1/n)\to1\)</span> và, theo phần a), <span class="math inline">\(n/x_n^2\to1/2\)</span>, nên <span class="math display">\[\lim_{n\to\infty}\frac{A_n}{\ln
-n}=\frac{1}{2}.\]</span> Kết hợp với (4), <span class="math display">\[\boxed{\displaystyle
-\lim_{n\to\infty}\frac{x_n^2-2n}{\ln n}=\frac{1}{2}}.\]</span></p><div class="center">
+\frac{1/x_n^2}{\ln(1+1/n)}.\] Do \(n\ln(1+1/n)\to1\) và, theo phần a), \(n/x_n^2\to1/2\), nên \[\lim_{n\to\infty}\frac{A_n}{\ln
+n}=\frac{1}{2}.\] Kết hợp với (4), \[\boxed{\displaystyle
+\lim_{n\to\infty}\frac{x_n^2-2n}{\ln n}=\frac{1}{2}}.\]</p><div class="center">
 <table class="rubric-table">
 <thead>
 <tr class="header">
@@ -71,22 +71,22 @@ n}=\frac{1}{2}.\]</span> Kết hợp với (4), <span class="math display">\[\bo
 <tbody>
 <tr class="odd">
 <td style="text-align: left;">a</td>
-<td style="text-align: left;">Suy ra <span class="math inline">\(x_{n+1}^2=x_n^2+2+1/x_n^2\)</span> và cận <span class="math inline">\(x_n^2\ge2n-1\)</span>.</td>
+<td style="text-align: left;">Suy ra \(x_{n+1}^2=x_n^2+2+1/x_n^2\) và cận \(x_n^2\ge2n-1\).</td>
 <td style="text-align: right;">1,0</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"></td>
-<td style="text-align: left;">Cộng truy hồi, khống chế tổng bởi <span class="math inline">\(O(\ln n)\)</span>.</td>
+<td style="text-align: left;">Cộng truy hồi, khống chế tổng bởi \(O(\ln n)\).</td>
 <td style="text-align: right;">1,0</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"></td>
-<td style="text-align: left;">Kết luận <span class="math inline">\(x_n^2/n\to2\)</span> và <span class="math inline">\(x_n/\sqrt{2n}\to1\)</span>.</td>
+<td style="text-align: left;">Kết luận \(x_n^2/n\to2\) và \(x_n/\sqrt{2n}\to1\).</td>
 <td style="text-align: right;">0,5</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">b</td>
-<td style="text-align: left;">Viết <span class="math inline">\(x_n^2-2n=-1+\sum_{k&lt;n}1/x_k^2\)</span>.</td>
+<td style="text-align: left;">Viết \(x_n^2-2n=-1+\sum_{k&lt;n}1/x_k^2\).</td>
 <td style="text-align: right;">0,5</td>
 </tr>
 <tr class="odd">
@@ -97,7 +97,7 @@ n}=\frac{1}{2}.\]</span> Kết hợp với (4), <span class="math display">\[\bo
 </tr>
 <tr class="even">
 <td style="text-align: left;"></td>
-<td style="text-align: left;">Dùng <span class="math inline">\(n/x_n^2\to1/2\)</span>, tính đúng giới hạn <span class="math inline">\(1/2\)</span>.</td>
+<td style="text-align: left;">Dùng \(n/x_n^2\to1/2\), tính đúng giới hạn \(1/2\).</td>
 <td style="text-align: right;">1,0</td>
 </tr>
 </tbody>
@@ -115,22 +115,22 @@ n}=\frac{1}{2}.\]</span> Kết hợp với (4), <span class="math display">\[\bo
           <button class="btn-copy" onclick="copyText(this)">📋 Sao chép</button>
         </div>
         <div class="problem-content">
-<p>Tìm tất cả các hàm <span class="math inline">\(f:\mathbb{R}\to\mathbb{R}\)</span> thỏa mãn <span class="math display">\[\boxed{\ f\bigl(x^2+f(y)\bigr)=f(x)^2+y\ },\qquad
-\forall x,y\in\mathbb{R}.\]</span></p>
+<p>Tìm tất cả các hàm \(f:\mathbb{R}\to\mathbb{R}\) thỏa mãn \[\boxed{\ f\bigl(x^2+f(y)\bigr)=f(x)^2+y\ },\qquad
+\forall x,y\in\mathbb{R}.\]</p>
         </div>
         <button class="toggle-btn" onclick="toggleSolution(this)" type="button">👁️ Xem lời giải &amp; Thang điểm</button>
         <div class="solution-content" style="display:none">
           <h4 style="margin: 14px 0 8px 0; color: #1e3a8a; font-weight: 700; font-size: 1.05rem;">📖 Lời giải chi tiết &amp; Barem điểm</h4>
-<p><strong>Lời giải.</strong>  Kí hiệu mệnh đề đã cho là <span class="math inline">\(P(x,y)\)</span> và đặt <span class="math display">\[c=f(0).\]</span> Từ <span class="math inline">\(P(0,y)\)</span>, <span class="math display">\[f(f(y))=c^2+y.\tag{1}\]</span> Suy ra <span class="math inline">\(f\)</span> là song ánh: ánh xạ <span class="math inline">\(f\circ f\)</span> là toàn ánh nên <span class="math inline">\(f\)</span> toàn ánh; nếu <span class="math inline">\(f(a)=f(b)\)</span> thì áp dụng <span class="math inline">\(f\)</span> hai vế và dùng (1) được <span class="math inline">\(a=b\)</span>.</p><p>Vì <span class="math inline">\(f\)</span> toàn ánh, với mỗi <span class="math inline">\(t\in\mathbb{R}\)</span> tồn tại <span class="math inline">\(y\)</span> sao cho <span class="math inline">\(t=f(y)\)</span>. Từ (1), <span class="math inline">\(y=f(t)-c^2\)</span>. Thay vào phương trình ban
-đầu, <span class="math display">\[f(x^2+t)=f(x)^2+f(t)-c^2,\qquad
-\forall x,t\in\mathbb{R}.\tag{2}\]</span> Cho <span class="math inline">\(t=0\)</span> trong (2), <span class="math display">\[f(x^2)=f(x)^2+c-c^2.\tag{3}\]</span> Trừ (3) khỏi
-(2), <span class="math display">\[f(t+x^2)-f(t)=f(x^2)-c.\tag{4}\]</span> Đặt <span class="math display">\[g(x)=f(x)-c.\]</span> Từ (4), với mọi <span class="math inline">\(t\in\mathbb{R}\)</span> và mọi <span class="math inline">\(s\ge0\)</span>, <span class="math display">\[g(t+s)=g(t)+g(s).\tag{5}\]</span> Lấy <span class="math inline">\(t=-s\)</span> trong (5) suy ra <span class="math inline">\(g(-s)=-g(s)\)</span> với <span class="math inline">\(s\ge0\)</span>. Vì thế (5) đúng cho mọi <span class="math inline">\(s\in\mathbb{R}\)</span>; do đó <span class="math display">\[g(x+y)=g(x)+g(y),\qquad \forall
-x,y\in\mathbb{R}.\tag{6}\]</span></p><p>Từ (3), <span class="math display">\[g(x^2)=g(x)^2+2c\,g(x).\tag{7}\]</span> Thay
-<span class="math inline">\(x\)</span> bởi <span class="math inline">\(-x\)</span> trong (7) và dùng <span class="math inline">\(g(-x)=-g(x)\)</span>, <span class="math display">\[g(x^2)=g(x)^2-2c\,g(x).\]</span> Suy ra <span class="math inline">\(4c\,g(x)=0\)</span> với mọi <span class="math inline">\(x\)</span>. Vì <span class="math inline">\(g\)</span> là song ánh nên không đồng nhất bằng
-<span class="math inline">\(0\)</span>, do đó <span class="math display">\[c=0.\tag{8}\]</span> Vậy <span class="math inline">\(f=g\)</span> là hàm cộng tính và từ (7), <span class="math display">\[f(x^2)=f(x)^2\ge0.\]</span> Nếu <span class="math inline">\(u\ge0\)</span> thì <span class="math inline">\(u=v^2\)</span> với một <span class="math inline">\(v\in\mathbb{R}\)</span>, nên <span class="math inline">\(f(u)\ge0\)</span>. Vì <span class="math inline">\(f\)</span> cộng tính, nếu <span class="math inline">\(x&lt;y\)</span> thì <span class="math display">\[f(y)-f(x)=f(y-x)\ge0,\]</span> nên <span class="math inline">\(f\)</span> không giảm. Một hàm cộng tính không
-giảm trên <span class="math inline">\(\mathbb{R}\)</span> phải có dạng
-<span class="math inline">\(f(x)=kx\)</span>. Lại có <span class="math display">\[f(1)=f(1)^2.\]</span> Do <span class="math inline">\(f\)</span> song ánh nên <span class="math inline">\(f(1)\ne0\)</span>, suy ra <span class="math inline">\(f(1)=1\)</span> và <span class="math inline">\(k=1\)</span>.</p><p>Vậy nghiệm duy nhất là <span class="math display">\[\boxed{f(x)=x\quad\forall
-x\in\mathbb{R}}.\]</span> Thử lại trực tiếp thấy hàm này thỏa mãn.</p><div class="center">
+<p><strong>Lời giải.</strong>  Kí hiệu mệnh đề đã cho là \(P(x,y)\) và đặt \[c=f(0).\] Từ \(P(0,y)\), \[f(f(y))=c^2+y.\tag{1}\] Suy ra \(f\) là song ánh: ánh xạ \(f\circ f\) là toàn ánh nên \(f\) toàn ánh; nếu \(f(a)=f(b)\) thì áp dụng \(f\) hai vế và dùng (1) được \(a=b\).</p><p>Vì \(f\) toàn ánh, với mỗi \(t\in\mathbb{R}\) tồn tại \(y\) sao cho \(t=f(y)\). Từ (1), \(y=f(t)-c^2\). Thay vào phương trình ban
+đầu, \[f(x^2+t)=f(x)^2+f(t)-c^2,\qquad
+\forall x,t\in\mathbb{R}.\tag{2}\] Cho \(t=0\) trong (2), \[f(x^2)=f(x)^2+c-c^2.\tag{3}\] Trừ (3) khỏi
+(2), \[f(t+x^2)-f(t)=f(x^2)-c.\tag{4}\] Đặt \[g(x)=f(x)-c.\] Từ (4), với mọi \(t\in\mathbb{R}\) và mọi \(s\ge0\), \[g(t+s)=g(t)+g(s).\tag{5}\] Lấy \(t=-s\) trong (5) suy ra \(g(-s)=-g(s)\) với \(s\ge0\). Vì thế (5) đúng cho mọi \(s\in\mathbb{R}\); do đó \[g(x+y)=g(x)+g(y),\qquad \forall
+x,y\in\mathbb{R}.\tag{6}\]</p><p>Từ (3), \[g(x^2)=g(x)^2+2c\,g(x).\tag{7}\] Thay
+\(x\) bởi \(-x\) trong (7) và dùng \(g(-x)=-g(x)\), \[g(x^2)=g(x)^2-2c\,g(x).\] Suy ra \(4c\,g(x)=0\) với mọi \(x\). Vì \(g\) là song ánh nên không đồng nhất bằng
+\(0\), do đó \[c=0.\tag{8}\] Vậy \(f=g\) là hàm cộng tính và từ (7), \[f(x^2)=f(x)^2\ge0.\] Nếu \(u\ge0\) thì \(u=v^2\) với một \(v\in\mathbb{R}\), nên \(f(u)\ge0\). Vì \(f\) cộng tính, nếu \(x&lt;y\) thì \[f(y)-f(x)=f(y-x)\ge0,\] nên \(f\) không giảm. Một hàm cộng tính không
+giảm trên \(\mathbb{R}\) phải có dạng
+\(f(x)=kx\). Lại có \[f(1)=f(1)^2.\] Do \(f\) song ánh nên \(f(1)\ne0\), suy ra \(f(1)=1\) và \(k=1\).</p><p>Vậy nghiệm duy nhất là \[\boxed{f(x)=x\quad\forall
+x\in\mathbb{R}}.\] Thử lại trực tiếp thấy hàm này thỏa mãn.</p><div class="center">
 <table class="rubric-table">
 <thead>
 <tr class="header">
@@ -142,28 +142,28 @@ x\in\mathbb{R}}.\]</span> Thử lại trực tiếp thấy hàm này thỏa mãn
 <tbody>
 <tr class="odd">
 <td style="text-align: left;">1</td>
-<td style="text-align: left;">Từ <span class="math inline">\(P(0,y)\)</span> suy ra <span class="math inline">\(f(f(y))=c^2+y\)</span> và chứng minh <span class="math inline">\(f\)</span> song ánh.</td>
+<td style="text-align: left;">Từ \(P(0,y)\) suy ra \(f(f(y))=c^2+y\) và chứng minh \(f\) song ánh.</td>
 <td style="text-align: right;">1,0</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">2</td>
-<td style="text-align: left;">Đưa về <span class="math inline">\(f(x^2+t)=f(x)^2+f(t)-c^2\)</span>, xây dựng <span class="math inline">\(g=f-c\)</span>.</td>
+<td style="text-align: left;">Đưa về \(f(x^2+t)=f(x)^2+f(t)-c^2\), xây dựng \(g=f-c\).</td>
 <td style="text-align: right;">1,0</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">3</td>
-<td style="text-align: left;">Chứng minh <span class="math inline">\(g(x+y)=g(x)+g(y)\)</span> trên toàn <span class="math inline">\(\mathbb{R}\)</span>.</td>
+<td style="text-align: left;">Chứng minh \(g(x+y)=g(x)+g(y)\) trên toàn \(\mathbb{R}\).</td>
 <td style="text-align: right;">1,0</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">4</td>
-<td style="text-align: left;">So sánh <span class="math inline">\(x\)</span> và <span class="math inline">\(-x\)</span> để suy ra <span class="math inline">\(c=0\)</span>.</td>
+<td style="text-align: left;">So sánh \(x\) và \(-x\) để suy ra \(c=0\).</td>
 <td style="text-align: right;">1,0</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">5</td>
 <td style="text-align: left;">Từ bảo toàn bình phương suy ra đơn điệu,
-rồi <span class="math inline">\(f(x)=x\)</span>; thử lại.</td>
+rồi \(f(x)=x\); thử lại.</td>
 <td style="text-align: right;">1,0</td>
 </tr>
 </tbody>
@@ -181,48 +181,48 @@ rồi <span class="math inline">\(f(x)=x\)</span>; thử lại.</td>
           <button class="btn-copy" onclick="copyText(this)">📋 Sao chép</button>
         </div>
         <div class="problem-content">
-<p>Cho dãy số nguyên <span class="math inline">\((u_n)_{n\ge0}\)</span>
-xác định bởi <span class="math display">\[u_0=0,\qquad u_1=1,\qquad
-u_{n+2}=3u_{n+1}-u_n\quad(n\ge0).\]</span></p><ol>
-<li><p>Chứng minh rằng với mọi số nguyên dương <span class="math inline">\(m,n\)</span>, <span class="math display">\[\gcd(u_m,u_n)=u_{\gcd(m,n)}.\]</span></p></li>
-<li><p>Với mỗi số nguyên dương <span class="math inline">\(M\)</span>,
-gọi <span class="math inline">\(r_M\)</span> là số nguyên dương nhỏ
-nhất, nếu tồn tại, sao cho <span class="math inline">\(M\mid
-u_{r_M}\)</span>. Chứng minh <span class="math inline">\(r_M\)</span>
-luôn tồn tại và <span class="math display">\[M\mid
-u_n\quad\Longleftrightarrow\quad r_M\mid n.\]</span></p></li>
+<p>Cho dãy số nguyên \((u_n)_{n\ge0}\)
+xác định bởi \[u_0=0,\qquad u_1=1,\qquad
+u_{n+2}=3u_{n+1}-u_n\quad(n\ge0).\]</p><ol>
+<li><p>Chứng minh rằng với mọi số nguyên dương \(m,n\), \[\gcd(u_m,u_n)=u_{\gcd(m,n)}.\]</p></li>
+<li><p>Với mỗi số nguyên dương \(M\),
+gọi \(r_M\) là số nguyên dương nhỏ
+nhất, nếu tồn tại, sao cho \(M\mid
+u_{r_M}\). Chứng minh \(r_M\)
+luôn tồn tại và \[M\mid
+u_n\quad\Longleftrightarrow\quad r_M\mid n.\]</p></li>
 </ol>
         </div>
         <button class="toggle-btn" onclick="toggleSolution(this)" type="button">👁️ Xem lời giải &amp; Thang điểm</button>
         <div class="solution-content" style="display:none">
           <h4 style="margin: 14px 0 8px 0; color: #1e3a8a; font-weight: 700; font-size: 1.05rem;">📖 Lời giải chi tiết &amp; Barem điểm</h4>
-<p><strong>Lời giải.</strong>  Trước hết, dễ thấy <span class="math inline">\(u_n&gt;0\)</span> với <span class="math inline">\(n\ge1\)</span>. Ta có <span class="math display">\[\gcd(u_{k+1},u_k)
+<p><strong>Lời giải.</strong>  Trước hết, dễ thấy \(u_n&gt;0\) với \(n\ge1\). Ta có \[\gcd(u_{k+1},u_k)
 =\gcd(3u_k-u_{k-1},u_k)
-=\gcd(u_k,u_{k-1}).\]</span> Lặp lại đến <span class="math inline">\(\gcd(u_1,u_0)=1\)</span>, suy ra <span class="math display">\[\gcd(u_{k+1},u_k)=1\quad\forall
-k\ge0.\tag{1}\]</span></p><p>Ta cần công thức cộng <span class="math display">\[\boxed{u_{m+n}=u_m
-u_{n+1}-u_{m-1}u_n}\qquad(m\ge1,n\ge0).\tag{2}\]</span> Với <span class="math inline">\(m=1\)</span>, công thức đúng. Nếu đúng với <span class="math inline">\(m\)</span> và <span class="math inline">\(m-1\)</span> thì <span class="math display">\[\begin{aligned}
+=\gcd(u_k,u_{k-1}).\] Lặp lại đến \(\gcd(u_1,u_0)=1\), suy ra \[\gcd(u_{k+1},u_k)=1\quad\forall
+k\ge0.\tag{1}\]</p><p>Ta cần công thức cộng \[\boxed{u_{m+n}=u_m
+u_{n+1}-u_{m-1}u_n}\qquad(m\ge1,n\ge0).\tag{2}\] Với \(m=1\), công thức đúng. Nếu đúng với \(m\) và \(m-1\) thì \[\begin{aligned}
 u_{m+n+1}
 &amp;=3u_{m+n}-u_{m+n-1}\\
 &amp;=3(u_m u_{n+1}-u_{m-1}u_n)
 -(u_{m-1}u_{n+1}-u_{m-2}u_n)\\
 &amp;=u_{m+1}u_{n+1}-u_m u_n,
-\end{aligned}\]</span> nên (2) đúng bằng quy nạp.</p><p><strong>a)</strong> Giả sử <span class="math inline">\(m&gt;n\)</span>. Từ (2), viết <span class="math inline">\(m=n+(m-n)\)</span>: <span class="math display">\[u_m=u_nu_{m-n+1}-u_{n-1}u_{m-n}.\]</span> Theo
-(1), <span class="math inline">\(\gcd(u_n,u_{n-1})=1\)</span>, do đó
-<span class="math display">\[\gcd(u_m,u_n)=\gcd(u_{m-n},u_n).\tag{3}\]</span>
-Áp dụng thuật toán Euclid cho cặp chỉ số <span class="math inline">\((m,n)\)</span>, từ (3) thu được <span class="math display">\[\boxed{\gcd(u_m,u_n)=u_{\gcd(m,n)}}.\]</span></p><p><strong>b)</strong> Xét các cặp <span class="math display">\[(u_n,u_{n+1})\pmod M.\]</span> Phép chuyển trạng
-thái <span class="math display">\[(a,b)\longmapsto (b,3b-a)\]</span> là
-song ánh modulo <span class="math inline">\(M\)</span>, vì phép nghịch
-đảo là <span class="math display">\[(a,b)\longmapsto(3a-b,a).\]</span>
-Do tập các cặp phần dư modulo <span class="math inline">\(M\)</span> là
-hữu hạn, quỹ đạo của <span class="math inline">\((u_0,u_1)\equiv(0,1)\)</span> dưới một song ánh
-phải là một chu trình. Vì vậy tồn tại <span class="math inline">\(q&gt;0\)</span> sao cho <span class="math display">\[(u_q,u_{q+1})\equiv(0,1)\pmod M,\]</span> đặc
-biệt <span class="math inline">\(M\mid u_q\)</span>. Do đó <span class="math inline">\(r_M\)</span> tồn tại.</p><p>Nếu <span class="math inline">\(r_M\mid n\)</span>, thì từ phần a)
-<span class="math display">\[\gcd(u_{r_M},u_n)=u_{r_M},\]</span> nên
-<span class="math inline">\(u_{r_M}\mid u_n\)</span>, và vì <span class="math inline">\(M\mid u_{r_M}\)</span> nên <span class="math inline">\(M\mid u_n\)</span>.</p><p>Ngược lại, giả sử <span class="math inline">\(M\mid u_n\)</span>. Khi
-đó <span class="math inline">\(M\)</span> chia cả <span class="math inline">\(u_n\)</span> và <span class="math inline">\(u_{r_M}\)</span>, nên theo phần a), <span class="math display">\[M\mid \gcd(u_n,u_{r_M})=u_{\gcd(n,r_M)}.\]</span>
-Nếu <span class="math inline">\(r_M\nmid n\)</span> thì <span class="math inline">\(\gcd(n,r_M)&lt;r_M\)</span>, trái với tính nhỏ
-nhất của <span class="math inline">\(r_M\)</span>. Do đó <span class="math inline">\(r_M\mid n\)</span>.</p><p>Vậy <span class="math display">\[\boxed{M\mid u_n\iff r_M\mid
-n}.\]</span></p><div class="center">
+\end{aligned}\] nên (2) đúng bằng quy nạp.</p><p><strong>a)</strong> Giả sử \(m&gt;n\). Từ (2), viết \(m=n+(m-n)\): \[u_m=u_nu_{m-n+1}-u_{n-1}u_{m-n}.\] Theo
+(1), \(\gcd(u_n,u_{n-1})=1\), do đó
+\[\gcd(u_m,u_n)=\gcd(u_{m-n},u_n).\tag{3}\]
+Áp dụng thuật toán Euclid cho cặp chỉ số \((m,n)\), từ (3) thu được \[\boxed{\gcd(u_m,u_n)=u_{\gcd(m,n)}}.\]</p><p><strong>b)</strong> Xét các cặp \[(u_n,u_{n+1})\pmod M.\] Phép chuyển trạng
+thái \[(a,b)\longmapsto (b,3b-a)\] là
+song ánh modulo \(M\), vì phép nghịch
+đảo là \[(a,b)\longmapsto(3a-b,a).\]
+Do tập các cặp phần dư modulo \(M\) là
+hữu hạn, quỹ đạo của \((u_0,u_1)\equiv(0,1)\) dưới một song ánh
+phải là một chu trình. Vì vậy tồn tại \(q&gt;0\) sao cho \[(u_q,u_{q+1})\equiv(0,1)\pmod M,\] đặc
+biệt \(M\mid u_q\). Do đó \(r_M\) tồn tại.</p><p>Nếu \(r_M\mid n\), thì từ phần a)
+\[\gcd(u_{r_M},u_n)=u_{r_M},\] nên
+\(u_{r_M}\mid u_n\), và vì \(M\mid u_{r_M}\) nên \(M\mid u_n\).</p><p>Ngược lại, giả sử \(M\mid u_n\). Khi
+đó \(M\) chia cả \(u_n\) và \(u_{r_M}\), nên theo phần a), \[M\mid \gcd(u_n,u_{r_M})=u_{\gcd(n,r_M)}.\]
+Nếu \(r_M\nmid n\) thì \(\gcd(n,r_M)&lt;r_M\), trái với tính nhỏ
+nhất của \(r_M\). Do đó \(r_M\mid n\).</p><p>Vậy \[\boxed{M\mid u_n\iff r_M\mid
+n}.\]</p><div class="center">
 <table class="rubric-table">
 <thead>
 <tr class="header">
@@ -246,24 +246,24 @@ cùng nhau.</td>
 <tr class="odd">
 <td style="text-align: left;"></td>
 <td style="text-align: left;">Dùng thuật toán Euclid trên chỉ số để suy
-ra công thức <span class="math inline">\(\gcd\)</span>.</td>
+ra công thức \(\gcd\).</td>
 <td style="text-align: right;">1,0</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">b</td>
-<td style="text-align: left;">Chứng minh tồn tại <span class="math inline">\(r_M\)</span> bằng tính hữu hạn và khả nghịch của
-trạng thái modulo <span class="math inline">\(M\)</span>.</td>
+<td style="text-align: left;">Chứng minh tồn tại \(r_M\) bằng tính hữu hạn và khả nghịch của
+trạng thái modulo \(M\).</td>
 <td style="text-align: right;">1,0</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"></td>
-<td style="text-align: left;">Chứng minh chiều <span class="math inline">\(r_M\mid n\Rightarrow M\mid u_n\)</span>.</td>
+<td style="text-align: left;">Chứng minh chiều \(r_M\mid n\Rightarrow M\mid u_n\).</td>
 <td style="text-align: right;">0,5</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"></td>
 <td style="text-align: left;">Chứng minh chiều đảo bằng phần a) và tính
-tối tiểu của <span class="math inline">\(r_M\)</span>.</td>
+tối tiểu của \(r_M\).</td>
 <td style="text-align: right;">1,0</td>
 </tr>
 </tbody>
@@ -281,44 +281,44 @@ tối tiểu của <span class="math inline">\(r_M\)</span>.</td>
           <button class="btn-copy" onclick="copyText(this)">📋 Sao chép</button>
         </div>
         <div class="problem-content">
-<p>Cho tam giác nhọn <span class="math inline">\(ABC\)</span> có đường
-tròn ngoại tiếp <span class="math inline">\((O)\)</span> và trực tâm
-<span class="math inline">\(H\)</span>. Điểm <span class="math inline">\(P\)</span> thuộc <span class="math inline">\((O)\)</span> và khác <span class="math inline">\(A,B,C\)</span>. Gọi <span class="math inline">\(X_1,Y_1,Z_1\)</span> lần lượt là các điểm đối xứng
-của <span class="math inline">\(P\)</span> qua các đường thẳng <span class="math inline">\(BC,CA,AB\)</span>.</p><ol>
-<li><p>Chứng minh bốn điểm <span class="math inline">\(X_1,Y_1,Z_1,H\)</span> thẳng hàng.</p></li>
-<li><p>Gọi <span class="math inline">\(X,Y,Z\)</span> lần lượt là hình
-chiếu vuông góc của <span class="math inline">\(P\)</span> trên <span class="math inline">\(BC,CA,AB\)</span>, và <span class="math inline">\(M\)</span> là trung điểm của <span class="math inline">\(PH\)</span>. Chứng minh bốn điểm <span class="math inline">\(X,Y,Z,M\)</span> thẳng hàng.</p></li>
+<p>Cho tam giác nhọn \(ABC\) có đường
+tròn ngoại tiếp \((O)\) và trực tâm
+\(H\). Điểm \(P\) thuộc \((O)\) và khác \(A,B,C\). Gọi \(X_1,Y_1,Z_1\) lần lượt là các điểm đối xứng
+của \(P\) qua các đường thẳng \(BC,CA,AB\).</p><ol>
+<li><p>Chứng minh bốn điểm \(X_1,Y_1,Z_1,H\) thẳng hàng.</p></li>
+<li><p>Gọi \(X,Y,Z\) lần lượt là hình
+chiếu vuông góc của \(P\) trên \(BC,CA,AB\), và \(M\) là trung điểm của \(PH\). Chứng minh bốn điểm \(X,Y,Z,M\) thẳng hàng.</p></li>
 </ol></section>
         </div>
         <button class="toggle-btn" onclick="toggleSolution(this)" type="button">👁️ Xem lời giải &amp; Thang điểm</button>
         <div class="solution-content" style="display:none">
           <h4 style="margin: 14px 0 8px 0; color: #1e3a8a; font-weight: 700; font-size: 1.05rem;">📖 Lời giải chi tiết &amp; Barem điểm</h4>
 <p><strong>Lời giải.</strong>  Ta trình bày một lời giải số phức ngắn
-gọn, phù hợp khi cần xử lý đồng thời các phép đối xứng qua cạnh.</p><p>Chuẩn hóa đường tròn <span class="math inline">\((O)\)</span> thành
-đường tròn đơn vị trong mặt phẳng phức. Kí hiệu <span class="math inline">\(a,b,c,p\)</span> lần lượt là affix của <span class="math inline">\(A,B,C,P\)</span>. Khi đó <span class="math display">\[|a|=|b|=|c|=|p|=1,
+gọn, phù hợp khi cần xử lý đồng thời các phép đối xứng qua cạnh.</p><p>Chuẩn hóa đường tròn \((O)\) thành
+đường tròn đơn vị trong mặt phẳng phức. Kí hiệu \(a,b,c,p\) lần lượt là affix của \(A,B,C,P\). Khi đó \[|a|=|b|=|c|=|p|=1,
 \qquad \bar a=\frac{1}{a},\ \bar b=\frac{1}{b},\ \bar c=\frac{1}{c},\ \bar
-p=\frac{1}{p}.\]</span> Trực tâm của tam giác <span class="math inline">\(ABC\)</span> có affix <span class="math display">\[h=a+b+c.\tag{1}\]</span></p><p>Với hai điểm <span class="math inline">\(U,V\)</span> trên đường tròn
-đơn vị có affix <span class="math inline">\(u,v\)</span>, ảnh của điểm
-<span class="math inline">\(P\)</span> qua phép đối xứng trục <span class="math inline">\(UV\)</span> có affix <span class="math display">\[u+v-uv\bar p.\]</span> Do đó <span class="math display">\[x_1=b+c-\frac{bc}{p},\qquad
+p=\frac{1}{p}.\] Trực tâm của tam giác \(ABC\) có affix \[h=a+b+c.\tag{1}\]</p><p>Với hai điểm \(U,V\) trên đường tròn
+đơn vị có affix \(u,v\), ảnh của điểm
+\(P\) qua phép đối xứng trục \(UV\) có affix \[u+v-uv\bar p.\] Do đó \[x_1=b+c-\frac{bc}{p},\qquad
 y_1=c+a-\frac{ca}{p},\qquad
-z_1=a+b-\frac{ab}{p}.\tag{2}\]</span></p><p><strong>a)</strong> Nếu một trong các hiệu <span class="math inline">\(x_1-h,y_1-h,z_1-h\)</span> bằng <span class="math inline">\(0\)</span> thì điểm tương ứng trùng <span class="math inline">\(H\)</span> và kết luận được xử lý trực tiếp bằng
+z_1=a+b-\frac{ab}{p}.\tag{2}\]</p><p><strong>a)</strong> Nếu một trong các hiệu \(x_1-h,y_1-h,z_1-h\) bằng \(0\) thì điểm tương ứng trùng \(H\) và kết luận được xử lý trực tiếp bằng
 cách hoán vị vai trò các đỉnh. Xét trường hợp tổng quát các mẫu dưới đây
-khác <span class="math inline">\(0\)</span>. Từ (1)–(2), <span class="math display">\[\frac{x_1-h}{y_1-h}
-=\frac{ap+bc}{bp+ca}.\tag{3}\]</span> Mặt khác, <span class="math display">\[\overline{\frac{ap+bc}{bp+ca}}
+khác \(0\). Từ (1)–(2), \[\frac{x_1-h}{y_1-h}
+=\frac{ap+bc}{bp+ca}.\tag{3}\] Mặt khác, \[\overline{\frac{ap+bc}{bp+ca}}
 =\frac{\frac{1}{ap}+\frac{1}{bc}}{\frac{1}{bp}+\frac{1}{ca}}
-=\frac{ap+bc}{bp+ca}.\]</span> Vì tỉ số trong (3) là số thực, ba điểm
-<span class="math inline">\(X_1,H,Y_1\)</span> thẳng hàng. Hoàn toàn
-tương tự, <span class="math inline">\(Z_1\)</span> cũng nằm trên đường
-thẳng đó. Vậy <span class="math display">\[\boxed{X_1,Y_1,Z_1,H\
-\text{thẳng hàng}.}\]</span> Đường thẳng này thường được gọi là
-<em>đường Steiner</em> ứng với <span class="math inline">\(P\)</span>.</p><p><strong>b)</strong> Vì <span class="math inline">\(X\)</span> là hình
-chiếu của <span class="math inline">\(P\)</span> lên <span class="math inline">\(BC\)</span>, còn <span class="math inline">\(X_1\)</span> là ảnh của <span class="math inline">\(P\)</span> qua <span class="math inline">\(BC\)</span>, nên <span class="math inline">\(X\)</span> là trung điểm của <span class="math inline">\(PX_1\)</span>. Tương tự, <span class="math inline">\(Y,Z\)</span> lần lượt là trung điểm của <span class="math inline">\(PY_1,PZ_1\)</span>.</p><p>Xét phép vị tự tâm <span class="math inline">\(P\)</span>, tỉ số
-<span class="math inline">\(1/2\)</span>. Phép vị tự này biến <span class="math display">\[X_1\mapsto X,\qquad Y_1\mapsto Y,\qquad
-Z_1\mapsto Z,\]</span> và do <span class="math inline">\(H\)</span>
-thuộc đường thẳng <span class="math inline">\(X_1Y_1Z_1\)</span>, ảnh
-của <span class="math inline">\(H\)</span> cũng thuộc đường thẳng <span class="math inline">\(XYZ\)</span>. Ảnh của <span class="math inline">\(H\)</span> chính là trung điểm <span class="math inline">\(M\)</span> của <span class="math inline">\(PH\)</span>. Do đó <span class="math display">\[\boxed{X,Y,Z,M\ \text{thẳng hàng}.}\]</span> Đặc
-biệt, <span class="math inline">\(XYZ\)</span> chính là đường Simson của
-<span class="math inline">\(P\)</span> đối với tam giác <span class="math inline">\(ABC\)</span>.</p><div class="center">
+=\frac{ap+bc}{bp+ca}.\] Vì tỉ số trong (3) là số thực, ba điểm
+\(X_1,H,Y_1\) thẳng hàng. Hoàn toàn
+tương tự, \(Z_1\) cũng nằm trên đường
+thẳng đó. Vậy \[\boxed{X_1,Y_1,Z_1,H\
+\text{thẳng hàng}.}\] Đường thẳng này thường được gọi là
+<em>đường Steiner</em> ứng với \(P\).</p><p><strong>b)</strong> Vì \(X\) là hình
+chiếu của \(P\) lên \(BC\), còn \(X_1\) là ảnh của \(P\) qua \(BC\), nên \(X\) là trung điểm của \(PX_1\). Tương tự, \(Y,Z\) lần lượt là trung điểm của \(PY_1,PZ_1\).</p><p>Xét phép vị tự tâm \(P\), tỉ số
+\(1/2\). Phép vị tự này biến \[X_1\mapsto X,\qquad Y_1\mapsto Y,\qquad
+Z_1\mapsto Z,\] và do \(H\)
+thuộc đường thẳng \(X_1Y_1Z_1\), ảnh
+của \(H\) cũng thuộc đường thẳng \(XYZ\). Ảnh của \(H\) chính là trung điểm \(M\) của \(PH\). Do đó \[\boxed{X,Y,Z,M\ \text{thẳng hàng}.}\] Đặc
+biệt, \(XYZ\) chính là đường Simson của
+\(P\) đối với tam giác \(ABC\).</p><div class="center">
 <table class="rubric-table">
 <thead>
 <tr class="header">
@@ -330,27 +330,27 @@ biệt, <span class="math inline">\(XYZ\)</span> chính là đường Simson c�
 <tbody>
 <tr class="odd">
 <td style="text-align: left;">a</td>
-<td style="text-align: left;">Thiết lập mô hình số phức, công thức <span class="math inline">\(h=a+b+c\)</span> và công thức ảnh đối xứng.</td>
+<td style="text-align: left;">Thiết lập mô hình số phức, công thức \(h=a+b+c\) và công thức ảnh đối xứng.</td>
 <td style="text-align: right;">1,0</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"></td>
-<td style="text-align: left;">Chứng minh <span class="math inline">\((x_1-h)/(y_1-h)\)</span> là số thực.</td>
+<td style="text-align: left;">Chứng minh \((x_1-h)/(y_1-h)\) là số thực.</td>
 <td style="text-align: right;">1,0</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"></td>
-<td style="text-align: left;">Hoàn tất tính thẳng hàng của <span class="math inline">\(X_1,Y_1,Z_1,H\)</span>.</td>
+<td style="text-align: left;">Hoàn tất tính thẳng hàng của \(X_1,Y_1,Z_1,H\).</td>
 <td style="text-align: right;">1,0</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">b</td>
-<td style="text-align: left;">Nhận ra <span class="math inline">\(X,Y,Z\)</span> là trung điểm của <span class="math inline">\(PX_1,PY_1,PZ_1\)</span>.</td>
+<td style="text-align: left;">Nhận ra \(X,Y,Z\) là trung điểm của \(PX_1,PY_1,PZ_1\).</td>
 <td style="text-align: right;">0,75</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"></td>
-<td style="text-align: left;">Dùng vị tự tâm <span class="math inline">\(P\)</span>, tỉ số <span class="math inline">\(1/2\)</span>, suy ra <span class="math inline">\(M\in XYZ\)</span>.</td>
+<td style="text-align: left;">Dùng vị tự tâm \(P\), tỉ số \(1/2\), suy ra \(M\in XYZ\).</td>
 <td style="text-align: right;">1,25</td>
 </tr>
 </tbody>
@@ -394,24 +394,24 @@ biệt, <span class="math inline">\(XYZ\)</span> chính là đường Simson c�
           <button class="btn-copy" onclick="copyText(this)">📋 Sao chép</button>
         </div>
         <div class="problem-content">
-<p>Tìm tất cả các đa thức <span class="math inline">\(P(x)\in\mathbb{R}[x]\)</span> thỏa mãn <span class="math display">\[\boxed{\ P(x)P(x+1)=P(x^2+x)\ },\qquad \forall
-x\in\mathbb{R}.\]</span></p>
+<p>Tìm tất cả các đa thức \(P(x)\in\mathbb{R}[x]\) thỏa mãn \[\boxed{\ P(x)P(x+1)=P(x^2+x)\ },\qquad \forall
+x\in\mathbb{R}.\]</p>
         </div>
         <button class="toggle-btn" onclick="toggleSolution(this)" type="button">👁️ Xem lời giải &amp; Thang điểm</button>
         <div class="solution-content" style="display:none">
           <h4 style="margin: 14px 0 8px 0; color: #1e3a8a; font-weight: 700; font-size: 1.05rem;">📖 Lời giải chi tiết &amp; Barem điểm</h4>
-<p><strong>Lời giải.</strong>  Rõ ràng <span class="math inline">\(P\equiv0\)</span> là một nghiệm. Từ đây giả sử
-<span class="math inline">\(P\not\equiv0\)</span>.</p><p>Nếu <span class="math inline">\(P\)</span> là hằng, viết <span class="math inline">\(P\equiv c\ne0\)</span>. Phương trình cho <span class="math display">\[c^2=c,\]</span> nên <span class="math inline">\(c=1\)</span>. Vì vậy <span class="math inline">\(P\equiv1\)</span> là một nghiệm.</p><p>Xét trường hợp <span class="math inline">\(\deg P=d\ge1\)</span>, hệ
-số cao nhất là <span class="math inline">\(a\ne0\)</span>. So sánh hệ số
-của <span class="math inline">\(x^{2d}\)</span> ở hai vế: <span class="math display">\[a^2=a,\]</span> suy ra <span class="math display">\[a=1.\tag{1}\]</span> Do đó <span class="math inline">\(P\)</span> là đa thức monic.</p><p>Ta chứng minh mọi nghiệm phức của <span class="math inline">\(P\)</span> đều bằng <span class="math inline">\(0\)</span>. Giả sử ngược lại <span class="math inline">\(P\)</span> có một nghiệm khác <span class="math inline">\(0\)</span>. Chọn nghiệm <span class="math inline">\(\alpha\ne0\)</span> có môđun lớn nhất.</p><p>Thế <span class="math inline">\(x=\alpha\)</span> vào đẳng thức đa
-thức (đẳng thức đúng trên <span class="math inline">\(\mathbb{R}\)</span> nên đúng trên <span class="math inline">\(\mathbb C\)</span>), ta được <span class="math display">\[P\bigl(\alpha(\alpha+1)\bigr)=0.\]</span> Vì
-<span class="math inline">\(\alpha\)</span> có môđun lớn nhất trong tập
-nghiệm, <span class="math display">\[|\alpha(\alpha+1)|\le|\alpha|.\]</span> Do <span class="math inline">\(\alpha\ne0\)</span>, <span class="math display">\[|\alpha+1|\le1.\tag{2}\]</span></p><p>Mặt khác, thế <span class="math inline">\(x=\alpha-1\)</span>: <span class="math display">\[P(\alpha-1)P(\alpha)=P\bigl(\alpha(\alpha-1)\bigr)=0,\]</span>
-nên <span class="math inline">\(\alpha(\alpha-1)\)</span> cũng là
-nghiệm. Tương tự, <span class="math display">\[|\alpha-1|\le1.\tag{3}\]</span></p><p>Hai đĩa đóng <span class="math display">\[|z-1|\le1,\qquad
-|z+1|\le1\]</span> chỉ có một điểm chung là <span class="math inline">\(z=0\)</span>, vì hai tâm cách nhau <span class="math inline">\(2\)</span> và tổng hai bán kính cũng bằng <span class="math inline">\(2\)</span>. Từ (2)–(3) suy ra <span class="math inline">\(\alpha=0\)</span>, mâu thuẫn.</p><p>Vậy nghiệm duy nhất của <span class="math inline">\(P\)</span> trong
-<span class="math inline">\(\mathbb C\)</span> là <span class="math inline">\(0\)</span>. Do <span class="math inline">\(P\)</span> monic bậc <span class="math inline">\(d\)</span>, <span class="math display">\[P(x)=x^d.\]</span> Quả thật, <span class="math display">\[P(x)P(x+1)=x^d(x+1)^d=(x^2+x)^d=P(x^2+x).\]</span></p><p>Kết luận tất cả nghiệm là <span class="math display">\[\boxed{P(x)\equiv0}\qquad\text{hoặc}\qquad
-\boxed{P(x)=x^d\ (d=0,1,2,\ldots)}.\]</span> Ở đây <span class="math inline">\(d=0\)</span> tương ứng với <span class="math inline">\(P\equiv1\)</span>.</p><div class="center">
+<p><strong>Lời giải.</strong>  Rõ ràng \(P\equiv0\) là một nghiệm. Từ đây giả sử
+\(P\not\equiv0\).</p><p>Nếu \(P\) là hằng, viết \(P\equiv c\ne0\). Phương trình cho \[c^2=c,\] nên \(c=1\). Vì vậy \(P\equiv1\) là một nghiệm.</p><p>Xét trường hợp \(\deg P=d\ge1\), hệ
+số cao nhất là \(a\ne0\). So sánh hệ số
+của \(x^{2d}\) ở hai vế: \[a^2=a,\] suy ra \[a=1.\tag{1}\] Do đó \(P\) là đa thức monic.</p><p>Ta chứng minh mọi nghiệm phức của \(P\) đều bằng \(0\). Giả sử ngược lại \(P\) có một nghiệm khác \(0\). Chọn nghiệm \(\alpha\ne0\) có môđun lớn nhất.</p><p>Thế \(x=\alpha\) vào đẳng thức đa
+thức (đẳng thức đúng trên \(\mathbb{R}\) nên đúng trên \(\mathbb C\)), ta được \[P\bigl(\alpha(\alpha+1)\bigr)=0.\] Vì
+\(\alpha\) có môđun lớn nhất trong tập
+nghiệm, \[|\alpha(\alpha+1)|\le|\alpha|.\] Do \(\alpha\ne0\), \[|\alpha+1|\le1.\tag{2}\]</p><p>Mặt khác, thế \(x=\alpha-1\): \[P(\alpha-1)P(\alpha)=P\bigl(\alpha(\alpha-1)\bigr)=0,\]
+nên \(\alpha(\alpha-1)\) cũng là
+nghiệm. Tương tự, \[|\alpha-1|\le1.\tag{3}\]</p><p>Hai đĩa đóng \[|z-1|\le1,\qquad
+|z+1|\le1\] chỉ có một điểm chung là \(z=0\), vì hai tâm cách nhau \(2\) và tổng hai bán kính cũng bằng \(2\). Từ (2)–(3) suy ra \(\alpha=0\), mâu thuẫn.</p><p>Vậy nghiệm duy nhất của \(P\) trong
+\(\mathbb C\) là \(0\). Do \(P\) monic bậc \(d\), \[P(x)=x^d.\] Quả thật, \[P(x)P(x+1)=x^d(x+1)^d=(x^2+x)^d=P(x^2+x).\]</p><p>Kết luận tất cả nghiệm là \[\boxed{P(x)\equiv0}\qquad\text{hoặc}\qquad
+\boxed{P(x)=x^d\ (d=0,1,2,\ldots)}.\] Ở đây \(d=0\) tương ứng với \(P\equiv1\).</p><div class="center">
 <table class="rubric-table">
 <thead>
 <tr class="header">
@@ -423,34 +423,34 @@ nghiệm. Tương tự, <span class="math display">\[|\alpha-1|\le1.\tag{3}\]</s
 <tbody>
 <tr class="odd">
 <td style="text-align: left;">1</td>
-<td style="text-align: left;">Xử lý đúng các nghiệm hằng <span class="math inline">\(P\equiv0,1\)</span>.</td>
+<td style="text-align: left;">Xử lý đúng các nghiệm hằng \(P\equiv0,1\).</td>
 <td style="text-align: right;">0,5</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">2</td>
-<td style="text-align: left;">Với <span class="math inline">\(\deg
-P=d\ge1\)</span>, so hệ số cao nhất và suy ra <span class="math inline">\(P\)</span> monic.</td>
+<td style="text-align: left;">Với \(\deg
+P=d\ge1\), so hệ số cao nhất và suy ra \(P\) monic.</td>
 <td style="text-align: right;">1,0</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">3</td>
-<td style="text-align: left;">Chọn nghiệm phức <span class="math inline">\(\alpha\ne0\)</span> có môđun cực đại.</td>
+<td style="text-align: left;">Chọn nghiệm phức \(\alpha\ne0\) có môđun cực đại.</td>
 <td style="text-align: right;">1,0</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">4</td>
-<td style="text-align: left;">Từ <span class="math inline">\(x=\alpha\)</span> suy ra <span class="math inline">\(|\alpha+1|\le1\)</span>.</td>
+<td style="text-align: left;">Từ \(x=\alpha\) suy ra \(|\alpha+1|\le1\).</td>
 <td style="text-align: right;">1,25</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">5</td>
-<td style="text-align: left;">Từ <span class="math inline">\(x=\alpha-1\)</span> suy ra <span class="math inline">\(|\alpha-1|\le1\)</span>.</td>
+<td style="text-align: left;">Từ \(x=\alpha-1\) suy ra \(|\alpha-1|\le1\).</td>
 <td style="text-align: right;">1,25</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">6</td>
 <td style="text-align: left;">Dùng giao hai đĩa để suy ra mọi nghiệm
-bằng <span class="math inline">\(0\)</span>, do đó <span class="math inline">\(P=x^d\)</span>.</td>
+bằng \(0\), do đó \(P=x^d\).</td>
 <td style="text-align: right;">1,5</td>
 </tr>
 <tr class="odd">
@@ -473,39 +473,39 @@ bằng <span class="math inline">\(0\)</span>, do đó <span class="math inline"
           <button class="btn-copy" onclick="copyText(this)">📋 Sao chép</button>
         </div>
         <div class="problem-content">
-<p>Cho tứ giác <span class="math inline">\(ABCD\)</span> nội tiếp đường
-tròn <span class="math inline">\((O,R)\)</span>. Đặt <span class="math display">\[P=AB\cap CD,\qquad Q=AD\cap BC,\qquad T=AC\cap
-BD.\]</span> Giả sử <span class="math inline">\(P,Q,T\)</span> đều hữu
-hạn, khác <span class="math inline">\(O\)</span>, và các đường thẳng
+<p>Cho tứ giác \(ABCD\) nội tiếp đường
+tròn \((O,R)\). Đặt \[P=AB\cap CD,\qquad Q=AD\cap BC,\qquad T=AC\cap
+BD.\] Giả sử \(P,Q,T\) đều hữu
+hạn, khác \(O\), và các đường thẳng
 trong bài toán được xác định.</p><ol>
-<li><p>Chứng minh <span class="math display">\[OP\perp QT,\qquad OQ\perp
-TP,\qquad OT\perp PQ.\]</span> Suy ra <span class="math inline">\(O\)</span> là trực tâm của tam giác <span class="math inline">\(PQT\)</span>.</p></li>
-<li><p>Đặt <span class="math display">\[X=OP\cap QT,\qquad Y=OQ\cap
-TP,\qquad Z=OT\cap PQ.\]</span> Chứng minh <span class="math display">\[\boxed{OP\cdot OX=OQ\cdot OY=OT\cdot
-OZ=R^2}.\]</span> Suy ra phép nghịch đảo tâm <span class="math inline">\(O\)</span>, bán kính <span class="math inline">\(R\)</span>, biến <span class="math inline">\(P,Q,T\)</span> lần lượt thành <span class="math inline">\(X,Y,Z\)</span>.</p></li>
+<li><p>Chứng minh \[OP\perp QT,\qquad OQ\perp
+TP,\qquad OT\perp PQ.\] Suy ra \(O\) là trực tâm của tam giác \(PQT\).</p></li>
+<li><p>Đặt \[X=OP\cap QT,\qquad Y=OQ\cap
+TP,\qquad Z=OT\cap PQ.\] Chứng minh \[\boxed{OP\cdot OX=OQ\cdot OY=OT\cdot
+OZ=R^2}.\] Suy ra phép nghịch đảo tâm \(O\), bán kính \(R\), biến \(P,Q,T\) lần lượt thành \(X,Y,Z\).</p></li>
 </ol>
         </div>
         <button class="toggle-btn" onclick="toggleSolution(this)" type="button">👁️ Xem lời giải &amp; Thang điểm</button>
         <div class="solution-content" style="display:none">
           <h4 style="margin: 14px 0 8px 0; color: #1e3a8a; font-weight: 700; font-size: 1.05rem;">📖 Lời giải chi tiết &amp; Barem điểm</h4>
 <p><strong>Lời giải.</strong>  Bài toán là một ứng dụng điển hình của
-cực–đối cực đối với đường tròn.</p><p><strong>a)</strong> Với tứ giác nội tiếp <span class="math inline">\(ABCD\)</span>, ba điểm <span class="math display">\[P=AB\cap CD,\qquad Q=AD\cap BC,\qquad T=AC\cap
-BD\]</span> tạo thành <em>tam giác đường chéo</em>. Theo định lý tam
-giác đường chéo tự đối cực, đối cực của <span class="math inline">\(P,Q,T\)</span> đối với <span class="math inline">\((O)\)</span> lần lượt là <span class="math display">\[QT,\qquad TP,\qquad PQ.\tag{1}\]</span> Đối cực
-của một điểm đối với đường tròn tâm <span class="math inline">\(O\)</span> luôn vuông góc với đường nối điểm đó
-với <span class="math inline">\(O\)</span>. Từ (1), <span class="math display">\[OP\perp QT,\qquad OQ\perp TP,\qquad OT\perp
-PQ.\]</span> Vì vậy <span class="math inline">\(OP,OQ,OT\)</span> là ba
-đường cao của tam giác <span class="math inline">\(PQT\)</span>, nên
-<span class="math display">\[\boxed{O\ \text{là trực tâm của tam giác
-}PQT}.\]</span></p><p><strong>b)</strong> Xét điểm <span class="math inline">\(P\)</span>.
-Do <span class="math inline">\(QT\)</span> là đối cực của <span class="math inline">\(P\)</span> và <span class="math inline">\(X=OP\cap
-QT\)</span>, định lý cơ bản về đối cực của đường tròn cho <span class="math display">\[OP\cdot OX=R^2.\tag{2}\]</span> Hoàn toàn tương
-tự, <span class="math display">\[OQ\cdot OY=R^2,\qquad OT\cdot
-OZ=R^2.\tag{3}\]</span> Từ (2)–(3), <span class="math display">\[\boxed{OP\cdot OX=OQ\cdot OY=OT\cdot
-OZ=R^2}.\]</span> Hơn nữa, <span class="math inline">\(X\)</span> nằm
-trên tia/đường thẳng <span class="math inline">\(OP\)</span>, <span class="math inline">\(Y\)</span> trên <span class="math inline">\(OQ\)</span>, <span class="math inline">\(Z\)</span> trên <span class="math inline">\(OT\)</span>, và các tích khoảng cách đến <span class="math inline">\(O\)</span> bằng <span class="math inline">\(R^2\)</span>. Theo định nghĩa phép nghịch đảo tâm
-<span class="math inline">\(O\)</span>, bán kính <span class="math inline">\(R\)</span>, ta có <span class="math display">\[P\longleftrightarrow X,\qquad
-Q\longleftrightarrow Y,\qquad T\longleftrightarrow Z.\]</span></p><p><em>Nhận xét.</em> Nếu chưa dùng cực–đối cực, có thể chứng minh (1)
+cực–đối cực đối với đường tròn.</p><p><strong>a)</strong> Với tứ giác nội tiếp \(ABCD\), ba điểm \[P=AB\cap CD,\qquad Q=AD\cap BC,\qquad T=AC\cap
+BD\] tạo thành <em>tam giác đường chéo</em>. Theo định lý tam
+giác đường chéo tự đối cực, đối cực của \(P,Q,T\) đối với \((O)\) lần lượt là \[QT,\qquad TP,\qquad PQ.\tag{1}\] Đối cực
+của một điểm đối với đường tròn tâm \(O\) luôn vuông góc với đường nối điểm đó
+với \(O\). Từ (1), \[OP\perp QT,\qquad OQ\perp TP,\qquad OT\perp
+PQ.\] Vì vậy \(OP,OQ,OT\) là ba
+đường cao của tam giác \(PQT\), nên
+\[\boxed{O\ \text{là trực tâm của tam giác
+}PQT}.\]</p><p><strong>b)</strong> Xét điểm \(P\).
+Do \(QT\) là đối cực của \(P\) và \(X=OP\cap
+QT\), định lý cơ bản về đối cực của đường tròn cho \[OP\cdot OX=R^2.\tag{2}\] Hoàn toàn tương
+tự, \[OQ\cdot OY=R^2,\qquad OT\cdot
+OZ=R^2.\tag{3}\] Từ (2)–(3), \[\boxed{OP\cdot OX=OQ\cdot OY=OT\cdot
+OZ=R^2}.\] Hơn nữa, \(X\) nằm
+trên tia/đường thẳng \(OP\), \(Y\) trên \(OQ\), \(Z\) trên \(OT\), và các tích khoảng cách đến \(O\) bằng \(R^2\). Theo định nghĩa phép nghịch đảo tâm
+\(O\), bán kính \(R\), ta có \[P\longleftrightarrow X,\qquad
+Q\longleftrightarrow Y,\qquad T\longleftrightarrow Z.\]</p><p><em>Nhận xét.</em> Nếu chưa dùng cực–đối cực, có thể chứng minh (1)
 bằng cấu hình điều hòa và công suất, nhưng lời giải dài hơn. Trong kỳ
 thi chọn đội tuyển, nhận ra ngay tam giác đường chéo của một tứ giác nội
 tiếp là một lợi thế lớn.</p><div class="center">
@@ -531,12 +531,12 @@ chéo tự đối cực.</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"></td>
-<td style="text-align: left;">Kết luận <span class="math inline">\(O\)</span> là trực tâm của <span class="math inline">\(PQT\)</span>.</td>
+<td style="text-align: left;">Kết luận \(O\) là trực tâm của \(PQT\).</td>
 <td style="text-align: right;">0,5</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">b</td>
-<td style="text-align: left;">Dùng tính chất đối cực để có <span class="math inline">\(OP\cdot OX=R^2\)</span>.</td>
+<td style="text-align: left;">Dùng tính chất đối cực để có \(OP\cdot OX=R^2\).</td>
 <td style="text-align: right;">1,0</td>
 </tr>
 <tr class="odd">
@@ -566,20 +566,20 @@ lại.</td>
           <button class="btn-copy" onclick="copyText(this)">📋 Sao chép</button>
         </div>
         <div class="problem-content">
-<p>Có <span class="math inline">\(n\ge3\)</span> bóng đèn đặt tại các
-đỉnh của một đa giác đều và được đánh số <span class="math inline">\(0,1,\ldots,n-1\)</span> theo chiều kim đồng hồ.
-Ban đầu tất cả bóng đèn đều tắt. Một phép biến đổi tại vị trí <span class="math inline">\(i\)</span> làm đổi trạng thái của ba bóng đèn tại
-các vị trí <span class="math display">\[i,\ i+1,\ i+2\pmod
-n.\]</span></p><ol>
-<li><p>Với <span class="math inline">\(n=2026\)</span>, chứng minh mọi
+<p>Có \(n\ge3\) bóng đèn đặt tại các
+đỉnh của một đa giác đều và được đánh số \(0,1,\ldots,n-1\) theo chiều kim đồng hồ.
+Ban đầu tất cả bóng đèn đều tắt. Một phép biến đổi tại vị trí \(i\) làm đổi trạng thái của ba bóng đèn tại
+các vị trí \[i,\ i+1,\ i+2\pmod
+n.\]</p><ol>
+<li><p>Với \(n=2026\), chứng minh mọi
 cấu hình sáng–tắt đều đạt được từ trạng thái ban đầu theo đúng một cách
-nếu mỗi vị trí chỉ được sử dụng <span class="math inline">\(0\)</span>
-hoặc <span class="math inline">\(1\)</span> lần. Suy ra số phép biến đổi
-ít nhất để làm sáng toàn bộ <span class="math inline">\(2026\)</span>
-bóng đèn là <span class="math inline">\(2026\)</span>.</p></li>
-<li><p>Với <span class="math inline">\(n\)</span> bất kỳ, xác định số
+nếu mỗi vị trí chỉ được sử dụng \(0\)
+hoặc \(1\) lần. Suy ra số phép biến đổi
+ít nhất để làm sáng toàn bộ \(2026\)
+bóng đèn là \(2026\).</p></li>
+<li><p>Với \(n\) bất kỳ, xác định số
 cấu hình có thể đạt được từ trạng thái ban đầu. Đồng thời tìm số phép
-biến đổi ít nhất để làm sáng toàn bộ <span class="math inline">\(n\)</span> bóng đèn.</p></li>
+biến đổi ít nhất để làm sáng toàn bộ \(n\) bóng đèn.</p></li>
 </ol>
         </div>
         <button class="toggle-btn" onclick="toggleSolution(this)" type="button">👁️ Xem lời giải &amp; Thang điểm</button>
@@ -587,43 +587,43 @@ biến đổi ít nhất để làm sáng toàn bộ <span class="math inline">\
           <h4 style="margin: 14px 0 8px 0; color: #1e3a8a; font-weight: 700; font-size: 1.05rem;">📖 Lời giải chi tiết &amp; Barem điểm</h4>
 <p><strong>Lời giải.</strong>  Vì thực hiện hai lần cùng một phép biến
 đổi sẽ đưa ba bóng đèn liên quan trở lại trạng thái cũ, ta chỉ cần quan
-tâm mỗi vị trí được chọn <span class="math inline">\(0\)</span> hay
-<span class="math inline">\(1\)</span> lần.</p><p>Làm việc trên trường <span class="math inline">\(\mathbb{F}_2\)</span>. Đặt <span class="math display">\[x_i=\begin{cases}
+tâm mỗi vị trí được chọn \(0\) hay
+\(1\) lần.</p><p>Làm việc trên trường \(\mathbb{F}_2\). Đặt \[x_i=\begin{cases}
 1,&amp;\text{nếu thực hiện phép biến đổi tại vị trí }i,\\
 0,&amp;\text{nếu không thực hiện},
-\end{cases}\]</span> và <span class="math inline">\(y_j\in\mathbb{F}_2\)</span> là trạng thái cuối của
-bóng đèn <span class="math inline">\(j\)</span> (<span class="math inline">\(0\)</span>: tắt, <span class="math inline">\(1\)</span>: sáng). Các chỉ số đều tính modulo
-<span class="math inline">\(n\)</span>. Khi đó <span class="math display">\[\boxed{y_j=x_j+x_{j-1}+x_{j-2}}.\tag{1}\]</span>
-Do đó bài toán trở thành bài toán tuyến tính <span class="math inline">\(T(x)=y\)</span> trên <span class="math inline">\(\mathbb{F}_2^n\)</span>.</p><p>Xét phương trình thuần nhất <span class="math inline">\(T(x)=0\)</span>: <span class="math display">\[x_j+x_{j-1}+x_{j-2}=0\quad\forall
-j.\tag{2}\]</span> Cộng hai phương trình liên tiếp ứng với <span class="math inline">\(j\)</span> và <span class="math inline">\(j-1\)</span> trong <span class="math inline">\(\mathbb{F}_2\)</span>, <span class="math display">\[x_j+x_{j-3}=0,\]</span> hay <span class="math display">\[x_j=x_{j-3}\quad\forall j.\tag{3}\]</span></p><p><strong>a) Trường hợp <span class="math inline">\(n=2026\)</span>.</strong> Vì <span class="math inline">\(\gcd(2026,3)=1\)</span>, từ (3) suy ra tất cả
-<span class="math inline">\(x_j\)</span> bằng nhau. Thế vào (2), <span class="math display">\[x+x+x=x=0\]</span> trong <span class="math inline">\(\mathbb{F}_2\)</span>, nên <span class="math inline">\(x=0\)</span>. Vậy <span class="math display">\[\ker T=\{0\}.\]</span> Không gian nguồn và đích
-đều có dimension <span class="math inline">\(2026\)</span>, nên <span class="math inline">\(T\)</span> là song ánh. Vì thế mỗi cấu hình <span class="math inline">\(y\)</span> đạt được theo đúng một vectơ lựa chọn
-<span class="math inline">\(x\)</span>, tức theo đúng một cách modulo
-việc thực hiện một phép hai lần.</p><p>Để tất cả bóng đèn sáng, <span class="math inline">\(y_j=1\)</span>
-với mọi <span class="math inline">\(j\)</span>. Trừ hai phương trình
-<span class="math display">\[x_j+x_{j-1}+x_{j-2}=1\]</span> liên tiếp
-vẫn cho <span class="math inline">\(x_j=x_{j-3}\)</span>. Do <span class="math inline">\(\gcd(2026,3)=1\)</span>, mọi <span class="math inline">\(x_j\)</span> bằng một giá trị <span class="math inline">\(x\)</span>; thế vào được <span class="math inline">\(x=1\)</span>. Vậy bắt buộc phải dùng cả <span class="math inline">\(2026\)</span> vị trí, nên số phép ít nhất là <span class="math display">\[\boxed{2026}.\]</span></p><p><strong>b) Trường hợp tổng quát.</strong></p><p>Nếu <span class="math inline">\(3\nmid n\)</span>, lập luận trên cho
-<span class="math inline">\(\ker T=\{0\}\)</span>, nên <span class="math inline">\(T\)</span> song ánh. Số cấu hình đạt được là <span class="math display">\[\boxed{2^n}.\]</span> Đối với cấu hình toàn sáng,
-nghiệm duy nhất là <span class="math inline">\(x_i=1\)</span> với mọi
-<span class="math inline">\(i\)</span>, nên số phép ít nhất bằng <span class="math display">\[\boxed{n}.\]</span></p><p>Nếu <span class="math inline">\(3\mid n\)</span>, viết <span class="math inline">\(n=3m\)</span>. Từ (3), mọi nghiệm của (2) có dạng
-tuần hoàn chu kỳ <span class="math inline">\(3\)</span>: <span class="math display">\[(a,b,c,a,b,c,\ldots,a,b,c).\]</span> Điều kiện
-(2) tương đương <span class="math display">\[a+b+c=0.\]</span> Có hai
-tham số tự do, nên <span class="math display">\[\dim\ker T=2.\]</span>
-Bởi định lý hạng–không gian nghiệm, <span class="math display">\[\operatorname{rank}T=n-2.\]</span> Vì vậy số cấu
-hình đạt được là <span class="math display">\[\boxed{2^{n-2}}.\]</span></p><p>Đối với cấu hình toàn sáng, ta cần <span class="math display">\[a+b+c=1.\]</span> Có bốn bộ ba khả dĩ: <span class="math display">\[(1,0,0),\quad(0,1,0),\quad(0,0,1),\quad(1,1,1).\]</span>
-Ba bộ đầu, lặp <span class="math inline">\(m\)</span> lần quanh vòng
-tròn, dùng đúng <span class="math inline">\(m=n/3\)</span> phép; bộ cuối
-dùng <span class="math inline">\(n\)</span> phép. Do đó số phép ít nhất
-là <span class="math display">\[\boxed{\frac{n}{3}}.\]</span></p><p>Tóm lại, <span class="math display">\[\boxed{
+\end{cases}\] và \(y_j\in\mathbb{F}_2\) là trạng thái cuối của
+bóng đèn \(j\) (\(0\): tắt, \(1\): sáng). Các chỉ số đều tính modulo
+\(n\). Khi đó \[\boxed{y_j=x_j+x_{j-1}+x_{j-2}}.\tag{1}\]
+Do đó bài toán trở thành bài toán tuyến tính \(T(x)=y\) trên \(\mathbb{F}_2^n\).</p><p>Xét phương trình thuần nhất \(T(x)=0\): \[x_j+x_{j-1}+x_{j-2}=0\quad\forall
+j.\tag{2}\] Cộng hai phương trình liên tiếp ứng với \(j\) và \(j-1\) trong \(\mathbb{F}_2\), \[x_j+x_{j-3}=0,\] hay \[x_j=x_{j-3}\quad\forall j.\tag{3}\]</p><p><strong>a) Trường hợp \(n=2026\).</strong> Vì \(\gcd(2026,3)=1\), từ (3) suy ra tất cả
+\(x_j\) bằng nhau. Thế vào (2), \[x+x+x=x=0\] trong \(\mathbb{F}_2\), nên \(x=0\). Vậy \[\ker T=\{0\}.\] Không gian nguồn và đích
+đều có dimension \(2026\), nên \(T\) là song ánh. Vì thế mỗi cấu hình \(y\) đạt được theo đúng một vectơ lựa chọn
+\(x\), tức theo đúng một cách modulo
+việc thực hiện một phép hai lần.</p><p>Để tất cả bóng đèn sáng, \(y_j=1\)
+với mọi \(j\). Trừ hai phương trình
+\[x_j+x_{j-1}+x_{j-2}=1\] liên tiếp
+vẫn cho \(x_j=x_{j-3}\). Do \(\gcd(2026,3)=1\), mọi \(x_j\) bằng một giá trị \(x\); thế vào được \(x=1\). Vậy bắt buộc phải dùng cả \(2026\) vị trí, nên số phép ít nhất là \[\boxed{2026}.\]</p><p><strong>b) Trường hợp tổng quát.</strong></p><p>Nếu \(3\nmid n\), lập luận trên cho
+\(\ker T=\{0\}\), nên \(T\) song ánh. Số cấu hình đạt được là \[\boxed{2^n}.\] Đối với cấu hình toàn sáng,
+nghiệm duy nhất là \(x_i=1\) với mọi
+\(i\), nên số phép ít nhất bằng \[\boxed{n}.\]</p><p>Nếu \(3\mid n\), viết \(n=3m\). Từ (3), mọi nghiệm của (2) có dạng
+tuần hoàn chu kỳ \(3\): \[(a,b,c,a,b,c,\ldots,a,b,c).\] Điều kiện
+(2) tương đương \[a+b+c=0.\] Có hai
+tham số tự do, nên \[\dim\ker T=2.\]
+Bởi định lý hạng–không gian nghiệm, \[\operatorname{rank}T=n-2.\] Vì vậy số cấu
+hình đạt được là \[\boxed{2^{n-2}}.\]</p><p>Đối với cấu hình toàn sáng, ta cần \[a+b+c=1.\] Có bốn bộ ba khả dĩ: \[(1,0,0),\quad(0,1,0),\quad(0,0,1),\quad(1,1,1).\]
+Ba bộ đầu, lặp \(m\) lần quanh vòng
+tròn, dùng đúng \(m=n/3\) phép; bộ cuối
+dùng \(n\) phép. Do đó số phép ít nhất
+là \[\boxed{\frac{n}{3}}.\]</p><p>Tóm lại, \[\boxed{
 \#\{\text{cấu hình đạt được}\}=
 \begin{cases}
 2^n,&amp;3\nmid n,\\
 2^{n-2},&amp;3\mid n,
-\end{cases}}\]</span> và số phép ít nhất để làm sáng toàn bộ là <span class="math display">\[\boxed{
+\end{cases}}\] và số phép ít nhất để làm sáng toàn bộ là \[\boxed{
 \begin{cases}
 n,&amp;3\nmid n,\\[1mm]
 n/3,&amp;3\mid n.
-\end{cases}}\]</span></p><div class="center">
+\end{cases}}\]</p><div class="center">
 <table class="rubric-table">
 <thead>
 <tr class="header">
@@ -635,33 +635,33 @@ n/3,&amp;3\mid n.
 <tbody>
 <tr class="odd">
 <td style="text-align: left;">a</td>
-<td style="text-align: left;">Mã hóa trên <span class="math inline">\(\mathbb{F}_2\)</span> và thiết lập <span class="math inline">\(y_j=x_j+x_{j-1}+x_{j-2}\)</span>.</td>
+<td style="text-align: left;">Mã hóa trên \(\mathbb{F}_2\) và thiết lập \(y_j=x_j+x_{j-1}+x_{j-2}\).</td>
 <td style="text-align: right;">0,75</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"></td>
-<td style="text-align: left;">Xét kernel, suy ra <span class="math inline">\(x_j=x_{j-3}\)</span> và với <span class="math inline">\(n=2026\)</span> thì kernel bằng <span class="math inline">\(0\)</span>.</td>
+<td style="text-align: left;">Xét kernel, suy ra \(x_j=x_{j-3}\) và với \(n=2026\) thì kernel bằng \(0\).</td>
 <td style="text-align: right;">1,25</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"></td>
 <td style="text-align: left;">Suy ra mọi cấu hình đạt được duy nhất và
-toàn sáng cần đúng <span class="math inline">\(2026\)</span> phép.</td>
+toàn sáng cần đúng \(2026\) phép.</td>
 <td style="text-align: right;">1,0</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">b</td>
-<td style="text-align: left;">Trường hợp <span class="math inline">\(3\nmid n\)</span>: suy ra <span class="math inline">\(2^n\)</span> cấu hình và tối thiểu <span class="math inline">\(n\)</span> phép.</td>
+<td style="text-align: left;">Trường hợp \(3\nmid n\): suy ra \(2^n\) cấu hình và tối thiểu \(n\) phép.</td>
 <td style="text-align: right;">1,0</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"></td>
-<td style="text-align: left;">Trường hợp <span class="math inline">\(3\mid n\)</span>: xác định <span class="math inline">\(\dim\ker T=2\)</span> và số cấu hình <span class="math inline">\(2^{n-2}\)</span>.</td>
+<td style="text-align: left;">Trường hợp \(3\mid n\): xác định \(\dim\ker T=2\) và số cấu hình \(2^{n-2}\).</td>
 <td style="text-align: right;">1,5</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"></td>
-<td style="text-align: left;">Giải <span class="math inline">\(a+b+c=1\)</span>, tìm đúng số phép tối thiểu <span class="math inline">\(n/3\)</span>.</td>
+<td style="text-align: left;">Giải \(a+b+c=1\), tìm đúng số phép tối thiểu \(n/3\).</td>
 <td style="text-align: right;">1,5</td>
 </tr>
 </tbody>
@@ -679,10 +679,10 @@ Câu 7: 7,0 điểm. Tổng cộng: <strong>20,0/20,0 điểm</strong>.</p>
 <h2 class="section-heading" id="nhận-xét-sau-khi-làm-hai-ngày"><span class="section-number">11.2</span>Nhận xét sau khi làm hai
 ngày</h2><ul>
 <li><p><strong>Câu 1</strong> kiểm tra khả năng chuyển truy hồi phi
-tuyến sang sai phân của <span class="math inline">\(x_n^2\)</span>, rồi
+tuyến sang sai phân của \(x_n^2\), rồi
 nâng từ cấp tăng trưởng lên giới hạn tinh bằng Stolz–Cesàro.</p></li>
 <li><p><strong>Câu 2</strong> yêu cầu chuỗi phản xạ chuẩn của phương
-trình hàm: tạo <span class="math inline">\(f(f(y))\)</span>, chứng minh
+trình hàm: tạo \(f(f(y))\), chứng minh
 song ánh, tách hằng số, ép cộng tính, rồi dùng bảo toàn bình phương để
 loại nghiệm Cauchy bệnh lý.</p></li>
 <li><p><strong>Câu 3</strong> là mẫu điển hình của “số học + dãy số
@@ -697,7 +697,7 @@ chọn nghiệm phức có môđun cực đại.</p></li>
 đối cực, một “bổ đề cấp hai” có sức mạnh lớn trong cấu hình tứ giác nội
 tiếp.</p></li>
 <li><p><strong>Câu 7</strong> minh họa đầy đủ quy trình tổ hợp tuyến
-tính: mã hóa trạng thái trên <span class="math inline">\(\mathbb{F}_2\)</span>, tìm kernel, dùng dimension
+tính: mã hóa trạng thái trên \(\mathbb{F}_2\), tìm kernel, dùng dimension
 để đếm cấu hình, sau đó tối ưu trọng số của nghiệm.</p></li>
 </ul><div class="warnbox"><div class="box-heading">Mốc tự đánh giá</div>
 <p> Nếu làm đúng điều kiện thi thật: đạt từ
@@ -737,42 +737,42 @@ chính thức của Sở GD&amp;ĐT.</p>
           <button class="btn-copy" onclick="copyText(this)">📋 Sao chép</button>
         </div>
         <div class="problem-content">
-<p>Cho dãy số dương <span class="math inline">\((x_n)\)</span> xác định
-bởi <span class="math display">\[x_1=1,\qquad
-x_{n+1}=x_n+\frac{1}{x_n^2},\qquad n\ge1.\]</span></p><ol>
-<li><p>Chứng minh <span class="math display">\[\lim_{n\to\infty}\frac{x_n}{\sqrt[3]{n}}=\sqrt[3]{3}.\]</span></p></li>
-<li><p>Tính giới hạn <span class="math display">\[\lim_{n\to\infty}\frac{x_n^3-3n}{\ln
-n}.\]</span></p></li>
+<p>Cho dãy số dương \((x_n)\) xác định
+bởi \[x_1=1,\qquad
+x_{n+1}=x_n+\frac{1}{x_n^2},\qquad n\ge1.\]</p><ol>
+<li><p>Chứng minh \[\lim_{n\to\infty}\frac{x_n}{\sqrt[3]{n}}=\sqrt[3]{3}.\]</p></li>
+<li><p>Tính giới hạn \[\lim_{n\to\infty}\frac{x_n^3-3n}{\ln
+n}.\]</p></li>
 </ol>
         </div>
         <button class="toggle-btn" onclick="toggleSolution(this)" type="button">👁️ Xem lời giải &amp; Thang điểm</button>
         <div class="solution-content" style="display:none">
           <h4 style="margin: 14px 0 8px 0; color: #1e3a8a; font-weight: 700; font-size: 1.05rem;">📖 Lời giải chi tiết &amp; Barem điểm</h4>
-<p><strong>Lời giải.</strong>  Ta có <span class="math inline">\(x_{n+1}&gt;x_n&gt;0\)</span> với mọi <span class="math inline">\(n\)</span>.</p><p><strong>a)</strong> Trước hết, <span class="math inline">\((x_n)\)</span> không thể bị chặn trên. Thật vậy,
-nếu <span class="math inline">\(x_n\le L\)</span> với mọi <span class="math inline">\(n\)</span> thì <span class="math display">\[x_{n+1}-x_n=\frac{1}{x_n^2}\ge\frac{1}{L^2},\]</span>
-nên <span class="math inline">\(x_n\ge x_1+(n-1)/L^2\to+\infty\)</span>,
-mâu thuẫn. Do đó <span class="math display">\[x_n\longrightarrow+\infty.\tag{1}\]</span> Khai
-triển hiệu lập phương, <span class="math display">\[\begin{aligned}
+<p><strong>Lời giải.</strong>  Ta có \(x_{n+1}&gt;x_n&gt;0\) với mọi \(n\).</p><p><strong>a)</strong> Trước hết, \((x_n)\) không thể bị chặn trên. Thật vậy,
+nếu \(x_n\le L\) với mọi \(n\) thì \[x_{n+1}-x_n=\frac{1}{x_n^2}\ge\frac{1}{L^2},\]
+nên \(x_n\ge x_1+(n-1)/L^2\to+\infty\),
+mâu thuẫn. Do đó \[x_n\longrightarrow+\infty.\tag{1}\] Khai
+triển hiệu lập phương, \[\begin{aligned}
 x_{n+1}^3-x_n^3
 &amp;=\left(x_n+\frac{1}{x_n^2}\right)^3-x_n^3\\
 &amp;=3+\frac{3}{x_n^3}+\frac{1}{x_n^6}.
-\end{aligned}\tag{2}\]</span> Theo (1), vế phải của (2) tiến tới <span class="math inline">\(3\)</span>. Áp dụng định lý Stolz–Cesàro cho <span class="math inline">\(x_n^3/n\)</span>, <span class="math display">\[\lim_{n\to\infty}\frac{x_n^3}{n}
-=\lim_{n\to\infty}(x_{n+1}^3-x_n^3)=3.\]</span> Vì <span class="math inline">\(x_n&gt;0\)</span>, <span class="math display">\[\boxed{\displaystyle
-\lim_{n\to\infty}\frac{x_n}{\sqrt[3]{n}}=\sqrt[3]{3}}.\]</span></p><p><strong>b)</strong> Cộng (2) từ <span class="math inline">\(k=1\)</span> đến <span class="math inline">\(n-1\)</span> và dùng <span class="math inline">\(x_1=1\)</span>, <span class="math display">\[x_n^3
-=1+3(n-1)+\sum_{k=1}^{n-1}\left(\frac{3}{x_k^3}+\frac{1}{x_k^6}\right).\]</span>
-Suy ra <span class="math display">\[x_n^3-3n
+\end{aligned}\tag{2}\] Theo (1), vế phải của (2) tiến tới \(3\). Áp dụng định lý Stolz–Cesàro cho \(x_n^3/n\), \[\lim_{n\to\infty}\frac{x_n^3}{n}
+=\lim_{n\to\infty}(x_{n+1}^3-x_n^3)=3.\] Vì \(x_n&gt;0\), \[\boxed{\displaystyle
+\lim_{n\to\infty}\frac{x_n}{\sqrt[3]{n}}=\sqrt[3]{3}}.\]</p><p><strong>b)</strong> Cộng (2) từ \(k=1\) đến \(n-1\) và dùng \(x_1=1\), \[x_n^3
+=1+3(n-1)+\sum_{k=1}^{n-1}\left(\frac{3}{x_k^3}+\frac{1}{x_k^6}\right).\]
+Suy ra \[x_n^3-3n
 =-2+\sum_{k=1}^{n-1}\frac{3}{x_k^3}
 +\sum_{k=1}^{n-1}\frac{1}{x_k^6}.
-\tag{3}\]</span> Từ câu a), <span class="math display">\[\frac{x_k^3}{k}\to3
+\tag{3}\] Từ câu a), \[\frac{x_k^3}{k}\to3
 \quad\Longrightarrow\quad
-\frac{3k}{x_k^3}\to1,\]</span> hay <span class="math display">\[\frac{3}{x_k^3}\sim\frac{1}{k}.
-\tag{4}\]</span> Do đó, theo Stolz–Cesàro cho các tổng dương, <span class="math display">\[\lim_{n\to\infty}
+\frac{3k}{x_k^3}\to1,\] hay \[\frac{3}{x_k^3}\sim\frac{1}{k}.
+\tag{4}\] Do đó, theo Stolz–Cesàro cho các tổng dương, \[\lim_{n\to\infty}
 \frac{\displaystyle\sum_{k=1}^{n-1}\frac{3}{x_k^3}}{\ln n}=1.
-\tag{5}\]</span> Mặt khác, từ <span class="math inline">\(x_k^3/k\to3\)</span> tồn tại <span class="math inline">\(k_0\)</span> sao cho <span class="math inline">\(x_k^3\ge k\)</span> với <span class="math inline">\(k\ge k_0\)</span>. Vì thế <span class="math display">\[0\le\frac{1}{x_k^6}\le\frac{1}{k^2}\qquad(k\ge
-k_0),\]</span> nên chuỗi <span class="math inline">\(\sum
-1/x_k^6\)</span> hội tụ. Chia (3) cho <span class="math inline">\(\ln
-n\)</span> và dùng (5), ta được <span class="math display">\[\boxed{\displaystyle
-\lim_{n\to\infty}\frac{x_n^3-3n}{\ln n}=1}.\]</span></p><div class="center">
+\tag{5}\] Mặt khác, từ \(x_k^3/k\to3\) tồn tại \(k_0\) sao cho \(x_k^3\ge k\) với \(k\ge k_0\). Vì thế \[0\le\frac{1}{x_k^6}\le\frac{1}{k^2}\qquad(k\ge
+k_0),\] nên chuỗi \(\sum
+1/x_k^6\) hội tụ. Chia (3) cho \(\ln
+n\) và dùng (5), ta được \[\boxed{\displaystyle
+\lim_{n\to\infty}\frac{x_n^3-3n}{\ln n}=1}.\]</p><div class="center">
 <table class="rubric-table">
 <thead>
 <tr class="header">
@@ -784,17 +784,17 @@ n\)</span> và dùng (5), ta được <span class="math display">\[\boxed{\displ
 <tbody>
 <tr class="odd">
 <td style="text-align: left;">a</td>
-<td style="text-align: left;">Chứng minh <span class="math inline">\(x_n\to+\infty\)</span>.</td>
+<td style="text-align: left;">Chứng minh \(x_n\to+\infty\).</td>
 <td style="text-align: right;">0,75</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"></td>
-<td style="text-align: left;">Tính đúng <span class="math inline">\(x_{n+1}^3-x_n^3=3+3/x_n^3+1/x_n^6\)</span>.</td>
+<td style="text-align: left;">Tính đúng \(x_{n+1}^3-x_n^3=3+3/x_n^3+1/x_n^6\).</td>
 <td style="text-align: right;">0,75</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"></td>
-<td style="text-align: left;">Dùng Stolz–Cesàro suy ra <span class="math inline">\(x_n^3/n\to3\)</span> và kết luận.</td>
+<td style="text-align: left;">Dùng Stolz–Cesàro suy ra \(x_n^3/n\to3\) và kết luận.</td>
 <td style="text-align: right;">1,0</td>
 </tr>
 <tr class="even">
@@ -804,14 +804,14 @@ n\)</span> và dùng (5), ta được <span class="math display">\[\boxed{\displ
 </tr>
 <tr class="odd">
 <td style="text-align: left;"></td>
-<td style="text-align: left;">Chứng minh <span class="math inline">\(3/x_k^3\sim1/k\)</span> và tổng tương ứng chia
-<span class="math inline">\(\ln n\)</span> tiến tới <span class="math inline">\(1\)</span>.</td>
+<td style="text-align: left;">Chứng minh \(3/x_k^3\sim1/k\) và tổng tương ứng chia
+\(\ln n\) tiến tới \(1\).</td>
 <td style="text-align: right;">1,0</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"></td>
-<td style="text-align: left;">Chứng minh <span class="math inline">\(\sum 1/x_k^6\)</span> hội tụ và kết luận giới hạn
-bằng <span class="math inline">\(1\)</span>.</td>
+<td style="text-align: left;">Chứng minh \(\sum 1/x_k^6\) hội tụ và kết luận giới hạn
+bằng \(1\).</td>
 <td style="text-align: right;">0,75</td>
 </tr>
 </tbody>
@@ -829,38 +829,38 @@ bằng <span class="math inline">\(1\)</span>.</td>
           <button class="btn-copy" onclick="copyText(this)">📋 Sao chép</button>
         </div>
         <div class="problem-content">
-<p>Tìm tất cả các hàm <span class="math inline">\(f:\mathbb{R}\to\mathbb{R}\)</span> thỏa mãn <span class="math display">\[\boxed{\ f\bigl(x^2+f(y)\bigr)=x f(x)+y\ },\qquad
-\forall x,y\in\mathbb{R}.\]</span></p>
+<p>Tìm tất cả các hàm \(f:\mathbb{R}\to\mathbb{R}\) thỏa mãn \[\boxed{\ f\bigl(x^2+f(y)\bigr)=x f(x)+y\ },\qquad
+\forall x,y\in\mathbb{R}.\]</p>
         </div>
         <button class="toggle-btn" onclick="toggleSolution(this)" type="button">👁️ Xem lời giải &amp; Thang điểm</button>
         <div class="solution-content" style="display:none">
           <h4 style="margin: 14px 0 8px 0; color: #1e3a8a; font-weight: 700; font-size: 1.05rem;">📖 Lời giải chi tiết &amp; Barem điểm</h4>
-<p><strong>Lời giải.</strong>  Ký hiệu mệnh đề đã cho bởi <span class="math inline">\(P(x,y)\)</span>.</p><p>Cho <span class="math inline">\(x=0\)</span>, <span class="math display">\[f(f(y))=y\qquad\forall
-y\in\mathbb{R}.\tag{1}\]</span> Do đó <span class="math inline">\(f\)</span> vừa đơn ánh vừa toàn ánh, và <span class="math inline">\(f^{-1}=f\)</span>.</p><p>Vì <span class="math inline">\(f\)</span> toàn ánh, với mỗi <span class="math inline">\(t\in\mathbb{R}\)</span> tồn tại <span class="math inline">\(y\)</span> sao cho <span class="math inline">\(t=f(y)\)</span>. Từ (1), khi đó <span class="math inline">\(y=f(t)\)</span>. Phương trình ban đầu trở thành
-<span class="math display">\[f(x^2+t)=x f(x)+f(t),\qquad\forall
+<p><strong>Lời giải.</strong>  Ký hiệu mệnh đề đã cho bởi \(P(x,y)\).</p><p>Cho \(x=0\), \[f(f(y))=y\qquad\forall
+y\in\mathbb{R}.\tag{1}\] Do đó \(f\) vừa đơn ánh vừa toàn ánh, và \(f^{-1}=f\).</p><p>Vì \(f\) toàn ánh, với mỗi \(t\in\mathbb{R}\) tồn tại \(y\) sao cho \(t=f(y)\). Từ (1), khi đó \(y=f(t)\). Phương trình ban đầu trở thành
+\[f(x^2+t)=x f(x)+f(t),\qquad\forall
 x,t\in\mathbb{R}.
-\tag{2}\]</span> Lấy <span class="math inline">\(t=0\)</span> trong (2),
-<span class="math display">\[f(x^2)=x f(x)+f(0).\tag{3}\]</span> So sánh
-(3) cho <span class="math inline">\(x\)</span> và <span class="math inline">\(-x\)</span> với <span class="math inline">\(x\ne0\)</span>, <span class="math display">\[f(-x)=-f(x).\tag{4}\]</span> Ta còn phải xác định
-<span class="math inline">\(f(0)\)</span>. Lấy <span class="math inline">\(t=-x^2\)</span> trong (2), với <span class="math inline">\(x\ne0\)</span>, <span class="math display">\[f(0)=x f(x)+f(-x^2).\]</span> Dùng (4) và (3),
-<span class="math display">\[f(0)=x f(x)-f(x^2)
-=x f(x)-\bigl(x f(x)+f(0)\bigr)=-f(0).\]</span> Suy ra <span class="math display">\[f(0)=0.\tag{5}\]</span> Từ (3)–(5), <span class="math display">\[f(x^2)=x f(x),\tag{6}\]</span> và (2) cho <span class="math display">\[f(t+s)=f(t)+f(s)\qquad\forall t\in\mathbb{R},\
+\tag{2}\] Lấy \(t=0\) trong (2),
+\[f(x^2)=x f(x)+f(0).\tag{3}\] So sánh
+(3) cho \(x\) và \(-x\) với \(x\ne0\), \[f(-x)=-f(x).\tag{4}\] Ta còn phải xác định
+\(f(0)\). Lấy \(t=-x^2\) trong (2), với \(x\ne0\), \[f(0)=x f(x)+f(-x^2).\] Dùng (4) và (3),
+\[f(0)=x f(x)-f(x^2)
+=x f(x)-\bigl(x f(x)+f(0)\bigr)=-f(0).\] Suy ra \[f(0)=0.\tag{5}\] Từ (3)–(5), \[f(x^2)=x f(x),\tag{6}\] và (2) cho \[f(t+s)=f(t)+f(s)\qquad\forall t\in\mathbb{R},\
 s\ge0.
-\tag{7}\]</span> Nếu <span class="math inline">\(s&lt;0\)</span>, đặt
-<span class="math inline">\(u=-s&gt;0\)</span>. Từ (7), <span class="math display">\[f(t)=f(t+s+u)=f(t+s)+f(u),\]</span> nên, dùng
-<span class="math inline">\(f(-u)=-f(u)\)</span>, <span class="math display">\[f(t+s)=f(t)+f(s).\]</span> Vậy <span class="math inline">\(f\)</span> cộng tính trên <span class="math inline">\(\mathbb{R}\)</span>: <span class="math display">\[f(a+b)=f(a)+f(b)\qquad\forall
-a,b\in\mathbb{R}.\tag{8}\]</span></p><p>Ta dùng (6) để loại các nghiệm Cauchy bệnh lý. Với mọi <span class="math inline">\(x\)</span>, <span class="math display">\[\begin{aligned}
+\tag{7}\] Nếu \(s&lt;0\), đặt
+\(u=-s&gt;0\). Từ (7), \[f(t)=f(t+s+u)=f(t+s)+f(u),\] nên, dùng
+\(f(-u)=-f(u)\), \[f(t+s)=f(t)+f(s).\] Vậy \(f\) cộng tính trên \(\mathbb{R}\): \[f(a+b)=f(a)+f(b)\qquad\forall
+a,b\in\mathbb{R}.\tag{8}\]</p><p>Ta dùng (6) để loại các nghiệm Cauchy bệnh lý. Với mọi \(x\), \[\begin{aligned}
 f((x+1)^2)
 &amp;=f(x^2+2x+1)\\
 &amp;=f(x^2)+2f(x)+f(1)\\
 &amp;=x f(x)+2f(x)+f(1).
-\end{aligned}\tag{9}\]</span> Mặt khác, theo (6) và (8), <span class="math display">\[f((x+1)^2)
+\end{aligned}\tag{9}\] Mặt khác, theo (6) và (8), \[f((x+1)^2)
 =(x+1)f(x+1)
 =(x+1)(f(x)+f(1)).
-\tag{10}\]</span> So sánh (9) và (10), <span class="math display">\[f(x)=x f(1)\qquad\forall x\in\mathbb{R}.\]</span>
-Đặt <span class="math inline">\(c=f(1)\)</span>, ta có <span class="math inline">\(f(x)=cx\)</span>. Từ (1), <span class="math display">\[c^2y=y\qquad\forall y,\]</span> nên <span class="math inline">\(c^2=1\)</span>, tức <span class="math inline">\(c=1\)</span> hoặc <span class="math inline">\(c=-1\)</span>.</p><p>Thử lại, cả hai hàm đều thỏa mãn. Vậy <span class="math display">\[\boxed{f(x)=x\quad\forall x\in\mathbb{R}}
+\tag{10}\] So sánh (9) và (10), \[f(x)=x f(1)\qquad\forall x\in\mathbb{R}.\]
+Đặt \(c=f(1)\), ta có \(f(x)=cx\). Từ (1), \[c^2y=y\qquad\forall y,\] nên \(c^2=1\), tức \(c=1\) hoặc \(c=-1\).</p><p>Thử lại, cả hai hàm đều thỏa mãn. Vậy \[\boxed{f(x)=x\quad\forall x\in\mathbb{R}}
 \qquad\text{hoặc}\qquad
-\boxed{f(x)=-x\quad\forall x\in\mathbb{R}}.\]</span></p><div class="center">
+\boxed{f(x)=-x\quad\forall x\in\mathbb{R}}.\]</p><div class="center">
 <table class="rubric-table">
 <thead>
 <tr class="header">
@@ -872,34 +872,34 @@ f((x+1)^2)
 <tbody>
 <tr class="odd">
 <td style="text-align: left;">1</td>
-<td style="text-align: left;">Từ <span class="math inline">\(x=0\)</span> suy ra <span class="math inline">\(f(f(y))=y\)</span>, kết luận song ánh.</td>
+<td style="text-align: left;">Từ \(x=0\) suy ra \(f(f(y))=y\), kết luận song ánh.</td>
 <td style="text-align: right;">1,0</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">2</td>
-<td style="text-align: left;">Đổi biến <span class="math inline">\(t=f(y)\)</span> để thu được (2).</td>
+<td style="text-align: left;">Đổi biến \(t=f(y)\) để thu được (2).</td>
 <td style="text-align: right;">0,75</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">3</td>
-<td style="text-align: left;">Chứng minh <span class="math inline">\(f(0)=0\)</span> và <span class="math inline">\(f\)</span> lẻ.</td>
+<td style="text-align: left;">Chứng minh \(f(0)=0\) và \(f\) lẻ.</td>
 <td style="text-align: right;">1,0</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">4</td>
-<td style="text-align: left;">Chứng minh <span class="math inline">\(f\)</span> cộng tính trên <span class="math inline">\(\mathbb{R}\)</span>.</td>
+<td style="text-align: left;">Chứng minh \(f\) cộng tính trên \(\mathbb{R}\).</td>
 <td style="text-align: right;">1,0</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">5</td>
-<td style="text-align: left;">Kết hợp <span class="math inline">\(f(x^2)=xf(x)\)</span> với tính cộng để suy ra
-<span class="math inline">\(f(x)=cx\)</span>.</td>
+<td style="text-align: left;">Kết hợp \(f(x^2)=xf(x)\) với tính cộng để suy ra
+\(f(x)=cx\).</td>
 <td style="text-align: right;">0,75</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">6</td>
-<td style="text-align: left;">Dùng <span class="math inline">\(f\circ
-f=\mathrm{id}\)</span>, tìm <span class="math inline">\(c=\pm1\)</span>
+<td style="text-align: left;">Dùng \(f\circ
+f=\mathrm{id}\), tìm \(c=\pm1\)
 và thử lại.</td>
 <td style="text-align: right;">0,5</td>
 </tr>
@@ -918,37 +918,37 @@ và thử lại.</td>
           <button class="btn-copy" onclick="copyText(this)">📋 Sao chép</button>
         </div>
         <div class="problem-content">
-<p>Với <span class="math inline">\(n\ge0\)</span>, đặt <span class="math display">\[F_n=2^{2^n}+1.\]</span></p><ol>
-<li><p>Chứng minh <span class="math display">\[F_0F_1\cdots
-F_{n-1}=F_n-2\qquad(n\ge1),\]</span> và suy ra các số <span class="math inline">\(F_0,F_1,F_2,\ldots\)</span> đôi một nguyên tố cùng
+<p>Với \(n\ge0\), đặt \[F_n=2^{2^n}+1.\]</p><ol>
+<li><p>Chứng minh \[F_0F_1\cdots
+F_{n-1}=F_n-2\qquad(n\ge1),\] và suy ra các số \(F_0,F_1,F_2,\ldots\) đôi một nguyên tố cùng
 nhau.</p></li>
-<li><p>Cho <span class="math inline">\(n\ge1\)</span> và <span class="math inline">\(p\)</span> là một ước nguyên tố của <span class="math inline">\(F_n\)</span>. Chứng minh <span class="math display">\[p\equiv1\pmod{2^{n+1}}.\]</span> Từ đó suy ra với
-mọi số nguyên dương <span class="math inline">\(N\)</span>, tồn tại một
-số nguyên tố <span class="math inline">\(p\)</span> sao cho <span class="math display">\[p\equiv1\pmod{2^N}.\]</span></p></li>
+<li><p>Cho \(n\ge1\) và \(p\) là một ước nguyên tố của \(F_n\). Chứng minh \[p\equiv1\pmod{2^{n+1}}.\] Từ đó suy ra với
+mọi số nguyên dương \(N\), tồn tại một
+số nguyên tố \(p\) sao cho \[p\equiv1\pmod{2^N}.\]</p></li>
 </ol>
         </div>
         <button class="toggle-btn" onclick="toggleSolution(this)" type="button">👁️ Xem lời giải &amp; Thang điểm</button>
         <div class="solution-content" style="display:none">
           <h4 style="margin: 14px 0 8px 0; color: #1e3a8a; font-weight: 700; font-size: 1.05rem;">📖 Lời giải chi tiết &amp; Barem điểm</h4>
 <p><strong>Lời giải.</strong>  <strong>a)</strong> Ta chứng minh bằng
-quy nạp đẳng thức <span class="math display">\[F_0F_1\cdots
+quy nạp đẳng thức \[F_0F_1\cdots
 F_{n-1}=F_n-2.
-\tag{1}\]</span> Với <span class="math inline">\(n=1\)</span>, <span class="math inline">\(F_0=3=F_1-2\)</span>. Giả sử (1) đúng với <span class="math inline">\(n\)</span>. Khi đó <span class="math display">\[\begin{aligned}
+\tag{1}\] Với \(n=1\), \(F_0=3=F_1-2\). Giả sử (1) đúng với \(n\). Khi đó \[\begin{aligned}
 F_{n+1}-2
 &amp;=2^{2^{n+1}}-1\\
 &amp;=\bigl(2^{2^n}-1\bigr)\bigl(2^{2^n}+1\bigr)\\
 &amp;=(F_n-2)F_n
 =F_0F_1\cdots F_n.
-\end{aligned}\]</span> Vậy (1) đúng với mọi <span class="math inline">\(n\ge1\)</span>.</p><p>Nếu <span class="math inline">\(0\le m&lt;n\)</span>, từ (1) ta có
-<span class="math inline">\(F_m\mid F_n-2\)</span>, nên <span class="math display">\[F_n\equiv2\pmod{F_m}.\]</span> Mọi <span class="math inline">\(F_m\)</span> đều lẻ. Vì thế <span class="math display">\[\gcd(F_m,F_n)\mid2
+\end{aligned}\] Vậy (1) đúng với mọi \(n\ge1\).</p><p>Nếu \(0\le m&lt;n\), từ (1) ta có
+\(F_m\mid F_n-2\), nên \[F_n\equiv2\pmod{F_m}.\] Mọi \(F_m\) đều lẻ. Vì thế \[\gcd(F_m,F_n)\mid2
 \quad\Longrightarrow\quad
-\gcd(F_m,F_n)=1.\]</span> Do đó dãy Fermat <span class="math inline">\((F_n)\)</span> đôi một nguyên tố cùng nhau.</p><p><strong>b)</strong> Giả sử <span class="math inline">\(p\mid
-F_n\)</span>, <span class="math inline">\(n\ge1\)</span>. Khi đó <span class="math display">\[2^{2^n}\equiv-1\pmod p,\]</span> suy ra <span class="math display">\[2^{2^{n+1}}\equiv1\pmod p.\]</span> Gọi <span class="math inline">\(d=\operatorname{ord}_p(2)\)</span>. Ta có <span class="math inline">\(d\mid2^{n+1}\)</span> nhưng <span class="math inline">\(d\nmid2^n\)</span>. Vì mọi ước của <span class="math inline">\(2^{n+1}\)</span> đều là lũy thừa của <span class="math inline">\(2\)</span>, nên <span class="math display">\[d=2^{n+1}.
-\tag{2}\]</span> Theo định lý Lagrange trong nhóm <span class="math inline">\((\mathbb{Z}/p\mathbb{Z})^*\)</span>, cấp của mọi
-phần tử modulo <span class="math inline">\(p\)</span> chia <span class="math inline">\(p-1\)</span>. Kết hợp với (2), <span class="math display">\[2^{n+1}\mid p-1.\]</span> Do đó <span class="math display">\[\boxed{p\equiv1\pmod{2^{n+1}}}.\]</span></p><p>Cuối cùng, với số nguyên dương <span class="math inline">\(N\)</span>, chọn <span class="math inline">\(n\ge\max\{1,N-1\}\)</span>. Vì <span class="math inline">\(F_n&gt;1\)</span>, nó có một ước nguyên tố <span class="math inline">\(p\)</span>. Theo trên, <span class="math display">\[p\equiv1\pmod{2^{n+1}},\]</span> nên đặc biệt
-<span class="math inline">\(p\equiv1\pmod{2^N}\)</span>. Hơn nữa, do các
-<span class="math inline">\(F_n\)</span> đôi một nguyên tố cùng nhau,
-khi <span class="math inline">\(n\)</span> thay đổi ta thu được vô hạn
+\gcd(F_m,F_n)=1.\] Do đó dãy Fermat \((F_n)\) đôi một nguyên tố cùng nhau.</p><p><strong>b)</strong> Giả sử \(p\mid
+F_n\), \(n\ge1\). Khi đó \[2^{2^n}\equiv-1\pmod p,\] suy ra \[2^{2^{n+1}}\equiv1\pmod p.\] Gọi \(d=\operatorname{ord}_p(2)\). Ta có \(d\mid2^{n+1}\) nhưng \(d\nmid2^n\). Vì mọi ước của \(2^{n+1}\) đều là lũy thừa của \(2\), nên \[d=2^{n+1}.
+\tag{2}\] Theo định lý Lagrange trong nhóm \((\mathbb{Z}/p\mathbb{Z})^*\), cấp của mọi
+phần tử modulo \(p\) chia \(p-1\). Kết hợp với (2), \[2^{n+1}\mid p-1.\] Do đó \[\boxed{p\equiv1\pmod{2^{n+1}}}.\]</p><p>Cuối cùng, với số nguyên dương \(N\), chọn \(n\ge\max\{1,N-1\}\). Vì \(F_n&gt;1\), nó có một ước nguyên tố \(p\). Theo trên, \[p\equiv1\pmod{2^{n+1}},\] nên đặc biệt
+\(p\equiv1\pmod{2^N}\). Hơn nữa, do các
+\(F_n\) đôi một nguyên tố cùng nhau,
+khi \(n\) thay đổi ta thu được vô hạn
 số nguyên tố khác nhau.</p><div class="center">
 <table class="rubric-table">
 <thead>
@@ -961,27 +961,27 @@ số nguyên tố khác nhau.</p><div class="center">
 <tbody>
 <tr class="odd">
 <td style="text-align: left;">a</td>
-<td style="text-align: left;">Chứng minh tích <span class="math inline">\(F_0\cdots F_{n-1}=F_n-2\)</span>.</td>
+<td style="text-align: left;">Chứng minh tích \(F_0\cdots F_{n-1}=F_n-2\).</td>
 <td style="text-align: right;">1,0</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"></td>
-<td style="text-align: left;">Suy ra các <span class="math inline">\(F_n\)</span> đôi một nguyên tố cùng nhau.</td>
+<td style="text-align: left;">Suy ra các \(F_n\) đôi một nguyên tố cùng nhau.</td>
 <td style="text-align: right;">0,75</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">b</td>
-<td style="text-align: left;">Chứng minh <span class="math inline">\(\operatorname{ord}_p(2)=2^{n+1}\)</span>.</td>
+<td style="text-align: left;">Chứng minh \(\operatorname{ord}_p(2)=2^{n+1}\).</td>
 <td style="text-align: right;">1,5</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"></td>
-<td style="text-align: left;">Dùng định lý Lagrange suy ra <span class="math inline">\(p\equiv1\pmod{2^{n+1}}\)</span>.</td>
+<td style="text-align: left;">Dùng định lý Lagrange suy ra \(p\equiv1\pmod{2^{n+1}}\).</td>
 <td style="text-align: right;">1,0</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"></td>
-<td style="text-align: left;">Suy ra mệnh đề tồn tại số nguyên tố <span class="math inline">\(p\equiv1\pmod{2^N}\)</span> và tính vô hạn.</td>
+<td style="text-align: left;">Suy ra mệnh đề tồn tại số nguyên tố \(p\equiv1\pmod{2^N}\) và tính vô hạn.</td>
 <td style="text-align: right;">0,75</td>
 </tr>
 </tbody>
@@ -999,38 +999,38 @@ số nguyên tố khác nhau.</p><div class="center">
           <button class="btn-copy" onclick="copyText(this)">📋 Sao chép</button>
         </div>
         <div class="problem-content">
-<p>Cho tam giác <span class="math inline">\(ABC\)</span> với <span class="math inline">\(AB\ne AC\)</span>, nội tiếp đường tròn <span class="math inline">\((O)\)</span>. Tiếp tuyến của <span class="math inline">\((O)\)</span> tại <span class="math inline">\(A\)</span> cắt đường thẳng <span class="math inline">\(BC\)</span> tại <span class="math inline">\(T\)</span>. Đường đối trung xuất phát từ <span class="math inline">\(A\)</span> cắt <span class="math inline">\(BC\)</span> tại <span class="math inline">\(K\)</span>. Gọi <span class="math inline">\(M\)</span> là trung điểm của <span class="math inline">\(BC\)</span>.</p><ol>
-<li><p>Chứng minh <span class="math display">\[\frac{TB}{TC}=\frac{KB}{KC}=\frac{AB^2}{AC^2}.\]</span></p></li>
-<li><p>Chứng minh bộ bốn điểm <span class="math inline">\((B,C;K,T)\)</span> là một hàng điểm điều hòa. Suy
-ra <span class="math display">\[MK\cdot MT=MB^2.\]</span> Nói cách khác,
-<span class="math inline">\(K\)</span> và <span class="math inline">\(T\)</span> là hai điểm nghịch đảo nhau đối với
-đường tròn tâm <span class="math inline">\(M\)</span>, bán kính <span class="math inline">\(MB\)</span>.</p></li>
+<p>Cho tam giác \(ABC\) với \(AB\ne AC\), nội tiếp đường tròn \((O)\). Tiếp tuyến của \((O)\) tại \(A\) cắt đường thẳng \(BC\) tại \(T\). Đường đối trung xuất phát từ \(A\) cắt \(BC\) tại \(K\). Gọi \(M\) là trung điểm của \(BC\).</p><ol>
+<li><p>Chứng minh \[\frac{TB}{TC}=\frac{KB}{KC}=\frac{AB^2}{AC^2}.\]</p></li>
+<li><p>Chứng minh bộ bốn điểm \((B,C;K,T)\) là một hàng điểm điều hòa. Suy
+ra \[MK\cdot MT=MB^2.\] Nói cách khác,
+\(K\) và \(T\) là hai điểm nghịch đảo nhau đối với
+đường tròn tâm \(M\), bán kính \(MB\).</p></li>
 </ol></section>
         </div>
         <button class="toggle-btn" onclick="toggleSolution(this)" type="button">👁️ Xem lời giải &amp; Thang điểm</button>
         <div class="solution-content" style="display:none">
           <h4 style="margin: 14px 0 8px 0; color: #1e3a8a; font-weight: 700; font-size: 1.05rem;">📖 Lời giải chi tiết &amp; Barem điểm</h4>
-<p><strong>Lời giải.</strong>  Đặt <span class="math display">\[q=\frac{AB^2}{AC^2}&gt;0.\]</span></p><p><strong>a)</strong> Xét hai tam giác <span class="math inline">\(ABT\)</span> và <span class="math inline">\(ACT\)</span>. Vì <span class="math inline">\(B,C,T\)</span> thẳng hàng, <span class="math display">\[\frac{TB}{TC}
+<p><strong>Lời giải.</strong>  Đặt \[q=\frac{AB^2}{AC^2}&gt;0.\]</p><p><strong>a)</strong> Xét hai tam giác \(ABT\) và \(ACT\). Vì \(B,C,T\) thẳng hàng, \[\frac{TB}{TC}
 =\frac{AB\sin\angle BAT}{AC\sin\angle CAT}.
-\tag{1}\]</span> Theo định lý góc tạo bởi tiếp tuyến và dây cung, <span class="math display">\[\angle BAT=\angle ACB,
+\tag{1}\] Theo định lý góc tạo bởi tiếp tuyến và dây cung, \[\angle BAT=\angle ACB,
 \qquad
-\angle CAT=\angle ABC\]</span> (theo góc không hướng để lấy sin). Bởi
-định lý sin trong tam giác <span class="math inline">\(ABC\)</span>,
-<span class="math display">\[\frac{\sin C}{\sin
-B}=\frac{AB}{AC}.\]</span> Thế vào (1), <span class="math display">\[\boxed{\frac{TB}{TC}=\frac{AB^2}{AC^2}=q}.
-\tag{2}\]</span> Mặt khác, theo định lý đường đối trung, <span class="math display">\[\boxed{\frac{KB}{KC}=\frac{AB^2}{AC^2}=q}.
-\tag{3}\]</span></p><p><strong>b)</strong> Chọn trục tọa độ trên đường thẳng <span class="math inline">\(BC\)</span> với gốc <span class="math inline">\(M\)</span> và <span class="math display">\[B=-r,\qquad C=r,\qquad r=MB&gt;0.\]</span> Gọi
-tọa độ của <span class="math inline">\(K,T\)</span> lần lượt là <span class="math inline">\(k,t\)</span>. Vì <span class="math inline">\(K\)</span> nằm trong đoạn <span class="math inline">\(BC\)</span>, từ (3), <span class="math display">\[\frac{k+r}{r-k}=q
+\angle CAT=\angle ABC\] (theo góc không hướng để lấy sin). Bởi
+định lý sin trong tam giác \(ABC\),
+\[\frac{\sin C}{\sin
+B}=\frac{AB}{AC}.\] Thế vào (1), \[\boxed{\frac{TB}{TC}=\frac{AB^2}{AC^2}=q}.
+\tag{2}\] Mặt khác, theo định lý đường đối trung, \[\boxed{\frac{KB}{KC}=\frac{AB^2}{AC^2}=q}.
+\tag{3}\]</p><p><strong>b)</strong> Chọn trục tọa độ trên đường thẳng \(BC\) với gốc \(M\) và \[B=-r,\qquad C=r,\qquad r=MB&gt;0.\] Gọi
+tọa độ của \(K,T\) lần lượt là \(k,t\). Vì \(K\) nằm trong đoạn \(BC\), từ (3), \[\frac{k+r}{r-k}=q
 \quad\Longrightarrow\quad
 k=r\frac{q-1}{q+1}.
-\tag{4}\]</span> Điểm <span class="math inline">\(T\)</span> nằm ngoài
-đoạn <span class="math inline">\(BC\)</span>. Từ (2), giải theo tọa độ
-có hướng cho ta <span class="math display">\[t=r\frac{q+1}{q-1}.
-\tag{5}\]</span> Từ (4)–(5), <span class="math display">\[kt=r^2.
-\tag{6}\]</span> Do <span class="math inline">\(k\)</span> và <span class="math inline">\(t\)</span> cùng dấu, <span class="math display">\[\boxed{MK\cdot MT=MB^2}.\]</span></p><p>Đồng thời, với định nghĩa tích chéo <span class="math display">\[(B,C;K,T)
-=\frac{(k+r)/(k-r)}{(t+r)/(t-r)},\]</span> thế (4)–(5) vào cho <span class="math display">\[\boxed{(B,C;K,T)=-1}.\]</span> Vậy <span class="math inline">\((B,C;K,T)\)</span> là một hàng điểm điều hòa. Đẳng
-thức (6) cũng cho thấy <span class="math inline">\(K\)</span> và <span class="math inline">\(T\)</span> là hai điểm nghịch đảo nhau đối với
-đường tròn tâm <span class="math inline">\(M\)</span>, bán kính <span class="math inline">\(MB\)</span>.</p><div class="center">
+\tag{4}\] Điểm \(T\) nằm ngoài
+đoạn \(BC\). Từ (2), giải theo tọa độ
+có hướng cho ta \[t=r\frac{q+1}{q-1}.
+\tag{5}\] Từ (4)–(5), \[kt=r^2.
+\tag{6}\] Do \(k\) và \(t\) cùng dấu, \[\boxed{MK\cdot MT=MB^2}.\]</p><p>Đồng thời, với định nghĩa tích chéo \[(B,C;K,T)
+=\frac{(k+r)/(k-r)}{(t+r)/(t-r)},\] thế (4)–(5) vào cho \[\boxed{(B,C;K,T)=-1}.\] Vậy \((B,C;K,T)\) là một hàng điểm điều hòa. Đẳng
+thức (6) cũng cho thấy \(K\) và \(T\) là hai điểm nghịch đảo nhau đối với
+đường tròn tâm \(M\), bán kính \(MB\).</p><div class="center">
 <table class="rubric-table">
 <thead>
 <tr class="header">
@@ -1043,27 +1043,27 @@ thức (6) cũng cho thấy <span class="math inline">\(K\)</span> và <span cla
 <tr class="odd">
 <td style="text-align: left;">a</td>
 <td style="text-align: left;">Dùng định lý tiếp tuyến–dây cung và định
-lý sin để chứng minh <span class="math inline">\(TB/TC=AB^2/AC^2\)</span>.</td>
+lý sin để chứng minh \(TB/TC=AB^2/AC^2\).</td>
 <td style="text-align: right;">1,5</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"></td>
-<td style="text-align: left;">Dùng định lý đường đối trung để có <span class="math inline">\(KB/KC=AB^2/AC^2\)</span>.</td>
+<td style="text-align: left;">Dùng định lý đường đối trung để có \(KB/KC=AB^2/AC^2\).</td>
 <td style="text-align: right;">1,0</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">b</td>
-<td style="text-align: left;">Đặt tọa độ trên <span class="math inline">\(BC\)</span> và tìm đúng tọa độ <span class="math inline">\(K\)</span>.</td>
+<td style="text-align: left;">Đặt tọa độ trên \(BC\) và tìm đúng tọa độ \(K\).</td>
 <td style="text-align: right;">0,75</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"></td>
-<td style="text-align: left;">Tìm đúng tọa độ <span class="math inline">\(T\)</span> và suy ra <span class="math inline">\(MK\cdot MT=MB^2\)</span>.</td>
+<td style="text-align: left;">Tìm đúng tọa độ \(T\) và suy ra \(MK\cdot MT=MB^2\).</td>
 <td style="text-align: right;">1,0</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"></td>
-<td style="text-align: left;">Kiểm tra tích chéo bằng <span class="math inline">\(-1\)</span> và kết luận điều hòa/nghịch đảo.</td>
+<td style="text-align: left;">Kiểm tra tích chéo bằng \(-1\) và kết luận điều hòa/nghịch đảo.</td>
 <td style="text-align: right;">0,75</td>
 </tr>
 </tbody>
@@ -1107,50 +1107,50 @@ lý sin để chứng minh <span class="math inline">\(TB/TC=AB^2/AC^2\)</span>.
           <button class="btn-copy" onclick="copyText(this)">📋 Sao chép</button>
         </div>
         <div class="problem-content">
-<p>Tìm tất cả các cặp đa thức <span class="math inline">\(P,Q\in\mathbb{R}[x]\)</span> thỏa mãn <span class="math display">\[\boxed{\ P(x)^2-(x^2-1)Q(x)^2=1\ },\qquad\forall
-x\in\mathbb{R}.\]</span></p>
+<p>Tìm tất cả các cặp đa thức \(P,Q\in\mathbb{R}[x]\) thỏa mãn \[\boxed{\ P(x)^2-(x^2-1)Q(x)^2=1\ },\qquad\forall
+x\in\mathbb{R}.\]</p>
         </div>
         <button class="toggle-btn" onclick="toggleSolution(this)" type="button">👁️ Xem lời giải &amp; Thang điểm</button>
         <div class="solution-content" style="display:none">
           <h4 style="margin: 14px 0 8px 0; color: #1e3a8a; font-weight: 700; font-size: 1.05rem;">📖 Lời giải chi tiết &amp; Barem điểm</h4>
 <p><strong>Lời giải.</strong>  Ta sẽ đưa bài toán về đơn vị trong vành
-đa thức Laurent.</p><p>Đặt <span class="math display">\[X=\frac{z+z^{-1}}2,
+đa thức Laurent.</p><p>Đặt \[X=\frac{z+z^{-1}}2,
 \qquad
-S=\frac{z-z^{-1}}2.\]</span> Khi đó <span class="math display">\[X^2-1=S^2.
-\tag{1}\]</span> Thay <span class="math inline">\(x=X\)</span> vào đẳng
-thức đề bài và dùng (1), <span class="math display">\[\bigl(P(X)+S
+S=\frac{z-z^{-1}}2.\] Khi đó \[X^2-1=S^2.
+\tag{1}\] Thay \(x=X\) vào đẳng
+thức đề bài và dùng (1), \[\bigl(P(X)+S
 Q(X)\bigr)\bigl(P(X)-S Q(X)\bigr)=1.
-\tag{2}\]</span> Đặt <span class="math display">\[A(z)=P(X)+S
-Q(X)\in\mathbb{R}[z,z^{-1}].\]</span> Khi thay <span class="math inline">\(z\)</span> bởi <span class="math inline">\(z^{-1}\)</span> thì <span class="math inline">\(X\)</span> không đổi còn <span class="math inline">\(S\)</span> đổi dấu, nên <span class="math display">\[A(z^{-1})=P(X)-S Q(X).\]</span> Do đó (2) trở
-thành <span class="math display">\[A(z)A(z^{-1})=1.
-\tag{3}\]</span></p><p>Ta dùng bổ đề đơn giản sau.</p><p><em>Bổ đề.</em> Nếu <span class="math inline">\(A(z),B(z)\in\mathbb{R}[z,z^{-1}]\)</span> và <span class="math inline">\(A(z)B(z)=1\)</span>, thì <span class="math display">\[A(z)=c z^m\]</span> với <span class="math inline">\(c\in\mathbb{R}\setminus\{0\}\)</span> và <span class="math inline">\(m\in\mathbb{Z}\)</span>.</p><p>Thật vậy, viết số mũ nhỏ nhất và lớn nhất xuất hiện trong <span class="math inline">\(A\)</span> lần lượt là <span class="math inline">\(r,s\)</span>, còn trong <span class="math inline">\(B\)</span> là <span class="math inline">\(u,v\)</span>. Số mũ nhỏ nhất của tích là <span class="math inline">\(r+u\)</span>, số mũ lớn nhất là <span class="math inline">\(s+v\)</span>. Vì tích bằng hằng số khác <span class="math inline">\(0\)</span>, <span class="math display">\[r+u=s+v=0.\]</span> Suy ra <span class="math display">\[(s-r)+(v-u)=0.\]</span> Hai số hạng đều không âm,
-nên <span class="math inline">\(s=r\)</span> và <span class="math inline">\(v=u\)</span>. Vì thế cả <span class="math inline">\(A\)</span> và <span class="math inline">\(B\)</span> đều là đơn thức Laurent. Bổ đề được
-chứng minh.</p><p>Áp dụng bổ đề vào (3), <span class="math display">\[A(z)=c z^m,
-\qquad m\in\mathbb{Z}.\]</span> Từ <span class="math inline">\(A(z)A(z^{-1})=1\)</span> suy ra <span class="math inline">\(c^2=1\)</span>, nên <span class="math display">\[c=\varepsilon\in\{1,-1\}.
-\tag{4}\]</span> Do đó <span class="math display">\[P(X)+S
+\tag{2}\] Đặt \[A(z)=P(X)+S
+Q(X)\in\mathbb{R}[z,z^{-1}].\] Khi thay \(z\) bởi \(z^{-1}\) thì \(X\) không đổi còn \(S\) đổi dấu, nên \[A(z^{-1})=P(X)-S Q(X).\] Do đó (2) trở
+thành \[A(z)A(z^{-1})=1.
+\tag{3}\]</p><p>Ta dùng bổ đề đơn giản sau.</p><p><em>Bổ đề.</em> Nếu \(A(z),B(z)\in\mathbb{R}[z,z^{-1}]\) và \(A(z)B(z)=1\), thì \[A(z)=c z^m\] với \(c\in\mathbb{R}\setminus\{0\}\) và \(m\in\mathbb{Z}\).</p><p>Thật vậy, viết số mũ nhỏ nhất và lớn nhất xuất hiện trong \(A\) lần lượt là \(r,s\), còn trong \(B\) là \(u,v\). Số mũ nhỏ nhất của tích là \(r+u\), số mũ lớn nhất là \(s+v\). Vì tích bằng hằng số khác \(0\), \[r+u=s+v=0.\] Suy ra \[(s-r)+(v-u)=0.\] Hai số hạng đều không âm,
+nên \(s=r\) và \(v=u\). Vì thế cả \(A\) và \(B\) đều là đơn thức Laurent. Bổ đề được
+chứng minh.</p><p>Áp dụng bổ đề vào (3), \[A(z)=c z^m,
+\qquad m\in\mathbb{Z}.\] Từ \(A(z)A(z^{-1})=1\) suy ra \(c^2=1\), nên \[c=\varepsilon\in\{1,-1\}.
+\tag{4}\] Do đó \[P(X)+S
 Q(X)=\varepsilon z^m,
 \qquad
-P(X)-S Q(X)=\varepsilon z^{-m}.\]</span> Cộng và trừ, <span class="math display">\[P(X)=\varepsilon\frac{z^m+z^{-m}}2,
-\tag{5}\]</span> <span class="math display">\[S
+P(X)-S Q(X)=\varepsilon z^{-m}.\] Cộng và trừ, \[P(X)=\varepsilon\frac{z^m+z^{-m}}2,
+\tag{5}\] \[S
 Q(X)=\varepsilon\frac{z^m-z^{-m}}2.
-\tag{6}\]</span></p><p>Nếu <span class="math inline">\(m=0\)</span>, từ (5)–(6) suy ra <span class="math display">\[(P,Q)=(1,0)\quad\text{hoặc}\quad(-1,0).\]</span></p><p>Giả sử <span class="math inline">\(|m|=r\ge1\)</span>. Nhắc lại các
-đa thức Chebyshev <span class="math inline">\(T_r,U_{r-1}\)</span> được
-đặc trưng bởi <span class="math display">\[T_r\!\left(\frac{z+z^{-1}}2\right)
+\tag{6}\]</p><p>Nếu \(m=0\), từ (5)–(6) suy ra \[(P,Q)=(1,0)\quad\text{hoặc}\quad(-1,0).\]</p><p>Giả sử \(|m|=r\ge1\). Nhắc lại các
+đa thức Chebyshev \(T_r,U_{r-1}\) được
+đặc trưng bởi \[T_r\!\left(\frac{z+z^{-1}}2\right)
 =\frac{z^r+z^{-r}}2,
-\tag{7}\]</span> <span class="math display">\[U_{r-1}\!\left(\frac{z+z^{-1}}2\right)
+\tag{7}\] \[U_{r-1}\!\left(\frac{z+z^{-1}}2\right)
 =\frac{z^r-z^{-r}}{z-z^{-1}}.
-\tag{8}\]</span> Nếu <span class="math inline">\(m=r&gt;0\)</span>, từ
-(5)–(8), <span class="math display">\[P=\varepsilon T_r,
+\tag{8}\] Nếu \(m=r&gt;0\), từ
+(5)–(8), \[P=\varepsilon T_r,
 \qquad
-Q=\varepsilon U_{r-1}.\]</span> Nếu <span class="math inline">\(m=-r&lt;0\)</span>, ta được <span class="math display">\[P=\varepsilon T_r,
+Q=\varepsilon U_{r-1}.\] Nếu \(m=-r&lt;0\), ta được \[P=\varepsilon T_r,
 \qquad
-Q=-\varepsilon U_{r-1}.\]</span> Vì vậy, với mỗi <span class="math inline">\(r\ge1\)</span>, hai dấu của <span class="math inline">\(P\)</span> và <span class="math inline">\(Q\)</span> có thể chọn độc lập. Tất cả nghiệm là
-<span class="math display">\[\boxed{(P,Q)=(1,0),\ (-1,0)}\]</span> hoặc
-<span class="math display">\[\boxed{
+Q=-\varepsilon U_{r-1}.\] Vì vậy, với mỗi \(r\ge1\), hai dấu của \(P\) và \(Q\) có thể chọn độc lập. Tất cả nghiệm là
+\[\boxed{(P,Q)=(1,0),\ (-1,0)}\] hoặc
+\[\boxed{
 P(x)=\varepsilon T_r(x),\qquad
 Q(x)=\delta U_{r-1}(x),
 \quad r\ge1,
-\quad \varepsilon,\delta\in\{\pm1\}.}\]</span></p><p>Quả thật, đẳng thức Chebyshev <span class="math display">\[T_r(x)^2-(x^2-1)U_{r-1}(x)^2=1\]</span> cho thấy
+\quad \varepsilon,\delta\in\{\pm1\}.}\]</p><p>Quả thật, đẳng thức Chebyshev \[T_r(x)^2-(x^2-1)U_{r-1}(x)^2=1\] cho thấy
 mọi cặp vừa nêu đều thỏa mãn.</p><div class="center">
 <table class="rubric-table">
 <thead>
@@ -1163,33 +1163,33 @@ mọi cặp vừa nêu đều thỏa mãn.</p><div class="center">
 <tbody>
 <tr class="odd">
 <td style="text-align: left;">1</td>
-<td style="text-align: left;">Đặt <span class="math inline">\(X=(z+z^{-1})/2\)</span>, <span class="math inline">\(S=(z-z^{-1})/2\)</span> và đưa về (2).</td>
+<td style="text-align: left;">Đặt \(X=(z+z^{-1})/2\), \(S=(z-z^{-1})/2\) và đưa về (2).</td>
 <td style="text-align: right;">1,0</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">2</td>
-<td style="text-align: left;">Nhận ra <span class="math inline">\(A(z^{-1})\)</span> và suy ra <span class="math inline">\(A(z)A(z^{-1})=1\)</span>.</td>
+<td style="text-align: left;">Nhận ra \(A(z^{-1})\) và suy ra \(A(z)A(z^{-1})=1\).</td>
 <td style="text-align: right;">1,0</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">3</td>
-<td style="text-align: left;">Chứng minh bổ đề về các đơn vị của <span class="math inline">\(\mathbb{R}[z,z^{-1}]\)</span>.</td>
+<td style="text-align: left;">Chứng minh bổ đề về các đơn vị của \(\mathbb{R}[z,z^{-1}]\).</td>
 <td style="text-align: right;">1,5</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">4</td>
-<td style="text-align: left;">Suy ra <span class="math inline">\(A(z)=\varepsilon z^m\)</span>, <span class="math inline">\(\varepsilon=\pm1\)</span>.</td>
+<td style="text-align: left;">Suy ra \(A(z)=\varepsilon z^m\), \(\varepsilon=\pm1\).</td>
 <td style="text-align: right;">1,0</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">5</td>
 <td style="text-align: left;">Tách phần đối xứng/phản đối xứng để nhận
-dạng <span class="math inline">\(T_r,U_{r-1}\)</span>.</td>
+dạng \(T_r,U_{r-1}\).</td>
 <td style="text-align: right;">1,5</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">6</td>
-<td style="text-align: left;">Xử lý <span class="math inline">\(m=0\)</span>, dấu của <span class="math inline">\(Q\)</span> khi <span class="math inline">\(m&lt;0\)</span>, thử lại và kết luận đầy đủ.</td>
+<td style="text-align: left;">Xử lý \(m=0\), dấu của \(Q\) khi \(m&lt;0\), thử lại và kết luận đầy đủ.</td>
 <td style="text-align: right;">1,0</td>
 </tr>
 </tbody>
@@ -1207,41 +1207,41 @@ dạng <span class="math inline">\(T_r,U_{r-1}\)</span>.</td>
           <button class="btn-copy" onclick="copyText(this)">📋 Sao chép</button>
         </div>
         <div class="problem-content">
-<p>Cho đường tròn <span class="math inline">\((O)\)</span> và dây <span class="math inline">\(PQ\)</span> có trung điểm <span class="math inline">\(M\)</span>. Qua <span class="math inline">\(M\)</span> kẻ hai dây <span class="math inline">\(AB\)</span> và <span class="math inline">\(CD\)</span>, khác <span class="math inline">\(PQ\)</span> và khác nhau. Giả sử các giao điểm
+<p>Cho đường tròn \((O)\) và dây \(PQ\) có trung điểm \(M\). Qua \(M\) kẻ hai dây \(AB\) và \(CD\), khác \(PQ\) và khác nhau. Giả sử các giao điểm
 dưới đây đều hữu hạn.</p><ol>
-<li><p>Gọi <span class="math display">\[X=AD\cap PQ,\qquad Y=BC\cap
-PQ.\]</span> Chứng minh <span class="math inline">\(M\)</span> là trung
-điểm của <span class="math inline">\(XY\)</span>.</p></li>
-<li><p>Gọi <span class="math display">\[U=AC\cap PQ,\qquad V=BD\cap
-PQ.\]</span> Chứng minh <span class="math inline">\(M\)</span> là trung
-điểm của <span class="math inline">\(UV\)</span>.</p></li>
+<li><p>Gọi \[X=AD\cap PQ,\qquad Y=BC\cap
+PQ.\] Chứng minh \(M\) là trung
+điểm của \(XY\).</p></li>
+<li><p>Gọi \[U=AC\cap PQ,\qquad V=BD\cap
+PQ.\] Chứng minh \(M\) là trung
+điểm của \(UV\).</p></li>
 </ol><p>Đây là hai dạng đối xứng của định lý con bướm.</p>
         </div>
         <button class="toggle-btn" onclick="toggleSolution(this)" type="button">👁️ Xem lời giải &amp; Thang điểm</button>
         <div class="solution-content" style="display:none">
           <h4 style="margin: 14px 0 8px 0; color: #1e3a8a; font-weight: 700; font-size: 1.05rem;">📖 Lời giải chi tiết &amp; Barem điểm</h4>
 <p><strong>Lời giải.</strong>  Ta trình bày một chứng minh tọa độ ngắn
-gọn nhưng thể hiện rõ cấu trúc đại số của định lý con bướm.</p><p>Qua một phép đồng dạng, giả sử <span class="math inline">\((O)\)</span> là đường tròn đơn vị <span class="math display">\[x^2+y^2=1.\]</span> Vì <span class="math inline">\(M\)</span> là trung điểm của dây <span class="math inline">\(PQ\)</span>, đường thẳng <span class="math inline">\(OM\)</span> vuông góc <span class="math inline">\(PQ\)</span>. Chọn hệ trục sao cho <span class="math display">\[M=(m,0),\qquad PQ:\ x=m,\]</span> với <span class="math inline">\(|m|&lt;1\)</span>.</p><p>Hai dây <span class="math inline">\(AB,CD\)</span> qua <span class="math inline">\(M\)</span> có phương trình lần lượt <span class="math display">\[y=s(x-m),\qquad y=t(x-m),\]</span> với <span class="math inline">\(s\ne t\)</span>. Đặt tọa độ theo biến <span class="math inline">\(u=x-m\)</span>: <span class="math display">\[A=(m+a,sa),\quad B=(m+b,sb),\]</span> <span class="math display">\[C=(m+c,tc),\quad D=(m+d,td).\]</span> Thế <span class="math inline">\(x=m+u\)</span>, <span class="math inline">\(y=su\)</span> vào phương trình đường tròn, <span class="math inline">\(a,b\)</span> là hai nghiệm của <span class="math display">\[(1+s^2)u^2+2mu+(m^2-1)=0.\]</span> Do đó <span class="math display">\[a+b=-\frac{2m}{1+s^2},
+gọn nhưng thể hiện rõ cấu trúc đại số của định lý con bướm.</p><p>Qua một phép đồng dạng, giả sử \((O)\) là đường tròn đơn vị \[x^2+y^2=1.\] Vì \(M\) là trung điểm của dây \(PQ\), đường thẳng \(OM\) vuông góc \(PQ\). Chọn hệ trục sao cho \[M=(m,0),\qquad PQ:\ x=m,\] với \(|m|&lt;1\).</p><p>Hai dây \(AB,CD\) qua \(M\) có phương trình lần lượt \[y=s(x-m),\qquad y=t(x-m),\] với \(s\ne t\). Đặt tọa độ theo biến \(u=x-m\): \[A=(m+a,sa),\quad B=(m+b,sb),\] \[C=(m+c,tc),\quad D=(m+d,td).\] Thế \(x=m+u\), \(y=su\) vào phương trình đường tròn, \(a,b\) là hai nghiệm của \[(1+s^2)u^2+2mu+(m^2-1)=0.\] Do đó \[a+b=-\frac{2m}{1+s^2},
 \qquad
 ab=\frac{m^2-1}{1+s^2}.
-\tag{1}\]</span> Tương tự, <span class="math display">\[c+d=-\frac{2m}{1+t^2},
+\tag{1}\] Tương tự, \[c+d=-\frac{2m}{1+t^2},
 \qquad
 cd=\frac{m^2-1}{1+t^2}.
-\tag{2}\]</span> Từ (1)–(2) suy ra đẳng thức quan trọng <span class="math display">\[ab(c+d)=cd(a+b).
-\tag{3}\]</span></p><p><strong>a)</strong> Gọi tung độ của <span class="math inline">\(X=AD\cap PQ\)</span> là <span class="math inline">\(x_0\)</span> và của <span class="math inline">\(Y=BC\cap PQ\)</span> là <span class="math inline">\(y_0\)</span>. Trên hệ tọa độ <span class="math inline">\((u,y)\)</span>, đường thẳng <span class="math inline">\(PQ\)</span> chính là <span class="math inline">\(u=0\)</span>.</p><p>Đường thẳng qua <span class="math inline">\((a,sa)\)</span> và <span class="math inline">\((d,td)\)</span> cắt <span class="math inline">\(u=0\)</span> tại điểm có tung độ <span class="math display">\[x_0=\frac{ad(t-s)}{a-d}.
-\tag{4}\]</span> Tương tự, <span class="math display">\[y_0=\frac{bc(t-s)}{b-c}.
-\tag{5}\]</span> Từ (4)–(5), <span class="math display">\[\begin{aligned}
+\tag{2}\] Từ (1)–(2) suy ra đẳng thức quan trọng \[ab(c+d)=cd(a+b).
+\tag{3}\]</p><p><strong>a)</strong> Gọi tung độ của \(X=AD\cap PQ\) là \(x_0\) và của \(Y=BC\cap PQ\) là \(y_0\). Trên hệ tọa độ \((u,y)\), đường thẳng \(PQ\) chính là \(u=0\).</p><p>Đường thẳng qua \((a,sa)\) và \((d,td)\) cắt \(u=0\) tại điểm có tung độ \[x_0=\frac{ad(t-s)}{a-d}.
+\tag{4}\] Tương tự, \[y_0=\frac{bc(t-s)}{b-c}.
+\tag{5}\] Từ (4)–(5), \[\begin{aligned}
 x_0+y_0
 &amp;=(t-s)\left(\frac{ad}{a-d}+\frac{bc}{b-c}\right)\\
 &amp;=(t-s)\frac{ad(b-c)+bc(a-d)}{(a-d)(b-c)}\\
 &amp;=(t-s)\frac{ab(c+d)-cd(a+b)}{(a-d)(b-c)}=0
-\end{aligned}\]</span> theo (3). Hai điểm <span class="math inline">\(X,Y\)</span> cùng nằm trên đường thẳng <span class="math inline">\(x=m\)</span>, còn <span class="math inline">\(M=(m,0)\)</span>. Vì tung độ của chúng đối nhau,
-<span class="math display">\[\boxed{M\text{ là trung điểm của
-}XY}.\]</span></p><p><strong>b)</strong> Hoán đổi vai trò của <span class="math inline">\(C\)</span> và <span class="math inline">\(D\)</span> trong câu a). Hai dây qua <span class="math inline">\(M\)</span> vẫn là <span class="math inline">\(AB\)</span> và <span class="math inline">\(CD\)</span>, còn hai giao điểm chéo trở thành
-<span class="math display">\[AC\cap PQ=U,
+\end{aligned}\] theo (3). Hai điểm \(X,Y\) cùng nằm trên đường thẳng \(x=m\), còn \(M=(m,0)\). Vì tung độ của chúng đối nhau,
+\[\boxed{M\text{ là trung điểm của
+}XY}.\]</p><p><strong>b)</strong> Hoán đổi vai trò của \(C\) và \(D\) trong câu a). Hai dây qua \(M\) vẫn là \(AB\) và \(CD\), còn hai giao điểm chéo trở thành
+\[AC\cap PQ=U,
 \qquad
-BD\cap PQ=V.\]</span> Do đó cùng một lập luận cho <span class="math display">\[\boxed{M\text{ là trung điểm của
-}UV}.\]</span></p><p><em>Nhận xét.</em> Câu a) chính là định lý con bướm cổ điển. Phần
+BD\cap PQ=V.\] Do đó cùng một lập luận cho \[\boxed{M\text{ là trung điểm của
+}UV}.\]</p><p><em>Nhận xét.</em> Câu a) chính là định lý con bướm cổ điển. Phần
 tính toán cốt lõi không nằm ở việc giải tọa độ bốn điểm, mà ở việc chỉ
 giữ lại tổng và tích nghiệm của hai phương trình bậc hai; đây là cách
 dùng Viète rất hiệu quả trong hình học tọa độ.</p><div class="center">
@@ -1256,7 +1256,7 @@ dùng Viète rất hiệu quả trong hình học tọa độ.</p><div class="ce
 <tbody>
 <tr class="odd">
 <td style="text-align: left;">a</td>
-<td style="text-align: left;">Chọn hệ tọa độ thích hợp với <span class="math inline">\(M=(m,0)\)</span>, <span class="math inline">\(PQ:x=m\)</span>.</td>
+<td style="text-align: left;">Chọn hệ tọa độ thích hợp với \(M=(m,0)\), \(PQ:x=m\).</td>
 <td style="text-align: right;">0,75</td>
 </tr>
 <tr class="even">
@@ -1267,23 +1267,23 @@ thức Viète (1)–(2).</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"></td>
-<td style="text-align: left;">Suy ra đẳng thức then chốt <span class="math inline">\(ab(c+d)=cd(a+b)\)</span>.</td>
+<td style="text-align: left;">Suy ra đẳng thức then chốt \(ab(c+d)=cd(a+b)\).</td>
 <td style="text-align: right;">0,75</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"></td>
-<td style="text-align: left;">Tính đúng tung độ giao điểm <span class="math inline">\(X,Y\)</span>.</td>
+<td style="text-align: left;">Tính đúng tung độ giao điểm \(X,Y\).</td>
 <td style="text-align: right;">1,25</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"></td>
 <td style="text-align: left;">Suy ra hai tung độ đối nhau và kết luận
-<span class="math inline">\(M\)</span> là trung điểm <span class="math inline">\(XY\)</span>.</td>
+\(M\) là trung điểm \(XY\).</td>
 <td style="text-align: right;">1,0</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">b</td>
-<td style="text-align: left;">Nhận ra phép hoán đổi <span class="math inline">\(C,D\)</span> và suy ra kết luận cho <span class="math inline">\(U,V\)</span>.</td>
+<td style="text-align: left;">Nhận ra phép hoán đổi \(C,D\) và suy ra kết luận cho \(U,V\).</td>
 <td style="text-align: right;">1,0</td>
 </tr>
 </tbody>
@@ -1301,15 +1301,15 @@ thức Viète (1)–(2).</td>
           <button class="btn-copy" onclick="copyText(this)">📋 Sao chép</button>
         </div>
         <div class="problem-content">
-<p>Cho các số nguyên <span class="math inline">\(n,k\)</span> thỏa mãn
-<span class="math inline">\(1\le k\le n/2\)</span>. Ký hiệu <span class="math inline">\([n]=\{1,2,\ldots,n\}\)</span>. Một họ <span class="math inline">\(\mathcal A\)</span> gồm các tập con <span class="math inline">\(k\)</span> phần tử của <span class="math inline">\([n]\)</span> được gọi là <em>giao nhau</em> nếu
-<span class="math display">\[A\cap B\ne\varnothing
-\qquad\forall A,B\in\mathcal A.\]</span></p><ol>
-<li><p>Xếp <span class="math inline">\(1,2,\ldots,n\)</span> theo một
-thứ tự vòng tròn. Chứng minh rằng trong <span class="math inline">\(n\)</span> đoạn gồm <span class="math inline">\(k\)</span> phần tử liên tiếp trên vòng tròn, nhiều
-nhất có <span class="math inline">\(k\)</span> đoạn thuộc <span class="math inline">\(\mathcal A\)</span>.</p></li>
-<li><p>Bằng phương pháp đếm kép, chứng minh <span class="math display">\[\boxed{|\mathcal A|\le\binom{n-1}{k-1}}.\]</span>
-Chỉ ra một họ <span class="math inline">\(\mathcal A\)</span> đạt dấu
+<p>Cho các số nguyên \(n,k\) thỏa mãn
+\(1\le k\le n/2\). Ký hiệu \([n]=\{1,2,\ldots,n\}\). Một họ \(\mathcal A\) gồm các tập con \(k\) phần tử của \([n]\) được gọi là <em>giao nhau</em> nếu
+\[A\cap B\ne\varnothing
+\qquad\forall A,B\in\mathcal A.\]</p><ol>
+<li><p>Xếp \(1,2,\ldots,n\) theo một
+thứ tự vòng tròn. Chứng minh rằng trong \(n\) đoạn gồm \(k\) phần tử liên tiếp trên vòng tròn, nhiều
+nhất có \(k\) đoạn thuộc \(\mathcal A\).</p></li>
+<li><p>Bằng phương pháp đếm kép, chứng minh \[\boxed{|\mathcal A|\le\binom{n-1}{k-1}}.\]
+Chỉ ra một họ \(\mathcal A\) đạt dấu
 bằng.</p></li>
 </ol></section>
         </div>
@@ -1317,48 +1317,48 @@ bằng.</p></li>
         <div class="solution-content" style="display:none">
           <h4 style="margin: 14px 0 8px 0; color: #1e3a8a; font-weight: 700; font-size: 1.05rem;">📖 Lời giải chi tiết &amp; Barem điểm</h4>
 <p><strong>Lời giải.</strong>  Đây là phương pháp vòng tròn của Katona,
-một mẫu điển hình của đếm kép trong tổ hợp cực trị.</p><p><strong>a)</strong> Cố định một thứ tự vòng tròn của <span class="math inline">\(1,2,\ldots,n\)</span>. Ký hiệu <span class="math inline">\(I_j\)</span> là đoạn gồm <span class="math inline">\(k\)</span> phần tử liên tiếp và có điểm cuối bên
-phải là <span class="math inline">\(j\)</span>; chỉ số được hiểu modulo
-<span class="math inline">\(n\)</span>.</p><p>Nếu không có đoạn nào thuộc <span class="math inline">\(\mathcal
-A\)</span> thì hiển nhiên. Giả sử có một đoạn thuộc <span class="math inline">\(\mathcal A\)</span>; sau khi quay vòng, có thể giả
-sử <span class="math display">\[I_0\in\mathcal A.\]</span> Mọi đoạn
-<span class="math inline">\(k\)</span> liên tiếp giao với <span class="math inline">\(I_0\)</span> phải có điểm cuối thuộc một trong
-<span class="math inline">\(2k-1\)</span> vị trí <span class="math display">\[0,1,\ldots,k-1,
+một mẫu điển hình của đếm kép trong tổ hợp cực trị.</p><p><strong>a)</strong> Cố định một thứ tự vòng tròn của \(1,2,\ldots,n\). Ký hiệu \(I_j\) là đoạn gồm \(k\) phần tử liên tiếp và có điểm cuối bên
+phải là \(j\); chỉ số được hiểu modulo
+\(n\).</p><p>Nếu không có đoạn nào thuộc \(\mathcal
+A\) thì hiển nhiên. Giả sử có một đoạn thuộc \(\mathcal A\); sau khi quay vòng, có thể giả
+sử \[I_0\in\mathcal A.\] Mọi đoạn
+\(k\) liên tiếp giao với \(I_0\) phải có điểm cuối thuộc một trong
+\(2k-1\) vị trí \[0,1,\ldots,k-1,
 \qquad
 n-k+1,\ldots,n-1.
-\tag{1}\]</span> Ngoài <span class="math inline">\(I_0\)</span>, ghép
-các vị trí thành <span class="math inline">\(k-1\)</span> cặp <span class="math display">\[\bigl(j,\ n-k+j\bigr),
+\tag{1}\] Ngoài \(I_0\), ghép
+các vị trí thành \(k-1\) cặp \[\bigl(j,\ n-k+j\bigr),
 \qquad j=1,2,\ldots,k-1.
-\tag{2}\]</span> Hai đoạn <span class="math inline">\(I_j\)</span> và
-<span class="math inline">\(I_{n-k+j}\)</span> trong mỗi cặp (2) rời
-nhau khi <span class="math inline">\(n\ge2k\)</span>. Vì <span class="math inline">\(\mathcal A\)</span> là họ giao nhau, trong mỗi cặp
-nhiều nhất một đoạn có thể thuộc <span class="math inline">\(\mathcal
-A\)</span>.</p><p>Do đó, ngoài <span class="math inline">\(I_0\)</span>, có nhiều nhất
-<span class="math inline">\(k-1\)</span> đoạn của <span class="math inline">\(\mathcal A\)</span>. Vậy trong một thứ tự vòng
-tròn bất kỳ, <span class="math display">\[\boxed{\text{có nhiều nhất
+\tag{2}\] Hai đoạn \(I_j\) và
+\(I_{n-k+j}\) trong mỗi cặp (2) rời
+nhau khi \(n\ge2k\). Vì \(\mathcal A\) là họ giao nhau, trong mỗi cặp
+nhiều nhất một đoạn có thể thuộc \(\mathcal
+A\).</p><p>Do đó, ngoài \(I_0\), có nhiều nhất
+\(k-1\) đoạn của \(\mathcal A\). Vậy trong một thứ tự vòng
+tròn bất kỳ, \[\boxed{\text{có nhiều nhất
 }k\text{ đoạn }k\text{ liên tiếp thuộc }\mathcal A.}
-\tag{3}\]</span></p><p><strong>b)</strong> Ta đếm các cặp <span class="math display">\[(\mathcal C,A),\]</span> trong đó <span class="math inline">\(\mathcal C\)</span> là một thứ tự vòng tròn của
-<span class="math inline">\([n]\)</span> và <span class="math inline">\(A\in\mathcal A\)</span> xuất hiện thành một khối
-gồm <span class="math inline">\(k\)</span> phần tử liên tiếp trong <span class="math inline">\(\mathcal C\)</span>.</p><p>Số thứ tự vòng tròn của <span class="math inline">\([n]\)</span> là
-<span class="math inline">\((n-1)!\)</span>. Theo câu a), với mỗi <span class="math inline">\(\mathcal C\)</span> có nhiều nhất <span class="math inline">\(k\)</span> tập <span class="math inline">\(A\in\mathcal A\)</span> xuất hiện liên tiếp. Vì
-thế <span class="math display">\[N\le k(n-1)!.
-\tag{4}\]</span></p><p>Mặt khác, cố định một tập <span class="math inline">\(A\in\mathcal
-A\)</span>. Để <span class="math inline">\(A\)</span> xuất hiện liên
-tiếp trên vòng tròn, coi <span class="math inline">\(A\)</span> như một
-khối. Ta có <span class="math inline">\(n-k+1\)</span> đối tượng trên
-vòng tròn, nên có <span class="math display">\[(n-k)!\]</span> cách sắp
-các đối tượng này theo vòng tròn, và có <span class="math inline">\(k!\)</span> cách sắp các phần tử bên trong khối
-<span class="math inline">\(A\)</span>. Do đó mỗi <span class="math inline">\(A\)</span> xuất hiện liên tiếp trong đúng <span class="math display">\[k!(n-k)!\]</span> thứ tự vòng tròn. Suy ra <span class="math display">\[N=|\mathcal A|\,k!(n-k)!.
-\tag{5}\]</span> Từ (4)–(5), <span class="math display">\[|\mathcal
+\tag{3}\]</p><p><strong>b)</strong> Ta đếm các cặp \[(\mathcal C,A),\] trong đó \(\mathcal C\) là một thứ tự vòng tròn của
+\([n]\) và \(A\in\mathcal A\) xuất hiện thành một khối
+gồm \(k\) phần tử liên tiếp trong \(\mathcal C\).</p><p>Số thứ tự vòng tròn của \([n]\) là
+\((n-1)!\). Theo câu a), với mỗi \(\mathcal C\) có nhiều nhất \(k\) tập \(A\in\mathcal A\) xuất hiện liên tiếp. Vì
+thế \[N\le k(n-1)!.
+\tag{4}\]</p><p>Mặt khác, cố định một tập \(A\in\mathcal
+A\). Để \(A\) xuất hiện liên
+tiếp trên vòng tròn, coi \(A\) như một
+khối. Ta có \(n-k+1\) đối tượng trên
+vòng tròn, nên có \[(n-k)!\] cách sắp
+các đối tượng này theo vòng tròn, và có \(k!\) cách sắp các phần tử bên trong khối
+\(A\). Do đó mỗi \(A\) xuất hiện liên tiếp trong đúng \[k!(n-k)!\] thứ tự vòng tròn. Suy ra \[N=|\mathcal A|\,k!(n-k)!.
+\tag{5}\] Từ (4)–(5), \[|\mathcal
 A|\,k!(n-k)!
-\le k(n-1)!,\]</span> nên <span class="math display">\[\boxed{|\mathcal
+\le k(n-1)!,\] nên \[\boxed{|\mathcal
 A|\le
 \frac{k(n-1)!}{k!(n-k)!}
-=\binom{n-1}{k-1}}.\]</span></p><p>Dấu bằng đạt được, chẳng hạn, với họ <span class="math display">\[\mathcal A_1=\{A\subset[n]: |A|=k,\ 1\in
-A\}.\]</span> Mọi hai tập trong <span class="math inline">\(\mathcal
-A_1\)</span> đều chứa <span class="math inline">\(1\)</span>, nên giao
-nhau, và <span class="math display">\[|\mathcal
-A_1|=\binom{n-1}{k-1}.\]</span> Vậy cận trên là sắc.</p><div class="center">
+=\binom{n-1}{k-1}}.\]</p><p>Dấu bằng đạt được, chẳng hạn, với họ \[\mathcal A_1=\{A\subset[n]: |A|=k,\ 1\in
+A\}.\] Mọi hai tập trong \(\mathcal
+A_1\) đều chứa \(1\), nên giao
+nhau, và \[|\mathcal
+A_1|=\binom{n-1}{k-1}.\] Vậy cận trên là sắc.</p><div class="center">
 <table class="rubric-table">
 <thead>
 <tr class="header">
@@ -1371,19 +1371,19 @@ A_1|=\binom{n-1}{k-1}.\]</span> Vậy cận trên là sắc.</p><div class="cent
 <tr class="odd">
 <td style="text-align: left;">a</td>
 <td style="text-align: left;">Mã hóa các đoạn liên tiếp bằng điểm cuối
-<span class="math inline">\(I_j\)</span>.</td>
+\(I_j\).</td>
 <td style="text-align: right;">0,75</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"></td>
-<td style="text-align: left;">Xác định đúng <span class="math inline">\(2k-1\)</span> ứng viên giao với một đoạn cố
+<td style="text-align: left;">Xác định đúng \(2k-1\) ứng viên giao với một đoạn cố
 định.</td>
 <td style="text-align: right;">0,75</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"></td>
-<td style="text-align: left;">Ghép <span class="math inline">\(k-1\)</span> cặp đoạn rời nhau và suy ra nhiều
-nhất <span class="math inline">\(k\)</span> đoạn.</td>
+<td style="text-align: left;">Ghép \(k-1\) cặp đoạn rời nhau và suy ra nhiều
+nhất \(k\) đoạn.</td>
 <td style="text-align: right;">1,5</td>
 </tr>
 <tr class="even">
@@ -1394,17 +1394,17 @@ tròn, tập liên tiếp).</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"></td>
-<td style="text-align: left;">Đếm theo thứ tự vòng tròn: <span class="math inline">\(N\le k(n-1)!\)</span>.</td>
+<td style="text-align: left;">Đếm theo thứ tự vòng tròn: \(N\le k(n-1)!\).</td>
 <td style="text-align: right;">0,75</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"></td>
-<td style="text-align: left;">Đếm theo một tập cố định: <span class="math inline">\(k!(n-k)!\)</span>.</td>
+<td style="text-align: left;">Đếm theo một tập cố định: \(k!(n-k)!\).</td>
 <td style="text-align: right;">1,0</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"></td>
-<td style="text-align: left;">Suy ra cận <span class="math inline">\(\binom{n-1}{k-1}\)</span> và nêu cấu hình đạt dấu
+<td style="text-align: left;">Suy ra cận \(\binom{n-1}{k-1}\) và nêu cấu hình đạt dấu
 bằng.</td>
 <td style="text-align: right;">1,5</td>
 </tr>
@@ -1424,15 +1424,15 @@ bằng.</td>
 <h2 class="section-heading" id="nhận-xét-sau-khi-làm-bộ-thi-thử-số-2"><span class="section-number">13.3</span>Nhận xét sau khi làm bộ
 thi thử số 2</h2><ul>
 <li><p><strong>Câu 1</strong> nhấn mạnh hai tầng của dãy truy hồi: trước
-hết xác định cấp tăng trưởng <span class="math inline">\(x_n\asymp
-n^{1/3}\)</span>, sau đó khai thác sai phân của <span class="math inline">\(x_n^3\)</span> để lấy hệ số của <span class="math inline">\(\ln n\)</span>.</p></li>
+hết xác định cấp tăng trưởng \(x_n\asymp
+n^{1/3}\), sau đó khai thác sai phân của \(x_n^3\) để lấy hệ số của \(\ln n\).</p></li>
 <li><p><strong>Câu 2</strong> là một phương trình hàm điển hình có phép
-lặp <span class="math inline">\(f\circ f=\mathrm{id}\)</span>. Điểm phân
+lặp \(f\circ f=\mathrm{id}\). Điểm phân
 loại nằm ở bước chuyển từ tính tịnh tiến với số gia không âm sang tính
-cộng trên toàn <span class="math inline">\(\mathbb{R}\)</span>, rồi dùng
+cộng trên toàn \(\mathbb{R}\), rồi dùng
 quan hệ bình phương để loại nghiệm cộng tính không tuyến tính.</p></li>
 <li><p><strong>Câu 3</strong> kết hợp dãy Fermat, cấp modulo và tính
-chia hết trong nhóm nhân modulo <span class="math inline">\(p\)</span>.
+chia hết trong nhóm nhân modulo \(p\).
 Đây là mẫu bài “dãy số học” nhưng công cụ cốt lõi là số học
 modulo.</p></li>
 <li><p><strong>Câu 4</strong> ôn đồng thời tiếp tuyến–dây cung, đường
