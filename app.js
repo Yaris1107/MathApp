@@ -344,6 +344,10 @@
       if (qs('#sidebar-' + key)) qs('#sidebar-' + key).style.display = tabId === 'tab-' + key ? 'block' : 'none';
       if (qs('#' + key + 'FilterPills')) qs('#' + key + 'FilterPills').style.display = tabId === 'tab-' + key ? 'flex' : 'none';
     });
+    const isTopics = (tabId === 'tab-topics');
+    if (qs('#sidebar-topics')) qs('#sidebar-topics').style.display = isTopics ? 'block' : 'none';
+    if (qs('#topicsFilterPills')) qs('#topicsFilterPills').style.display = isTopics ? 'flex' : 'none';
+    if (isTopics && typeof window.initTopicsView === 'function') window.initTopicsView();
 
     // Cập nhật hiển thị Sidebar
     const sbDanang = qs('#sidebar-danang');
@@ -351,7 +355,7 @@
     const sbTst = qs('#sidebar-tst');
     const sbHistory = qs('#sidebar-history');
 
-    if (sbDanang) sbDanang.style.display = (!isM && !isT && !isH && !isV && !isO && !isGradeCatalog && !isSupport && !isCoach && !isAdmission && !isUniversity && !isUniversityMaterials && !isBooks) ? 'block' : 'none';
+    if (sbDanang) sbDanang.style.display = (!isM && !isT && !isH && !isV && !isO && !isGradeCatalog && !isSupport && !isCoach && !isAdmission && !isUniversity && !isUniversityMaterials && !isBooks && !isTopics) ? 'block' : 'none';
     if (sbMock) sbMock.style.display = isM ? 'block' : 'none';
     if (sbTst) sbTst.style.display = isT ? 'block' : 'none';
     if (sbHistory) sbHistory.style.display = isH ? 'block' : 'none';

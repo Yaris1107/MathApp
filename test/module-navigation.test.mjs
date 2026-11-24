@@ -12,14 +12,15 @@ function harness(compact=true) {
   return{dom,window,doc,media,toggle:doc.getElementById('moduleNavigationToggle'),nav:doc.getElementById('moduleNavigation')};
 }
 const h=harness();
-assert.equal(h.nav.querySelectorAll('.tab-btn').length,15);assert.equal(h.nav.querySelectorAll('.navigation-group').length,4);
-assert.equal(new Set([...h.nav.querySelectorAll('.tab-btn')].map(x=>x.id)).size,15,'One real button per module, no duplicated IDs');
+assert.equal(h.nav.querySelectorAll('.tab-btn').length,16);assert.equal(h.nav.querySelectorAll('.navigation-group').length,4);
+assert.equal(new Set([...h.nav.querySelectorAll('.tab-btn')].map(x=>x.id)).size,16,'One real button per module, no duplicated IDs');
 assert.equal(h.nav.hidden,true);h.toggle.click();assert.equal(h.nav.hidden,false);assert.equal(h.toggle.getAttribute('aria-expanded'),'true');
-for(const key of ['danang','books','mock','support','coach','admission','tst','vmo','history','olympic','olympic30','duyenhai']){
+for(const key of ['danang','books','mock','support','coach','admission','tst','vmo','topics','history','olympic','olympic30','duyenhai']){
   if(h.nav.hidden)h.toggle.click();
   const button=h.doc.getElementById('tab-btn-'+key);button.focus();
   await h.window.switchTab('tab-'+key,button);
   if(key==='books')assert.equal(h.doc.getElementById('sidebar-books').style.display,'block');
+  if(key==='topics')assert.equal(h.doc.getElementById('sidebar-topics').style.display,'block');
   assert.equal(h.doc.querySelectorAll('.tab-pane.active').length,1);assert.equal(h.doc.querySelector('.tab-pane.active').id,'tab-'+key);
   assert.equal(h.nav.querySelectorAll('[aria-current="page"]').length,1);assert.equal(button.getAttribute('aria-current'),'page');
   assert.equal(h.doc.getElementById('activeModuleLabel').textContent,button.textContent.trim());

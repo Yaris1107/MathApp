@@ -75,26 +75,26 @@ window.MathJax = {
         onerror="this.onerror=null;this.src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.min.js';"></script>
 
 <!-- Stylesheets tách biệt, tối ưu bộ nhớ đệm -->
-<link rel="stylesheet" href="styles.css?v=1795510238097">
-<link rel="stylesheet" href="auth.css?v=1795510238097">
-<link rel="stylesheet" href="ai_guide.css?v=1795510238097">
-<link rel="stylesheet" href="i18n.css?v=1795510238097">
-<link rel="stylesheet" href="ai_coach.css?v=1795510238097">
-<link rel="stylesheet" href="ai_decomposer.css?v=1795510238097">
-<link rel="stylesheet" href="theme-violet.css?v=1795510238097">
+<link rel="stylesheet" href="styles.css?v=1795512647705">
+<link rel="stylesheet" href="auth.css?v=1795512647705">
+<link rel="stylesheet" href="ai_guide.css?v=1795512647705">
+<link rel="stylesheet" href="i18n.css?v=1795512647705">
+<link rel="stylesheet" href="ai_coach.css?v=1795512647705">
+<link rel="stylesheet" href="ai_decomposer.css?v=1795512647705">
+<link rel="stylesheet" href="theme-violet.css?v=1795512647705">
 <script>
 /* Giao diện mặc định: Violet Glass (tối). Người dùng vẫn có thể chuyển sáng/tối. */
 try { if (!localStorage.getItem('vmo-theme')) localStorage.setItem('vmo-theme', 'dark'); } catch (e) {}
 </script>
 
 <!-- Synchronous Auth Gate: Chặn truy cập nếu chưa đăng nhập -->
-<script src="education_access.js?v=1795510238097"></script>
-<script src="auth.js?v=1795510238097"></script>
+<script src="education_access.js?v=1795512647705"></script>
+<script src="auth.js?v=1795512647705"></script>
 <script>
 VMOAuth.requireAuth('login.html');
 </script>
 
-<script type="module" src="vmo_data_service.js?v=1795510238097"></script>
+<script type="module" src="vmo_data_service.js?v=1795512647705"></script>
 <script id="specialized-school-registry" type="application/json">{
   "asOf": "2026-10-16",
   "sources": {
@@ -1179,22 +1179,24 @@ VMOAuth.requireAuth('login.html');
   ]
 }
 </script>
-<script src="university_courses.js?v=1795510238097" defer></script>
-<script src="books.js?v=1795510238097" defer></script>
-<script src="university_materials.js?v=1795510238097" defer></script>
-<script src="university.js?v=1795510238097" defer></script>
-<script src="admissions.js?v=1795510238097" defer></script>
-<script src="tst-locations.js?v=1795510238097" defer></script>
-<script src="vmo_db_ui.js?v=1795510238097" defer></script>
-<script src="account_mgmt.js?v=1795510238097" defer></script>
-<script src="geometry_diagram.js?v=1795510238097" defer></script>
-<script src="ai_guide_engine.js?v=1795510238097" defer></script>
-<script src="i18n_content.js?v=1795510238097" defer></script>
-<script src="i18n.js?v=1795510238097" defer></script>
-<script src="math_support.js?v=1795510238097" defer></script>
-<script src="ai_coach.js?v=1795510238097" defer></script>
-<script src="ai_decomposer.js?v=1795510238097" defer></script>
-<script src="app.js?v=1795510238097" defer></script>
+<script src="university_courses.js?v=1795512647705" defer></script>
+<script src="books.js?v=1795512647705" defer></script>
+<script src="university_materials.js?v=1795512647705" defer></script>
+<script src="university.js?v=1795512647705" defer></script>
+<script src="admissions.js?v=1795512647705" defer></script>
+<script src="tst-locations.js?v=1795512647705" defer></script>
+<script src="vmo_db_ui.js?v=1795512647705" defer></script>
+<script src="account_mgmt.js?v=1795512647705" defer></script>
+<script src="geometry_diagram.js?v=1795512647705" defer></script>
+<script src="ai_guide_engine.js?v=1795512647705" defer></script>
+<script src="i18n_content.js?v=1795512647705" defer></script>
+<script src="i18n.js?v=1795512647705" defer></script>
+<script src="math_support.js?v=1795512647705" defer></script>
+<script src="topic_problems_data.js?v=1795512647705" defer></script>
+<script src="topics.js?v=1795512647705" defer></script>
+<script src="ai_coach.js?v=1795512647705" defer></script>
+<script src="ai_decomposer.js?v=1795512647705" defer></script>
+<script src="app.js?v=1795512647705" defer></script>
 </head>
 <body class="tex2jax_process">
 <script>
@@ -1296,6 +1298,7 @@ try { if (localStorage.getItem('vmo-theme') !== 'light') document.body.classList
           <button class="tab-btn" id="tab-btn-mock" type="button" onclick="switchTab('tab-mock',this)">🎯 Bộ đề thi thử VMO</button>
           <button class="tab-btn" id="tab-btn-tst" type="button" onclick="switchTab('tab-tst',this)">🏛️ Đề TST</button>
           <button class="tab-btn" id="tab-btn-vmo" type="button" onclick="switchTab('tab-vmo',this)">🇻🇳 Đề VMO</button>
+          <button class="tab-btn" id="tab-btn-topics" type="button" onclick="switchTab('tab-topics',this)">🏷️ Đề theo chuyên đề</button>
           <button class="tab-btn" id="tab-btn-history" type="button" onclick="switchTab('tab-history',this)">🗂️ Đề Đà Nẵng–Quảng Nam</button>
           <button class="tab-btn" id="tab-btn-olympic" type="button" onclick="switchTab('tab-olympic',this)">🌐 Đề IMO–Olympic</button>
           <button class="tab-btn" id="tab-btn-olympic30" type="button" onclick="switchTab('tab-olympic30',this)">🏅 Đề Olympic 30/4</button>
@@ -1339,6 +1342,16 @@ try { if (localStorage.getItem('vmo-theme') !== 'light') document.body.classList
     <div class="filter-pills" id="historyFilterPills" style="display:none">
       <button class="pill active" data-filter="ALL">Tất cả đề</button><button class="pill" data-filter="DANANG">Đà Nẵng</button><button class="pill" data-filter="QUANGNAM">Quảng Nam</button>
     </div>
+    <div class="filter-pills" id="topicsFilterPills" style="display:none">
+      <button class="pill active" data-topic="" onclick="filterTopicsByTopic('')">Tất cả chuyên đề</button>
+      <button class="pill" data-topic="Dãy số" onclick="filterTopicsByTopic('Dãy số')">🔢 Dãy số</button>
+      <button class="pill" data-topic="Hàm số" onclick="filterTopicsByTopic('Hàm số')">📈 Hàm số &amp; PTH</button>
+      <button class="pill" data-topic="Số học" onclick="filterTopicsByTopic('Số học')">🧮 Số học</button>
+      <button class="pill" data-topic="Hình học" onclick="filterTopicsByTopic('Hình học')">📐 Hình học</button>
+      <button class="pill" data-topic="Đa thức" onclick="filterTopicsByTopic('Đa thức')">📊 Đa thức</button>
+      <button class="pill" data-topic="Tổ hợp" onclick="filterTopicsByTopic('Tổ hợp')">🎲 Tổ hợp</button>
+      <button class="pill" data-topic="Bất đẳng thức" onclick="filterTopicsByTopic('Bất đẳng thức')">⚖️ Bất đẳng thức</button>
+    </div>
   </div>
 </div>
 <div id="sidebarBackdrop" class="sidebar-backdrop" aria-hidden="true"></div>
@@ -1377,6 +1390,30 @@ try { if (localStorage.getItem('vmo-theme') !== 'light') document.body.classList
     <div id="sidebar-books" style="display:none"><div class="sidebar-title">Sách học</div><nav id="booksToc" aria-label="Mục lục sách"></nav></div>
     <div id="sidebar-university-materials" style="display:none"><div class="sidebar-title">Tài liệu Toán–Đại học</div><nav id="universityMaterialsToc" aria-label="Mục lục Toán Đại học"></nav></div>
     <div id="sidebar-university" style="display:none"><div class="sidebar-title" data-university-label>Các học phần Đại học</div><nav id="universityCourseList" aria-label="Các học phần Đại học"></nav><div class="nav-year-group" id="universityExamLinks"></div></div>
+    <div id="sidebar-topics" style="display:none">
+      <div class="sidebar-title">Đề theo chuyên đề</div>
+      <div id="sidebarTopicStats" style="padding:6px 10px;font-size:0.8rem;color:#0369a1;background:#f0f9ff;border-radius:6px;margin:4px 0 8px;font-weight:600;">Tổng cộng: 236 bài toán</div>
+      <nav class="sidebar-topic-nav" aria-label="Mục lục đề theo chuyên đề" style="display:flex;flex-direction:column;gap:3px;">
+        <a class="nav-link toc-topic-link active" href="javascript:void(0)" onclick="window.filterTopicsByTopic('')" data-topic="" style="font-size:0.84rem;padding:6px 8px;border-radius:5px;display:flex;justify-content:space-between;align-items:center;"><span>🌐 Tất cả chuyên đề</span><span class="badge" id="sidebar-topic-count-ALL" style="background:#e2e8f0;padding:2px 6px;border-radius:10px;font-size:0.75rem;">0</span></a>
+        <a class="nav-link toc-topic-link" href="javascript:void(0)" onclick="window.filterTopicsByTopic('Dãy số')" data-topic="Dãy số" style="font-size:0.84rem;padding:6px 8px;border-radius:5px;display:flex;justify-content:space-between;align-items:center;"><span>🔢 Dãy số &amp; Giới hạn</span><span class="badge" id="sidebar-topic-count-Dãy số" style="background:#e0f2fe;color:#0284c7;padding:2px 6px;border-radius:10px;font-size:0.75rem;">0</span></a>
+        <a class="nav-link toc-topic-link" href="javascript:void(0)" onclick="window.filterTopicsByTopic('Hàm số')" data-topic="Hàm số" style="font-size:0.84rem;padding:6px 8px;border-radius:5px;display:flex;justify-content:space-between;align-items:center;"><span>📈 Hàm số &amp; PTH</span><span class="badge" id="sidebar-topic-count-Hàm số" style="background:#e0e7ff;color:#4f46e5;padding:2px 6px;border-radius:10px;font-size:0.75rem;">0</span></a>
+        <a class="nav-link toc-topic-link" href="javascript:void(0)" onclick="window.filterTopicsByTopic('Số học')" data-topic="Số học" style="font-size:0.84rem;padding:6px 8px;border-radius:5px;display:flex;justify-content:space-between;align-items:center;"><span>🧮 Số học</span><span class="badge" id="sidebar-topic-count-Số học" style="background:#ede9fe;color:#7c3aed;padding:2px 6px;border-radius:10px;font-size:0.75rem;">0</span></a>
+        <a class="nav-link toc-topic-link" href="javascript:void(0)" onclick="window.filterTopicsByTopic('Hình học')" data-topic="Hình học" style="font-size:0.84rem;padding:6px 8px;border-radius:5px;display:flex;justify-content:space-between;align-items:center;"><span>📐 Hình học phẳng</span><span class="badge" id="sidebar-topic-count-Hình học" style="background:#dcfce7;color:#16a34a;padding:2px 6px;border-radius:10px;font-size:0.75rem;">0</span></a>
+        <a class="nav-link toc-topic-link" href="javascript:void(0)" onclick="window.filterTopicsByTopic('Đa thức')" data-topic="Đa thức" style="font-size:0.84rem;padding:6px 8px;border-radius:5px;display:flex;justify-content:space-between;align-items:center;"><span>📊 Đa thức</span><span class="badge" id="sidebar-topic-count-Đa thức" style="background:#fef3c7;color:#d97706;padding:2px 6px;border-radius:10px;font-size:0.75rem;">0</span></a>
+        <a class="nav-link toc-topic-link" href="javascript:void(0)" onclick="window.filterTopicsByTopic('Tổ hợp')" data-topic="Tổ hợp" style="font-size:0.84rem;padding:6px 8px;border-radius:5px;display:flex;justify-content:space-between;align-items:center;"><span>🎲 Tổ hợp</span><span class="badge" id="sidebar-topic-count-Tổ hợp" style="background:#ffe4e6;color:#e11d48;padding:2px 6px;border-radius:10px;font-size:0.75rem;">0</span></a>
+        <a class="nav-link toc-topic-link" href="javascript:void(0)" onclick="window.filterTopicsByTopic('Bất đẳng thức')" data-topic="Bất đẳng thức" style="font-size:0.84rem;padding:6px 8px;border-radius:5px;display:flex;justify-content:space-between;align-items:center;"><span>⚖️ Bất đẳng thức</span><span class="badge" id="sidebar-topic-count-Bất đẳng thức" style="background:#ccfbf1;color:#0d9488;padding:2px 6px;border-radius:10px;font-size:0.75rem;">0</span></a>
+      </nav>
+      <div class="sidebar-section-divider" style="margin:14px 0 10px;border-top:1px solid #e2e8f0;"></div>
+      <div style="font-weight:700;font-size:0.82rem;color:#475569;margin-bottom:6px;">Lọc theo nguồn:</div>
+      <nav class="sidebar-source-nav" style="display:flex;flex-direction:column;gap:2px;">
+        <a class="nav-link" href="javascript:void(0)" onclick="window.filterTopicsBySource('ALL')" style="font-size:0.8rem;padding:4px 8px;">🌟 Tất cả nguồn</a>
+        <a class="nav-link" href="javascript:void(0)" onclick="window.filterTopicsBySource('tst')" style="font-size:0.8rem;padding:4px 8px;">🏛️ Đề TST</a>
+        <a class="nav-link" href="javascript:void(0)" onclick="window.filterTopicsBySource('mock')" style="font-size:0.8rem;padding:4px 8px;">🎯 Đề thi thử VMO</a>
+        <a class="nav-link" href="javascript:void(0)" onclick="window.filterTopicsBySource('danang')" style="font-size:0.8rem;padding:4px 8px;">📚 Chuyên đề VMO Đà Nẵng</a>
+        <a class="nav-link" href="javascript:void(0)" onclick="window.filterTopicsBySource('history')" style="font-size:0.8rem;padding:4px 8px;">🗂️ Đà Nẵng – Quảng Nam</a>
+        <a class="nav-link" href="javascript:void(0)" onclick="window.filterTopicsBySource('SAVED')" style="font-size:0.8rem;padding:4px 8px;">📝 Bài lưu Database</a>
+      </nav>
+    </div>
     <div id="sidebar-history" style="display:none"><div class="sidebar-title">Đề Đà Nẵng – Quảng Nam</div><div class="nav-year-group"><div class="nav-year-title">📘 ĐÀ NẴNG</div></div><div class="nav-year-group"><div class="nav-year-title">📙 QUẢNG NAM</div></div></div>
   </aside>
   <main>
@@ -2958,6 +2995,36 @@ chuyên.</p><div class="center">
     <div class="tab-pane" id="tab-admission"><div class="feed-container"><div class="section-header-box"><h2>NGÂN HÀNG ĐỀ THI VÀO LỚP 10 CHUYÊN</h2></div></div></div>
     <div class="tab-pane" id="tab-olympic30"><div class="feed-container"><div class="section-header-box"><h2>NGÂN HÀNG ĐỀ OLYMPIC 30/4 — LỚP 10, LỚP 11</h2></div></div></div>
     <div class="tab-pane" id="tab-duyenhai"><div class="feed-container"><div class="section-header-box"><h2>NGÂN HÀNG ĐỀ DUYÊN HẢI MIỀN BẮC — LỚP 10, LỚP 11</h2></div></div></div>
+    <div class="tab-pane" id="tab-topics" aria-label="Đề thi và bài toán theo chuyên đề">
+      <section class="feed-container">
+        <div class="section-header-box" style="margin-bottom:16px;">
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px;">
+            <span style="font-size:1.6rem;">🏷️</span>
+            <h2 id="topicsHeaderTitle" style="margin:0;font-size:1.4rem;">Ngân hàng Đề thi &amp; Bài toán theo Chuyên đề</h2>
+          </div>
+          <p id="topicsHeaderDesc" style="color:#64748b;margin:0 0 12px;font-size:0.92rem;">
+            Tuyển tập toàn diện các đề thi TST, VMO, Olympic, Đà Nẵng – Quảng Nam và các bài toán đã lưu trong Database được phân loại rõ ràng theo từng chuyên đề cốt lõi.
+          </p>
+          <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:#f8fafc;padding:10px 14px;border-radius:8px;border:1px solid #e2e8f0;" id="topicsSourceFilterBar">
+            <span style="font-size:0.85rem;font-weight:700;color:#334155;">Nguồn:</span>
+            <button type="button" class="source-filter-btn active" data-source="ALL" onclick="window.filterTopicsBySource('ALL')" style="font-size:0.82rem;padding:4px 10px;border-radius:6px;border:1px solid #cbd5e1;cursor:pointer;background:#0284c7;color:#fff;">🌟 Tất cả</button>
+            <button type="button" class="source-filter-btn" data-source="SYSTEM" onclick="window.filterTopicsBySource('SYSTEM')" style="font-size:0.82rem;padding:4px 10px;border-radius:6px;border:1px solid #cbd5e1;cursor:pointer;background:#f8fafc;color:#475569;">🏛️ Đề hệ thống</button>
+            <button type="button" class="source-filter-btn" data-source="tst" onclick="window.filterTopicsBySource('tst')" style="font-size:0.82rem;padding:4px 10px;border-radius:6px;border:1px solid #cbd5e1;cursor:pointer;background:#f8fafc;color:#475569;">Đề TST</button>
+            <button type="button" class="source-filter-btn" data-source="mock" onclick="window.filterTopicsBySource('mock')" style="font-size:0.82rem;padding:4px 10px;border-radius:6px;border:1px solid #cbd5e1;cursor:pointer;background:#f8fafc;color:#475569;">Đề thử VMO</button>
+            <button type="button" class="source-filter-btn" data-source="danang" onclick="window.filterTopicsBySource('danang')" style="font-size:0.82rem;padding:4px 10px;border-radius:6px;border:1px solid #cbd5e1;cursor:pointer;background:#f8fafc;color:#475569;">Chuyên đề Đà Nẵng</button>
+            <button type="button" class="source-filter-btn" data-source="history" onclick="window.filterTopicsBySource('history')" style="font-size:0.82rem;padding:4px 10px;border-radius:6px;border:1px solid #cbd5e1;cursor:pointer;background:#f8fafc;color:#475569;">Đà Nẵng – QN</button>
+            <button type="button" class="source-filter-btn" data-source="SAVED" onclick="window.filterTopicsBySource('SAVED')" style="font-size:0.82rem;padding:4px 10px;border-radius:6px;border:1px solid #cbd5e1;cursor:pointer;background:#f8fafc;color:#475569;">📝 Bài lưu Database</button>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+          <div id="topicsResultsSummary" style="font-size:0.88rem;color:#475569;"></div>
+          <div style="max-width:280px;width:100%;">
+            <input type="search" id="topicsSearchInput" placeholder="Tìm theo từ khóa (Stolz, LTE, Miquel...)" style="width:100%;padding:6px 12px;font-size:0.85rem;border:1px solid #cbd5e1;border-radius:6px;">
+          </div>
+        </div>
+        <div id="topicsProblemsList" style="display:flex;flex-direction:column;gap:12px;"></div>
+      </section>
+    </div>
     <div class="tab-pane" id="tab-coach" aria-label="AI Coach — luyện tập và lộ trình cá nhân hóa"></div>
     <section class="tab-pane" id="tab-support" aria-labelledby="tab-btn-support">
   <div class="feed-container">

@@ -80,7 +80,7 @@ window.eval(i18nSource);
 
 const tabs = [
   'tab-btn-primary', 'tab-btn-admission', 'tab-btn-danang', 'tab-btn-mock',
-  'tab-btn-tst', 'tab-btn-vmo', 'tab-btn-history', 'tab-btn-olympic',
+  'tab-btn-tst', 'tab-btn-vmo', 'tab-btn-topics', 'tab-btn-history', 'tab-btn-olympic',
   'tab-btn-olympic30', 'tab-btn-duyenhai', 'tab-btn-university-materials',
   'tab-btn-books', 'tab-btn-university', 'tab-btn-coach', 'tab-btn-support'
 ];
