@@ -155,7 +155,11 @@
       const sourceBadge = p.isSavedDb ? '📝 Database OCR' : p.categoryLabel || '🏛️ Hệ thống';
 
       return `
-        <article class="problem-item topic-problem-card" id="topic-item-${idx}" style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,0.04);margin-bottom:16px;">
+        <article class="problem-item topic-problem-card" id="topic-item-${idx}"
+          data-content-key="${escapeHtml(p.id)}"
+          data-topic="${escapeHtml(p.topic)}"
+          data-set-title="${escapeHtml(p.examTitle)}"
+          style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,0.04);margin-bottom:16px;">
           <div class="problem-header" style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px;border-bottom:1px solid #f1f5f9;padding-bottom:10px;">
             <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
               <span class="badge" style="background:${topicObj.color}15;color:${topicObj.color};font-weight:700;font-size:0.78rem;padding:3px 8px;border-radius:4px;border:1px solid ${topicObj.color}30;">
@@ -166,14 +170,18 @@
               </span>
               <span style="font-size:0.85rem;color:#64748b;font-weight:600;">${escapeHtml(p.examTitle)}</span>
             </div>
-            <div style="display:flex;align-items:center;gap:6px;">
+            <div class="problem-id" style="display:flex;align-items:center;gap:6px;">
               <span style="font-weight:700;color:#0f172a;font-size:0.95rem;">${escapeHtml(p.label)}</span>
+              <span class="badge-topic" style="display:none;">${escapeHtml(p.topic)}</span>
             </div>
           </div>
           <div class="problem-content tex2jax_process math-display-block" style="font-size:0.95rem;line-height:1.65;color:#1e293b;margin-bottom:14px;overflow-x:auto;">
             ${p.content}
           </div>
           <div class="topic-problem-actions" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding-top:10px;border-top:1px dashed #f1f5f9;">
+            <button type="button" class="btn-ai-guide" onclick="window.openAiGuideFromTopicCard(this)" style="display:inline-flex;align-items:center;gap:6px;background:#7c3aed;color:#fff;border:none;padding:6px 12px;border-radius:6px;font-size:0.82rem;font-weight:600;cursor:pointer;">
+              <span class="guide-sparkle">✨</span> AI Hướng dẫn giải
+            </button>
             <button type="button" class="btn-decomposer" onclick="window.decomposeFromTopicCard('${p.id}')" style="display:inline-flex;align-items:center;gap:6px;background:#0284c7;color:#fff;border:none;padding:6px 12px;border-radius:6px;font-size:0.82rem;font-weight:600;cursor:pointer;">
               💡 Xé nhỏ bài toán
             </button>
@@ -243,6 +251,14 @@
       }
     });
     renderProblemsList();
+  };
+
+  root.openAiGuideFromTopicCard = function (btn) {
+    if (typeof root.openAIGuide === 'function') {
+      root.openAIGuide(btn);
+    } else {
+      alert('Đang tải AI Guide, vui lòng thử lại sau giây lát...');
+    }
   };
 
   root.switchTopicsTab = async function (topic) {

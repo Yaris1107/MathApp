@@ -65,5 +65,16 @@ const firstProbId = window.SYSTEM_TOPIC_PROBLEMS[0].id;
 window.decomposeFromTopicCard(firstProbId);
 assert.equal(decomposed, true, 'decomposeFromTopicCard must trigger decomposeProblem');
 
+// Test AI Solution Guide button
+const guideBtn = doc.querySelector('.topic-problem-card .btn-ai-guide');
+assert.ok(guideBtn, 'Each topic problem card must have .btn-ai-guide');
+let guideOpened = false;
+window.openAIGuide = btn => {
+  guideOpened = true;
+  assert.ok(btn.closest('.problem-item'));
+};
+window.openAiGuideFromTopicCard(guideBtn);
+assert.equal(guideOpened, true, 'openAiGuideFromTopicCard must invoke window.openAIGuide');
+
 window.close();
-console.log('Topics module: 7 canonical topics, system + database aggregation, sidebar, pills, and decomposer: OK');
+console.log('Topics module: 7 canonical topics, system + database aggregation, sidebar, pills, decomposer, and AI Guide: OK');
