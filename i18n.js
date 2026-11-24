@@ -559,6 +559,8 @@
     const sbSupLinks = document.querySelectorAll('#sidebar-support a.nav-link');
     if (sbSupLinks[0]) setNodeText(sbSupLinks[0], '📷 Tải ảnh và OCR', '📷 Upload Image & OCR', isEn);
     if (sbSupLinks[1]) setNodeText(sbSupLinks[1], '📝 Bài toán đã lưu', '📝 Saved Problems', isEn);
+    const sbTopicHeading = document.getElementById('sbSupportTopicHeading');
+    if (sbTopicHeading) setNodeText(sbTopicHeading, 'Chuyên đề bài lưu', 'Saved Problem Topics', isEn);
 
     const sbBooksTitle = document.querySelector('#sidebar-books .sidebar-title');
     if (sbBooksTitle) setNodeText(sbBooksTitle, 'Sách học', 'Textbooks', isEn);

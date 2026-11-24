@@ -155,11 +155,32 @@
       btn.style.color = match ? '#ffffff' : '#334155';
       btn.style.borderColor = match ? '#0284c7' : '#cbd5e1';
     });
+    document.querySelectorAll('.toc-topic-link').forEach(link => {
+      const match = (link.dataset.topic ?? '') === state.selectedTopic;
+      link.classList.toggle('active', match);
+      link.style.fontWeight = match ? '700' : '400';
+      link.style.color = match ? '#0284c7' : '';
+    });
     const badge = byId('supportTopicBadge');
     if (badge) {
       badge.textContent = state.selectedTopic || t('Tất cả', 'All');
     }
     window.loadMathSupportProblems(1, true);
+  };
+
+  window.navigateToSupportTopic = async function(topic) {
+    const supportTab = byId('tab-support');
+    if (!supportTab?.classList.contains('active')) {
+      const btn = byId('tab-btn-support');
+      if (typeof window.switchTab === 'function') {
+        await window.switchTab('tab-support', btn);
+      }
+    }
+    window.selectSupportTopicFilter(topic);
+    const filterBar = byId('supportTopicFilterBar') || byId('supportProblems');
+    if (filterBar) {
+      filterBar.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   };
 
   window.loadMathSupportProblems = async function(page = state.page, force = false) {

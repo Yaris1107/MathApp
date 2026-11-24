@@ -270,7 +270,27 @@ try { if (localStorage.getItem('vmo-theme') !== 'light') document.body.classList
     <div id="sidebar-admission" style="display:none"><div class="sidebar-title">Đề thi vào lớp 10 chuyên</div><label for="admissionSchoolSearch">Tìm tỉnh/thành, trường chuyên</label><input id="admissionSchoolSearch" type="search" style="width:100%" placeholder="Tên tỉnh/thành hoặc trường..."><p>34 tỉnh/thành · 81 trường</p><div id="admissionDirectory"></div></div>
     <div id="sidebar-olympic30" style="display:none"><div class="sidebar-title">Đề Olympic 30/4</div><div class="nav-year-group" data-grade="10"><div class="nav-year-title">LỚP 10</div></div><div class="nav-year-group" data-grade="11"><div class="nav-year-title">LỚP 11</div></div></div>
     <div id="sidebar-duyenhai" style="display:none"><div class="sidebar-title">Đề Duyên hải miền Bắc</div><div class="nav-year-group" data-grade="10"><div class="nav-year-title">LỚP 10</div></div><div class="nav-year-group" data-grade="11"><div class="nav-year-title">LỚP 11</div></div></div>
-<div id="sidebar-support" style="display:none"><div class="sidebar-title">Hỗ trợ giải toán</div><a class="nav-link" href="#mathSupportForm">📷 Tải ảnh và OCR</a><a class="nav-link" href="#supportProblems">📝 Bài toán đã lưu</a></div>
+<div id="sidebar-support" style="display:none">
+  <div class="sidebar-title">Hỗ trợ giải toán</div>
+  <a class="nav-link" href="#mathSupportForm">📷 Tải ảnh và OCR</a>
+  <a class="nav-link" href="#supportProblems">📝 Bài toán đã lưu</a>
+  <div class="sidebar-section-divider" style="margin: 12px 0 8px; border-top: 1px solid #e2e8f0;"></div>
+  <details class="toc-group" id="sidebarSupportTopicsGroup" open style="margin-top:6px;">
+    <summary style="font-weight:700;font-size:0.83rem;color:#0284c7;cursor:pointer;padding:6px 10px;border-radius:6px;background:#f0f9ff;display:flex;align-items:center;gap:6px;user-select:none;">
+      <span>🏷️</span><span id="sbSupportTopicHeading">Chuyên đề bài lưu</span>
+    </summary>
+    <nav class="sidebar-topic-nav" aria-label="Mục lục bài lưu theo chuyên đề" style="padding:6px 0 2px 4px;display:flex;flex-direction:column;gap:2px;">
+      <a class="nav-link toc-topic-link" href="#supportTopicFilterBar" onclick="window.navigateToSupportTopic(''); return true;" data-topic="" style="font-size:0.82rem;padding:5px 8px;border-radius:4px;display:block;">🌐 Tất cả bài lưu</a>
+      <a class="nav-link toc-topic-link" href="#supportTopicFilterBar" onclick="window.navigateToSupportTopic('Dãy số'); return true;" data-topic="Dãy số" style="font-size:0.82rem;padding:5px 8px;border-radius:4px;display:block;">🔢 Dãy số &amp; Giới hạn</a>
+      <a class="nav-link toc-topic-link" href="#supportTopicFilterBar" onclick="window.navigateToSupportTopic('Hàm số'); return true;" data-topic="Hàm số" style="font-size:0.82rem;padding:5px 8px;border-radius:4px;display:block;">📈 Hàm số &amp; PTH</a>
+      <a class="nav-link toc-topic-link" href="#supportTopicFilterBar" onclick="window.navigateToSupportTopic('Số học'); return true;" data-topic="Số học" style="font-size:0.82rem;padding:5px 8px;border-radius:4px;display:block;">🔢 Số học &amp; Dãy số</a>
+      <a class="nav-link toc-topic-link" href="#supportTopicFilterBar" onclick="window.navigateToSupportTopic('Hình học'); return true;" data-topic="Hình học" style="font-size:0.82rem;padding:5px 8px;border-radius:4px;display:block;">📐 Hình học phẳng</a>
+      <a class="nav-link toc-topic-link" href="#supportTopicFilterBar" onclick="window.navigateToSupportTopic('Đa thức'); return true;" data-topic="Đa thức" style="font-size:0.82rem;padding:5px 8px;border-radius:4px;display:block;">📊 Đa thức</a>
+      <a class="nav-link toc-topic-link" href="#supportTopicFilterBar" onclick="window.navigateToSupportTopic('Tổ hợp'); return true;" data-topic="Tổ hợp" style="font-size:0.82rem;padding:5px 8px;border-radius:4px;display:block;">🧩 Tổ hợp</a>
+      <a class="nav-link toc-topic-link" href="#supportTopicFilterBar" onclick="window.navigateToSupportTopic('Bất đẳng thức'); return true;" data-topic="Bất đẳng thức" style="font-size:0.82rem;padding:5px 8px;border-radius:4px;display:block;">⚖️ Bất đẳng thức</a>
+    </nav>
+  </details>
+</div>
     <div id="sidebar-books" style="display:none"><div class="sidebar-title">Sách học</div><nav id="booksToc" aria-label="Mục lục sách"></nav></div>
     <div id="sidebar-university-materials" style="display:none"><div class="sidebar-title">Tài liệu Toán–Đại học</div><nav id="universityMaterialsToc" aria-label="Mục lục Toán Đại học"></nav></div>
     <div id="sidebar-university" style="display:none"><div class="sidebar-title" data-university-label>Các học phần Đại học</div><nav id="universityCourseList" aria-label="Các học phần Đại học"></nav><div class="nav-year-group" id="universityExamLinks"></div></div>
