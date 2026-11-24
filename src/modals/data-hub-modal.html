@@ -15,6 +15,7 @@
         <button type="button" class="hub-tab-btn" id="hub-tab-docs" onclick="switchHubTab('docs')">📚 Tài liệu & Kỷ yếu</button>
         <button type="button" class="hub-tab-btn" id="hub-tab-exams" onclick="switchHubTab('exams')">📑 Đề thi mới</button>
         <button type="button" class="hub-tab-btn" id="hub-tab-subs" onclick="switchHubTab('subs')">✍️ Bài nộp học sinh</button>
+        <button type="button" class="hub-tab-btn" id="hub-tab-topics" onclick="switchHubTab('topics')">🏷️ Bài lưu theo chủ đề</button>
         <button type="button" class="hub-tab-btn" id="hub-tab-progress" onclick="switchHubTab('progress')">📊 Hoạt động &amp; kết quả</button>
       </div>
 
@@ -115,6 +116,46 @@
         </div>
         <div id="hubSubsList" style="max-height: 320px; overflow-y: auto;">
           <em>Đang tải các bài nộp từ cơ sở dữ liệu...</em>
+        </div>
+      </div>
+
+      <!-- Panel: BÀI LƯU THEO CHỦ ĐỀ -->
+      <div id="hub-panel-topics" class="hub-panel" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+          <div>
+            <h4 style="margin: 0; font-size: 1rem; color: #1e293b;" id="hubTopicHeaderTitle">📚 Danh sách bài lưu trong Database theo Chủ đề</h4>
+            <small style="color: #64748b;" id="hubTopicHeaderSubtitle">Lọc và phân chia bài tập theo chuyên đề: Dãy số, Hàm số, Số học, Hình học, Đa thức, Tổ hợp...</small>
+          </div>
+          <button type="button" class="btn-icon-action" onclick="loadHubTopicProblems()" style="background: #0284c7; color: #fff; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 600;">
+            🔄 Làm mới
+          </button>
+        </div>
+
+        <!-- Topic Buttons in Hub -->
+        <div style="margin-bottom: 14px; padding: 10px 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <span style="font-weight: 700; font-size: 0.85rem; color: #334155;">Chọn chuyên đề:</span>
+            <span id="hubTopicSelectedBadge" style="font-size: 0.75rem; padding: 2px 8px; border-radius: 999px; background: #e0f2fe; color: #0369a1; font-weight: 700;">Tất cả</span>
+          </div>
+          <div class="hub-topic-chips" id="hubTopicChips" style="display: flex; gap: 6px; flex-wrap: wrap;">
+            <button type="button" class="hub-topic-chip-btn active" data-topic="" onclick="filterHubTopicProblems('')" style="padding: 5px 12px; border-radius: 999px; border: 1px solid #0284c7; background: #0284c7; color: #fff; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.2s;">🌐 Tất cả</button>
+            <button type="button" class="hub-topic-chip-btn" data-topic="Dãy số" onclick="filterHubTopicProblems('Dãy số')" style="padding: 5px 12px; border-radius: 999px; border: 1px solid #cbd5e1; background: #fff; color: #334155; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.2s;">🔢 Dãy số</button>
+            <button type="button" class="hub-topic-chip-btn" data-topic="Hàm số" onclick="filterHubTopicProblems('Hàm số')" style="padding: 5px 12px; border-radius: 999px; border: 1px solid #cbd5e1; background: #fff; color: #334155; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.2s;">📈 Hàm số</button>
+            <button type="button" class="hub-topic-chip-btn" data-topic="Số học" onclick="filterHubTopicProblems('Số học')" style="padding: 5px 12px; border-radius: 999px; border: 1px solid #cbd5e1; background: #fff; color: #334155; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.2s;">🔢 Số học</button>
+            <button type="button" class="hub-topic-chip-btn" data-topic="Hình học" onclick="filterHubTopicProblems('Hình học')" style="padding: 5px 12px; border-radius: 999px; border: 1px solid #cbd5e1; background: #fff; color: #334155; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.2s;">📐 Hình học</button>
+            <button type="button" class="hub-topic-chip-btn" data-topic="Đa thức" onclick="filterHubTopicProblems('Đa thức')" style="padding: 5px 12px; border-radius: 999px; border: 1px solid #cbd5e1; background: #fff; color: #334155; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.2s;">📊 Đa thức</button>
+            <button type="button" class="hub-topic-chip-btn" data-topic="Tổ hợp" onclick="filterHubTopicProblems('Tổ hợp')" style="padding: 5px 12px; border-radius: 999px; border: 1px solid #cbd5e1; background: #fff; color: #334155; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.2s;">🧩 Tổ hợp</button>
+            <button type="button" class="hub-topic-chip-btn" data-topic="Bất đẳng thức" onclick="filterHubTopicProblems('Bất đẳng thức')" style="padding: 5px 12px; border-radius: 999px; border: 1px solid #cbd5e1; background: #fff; color: #334155; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.2s;">⚖️ Bất đẳng thức</button>
+          </div>
+        </div>
+
+        <!-- Topic Search -->
+        <div style="margin-bottom: 10px;">
+          <input type="search" id="hubTopicSearchInput" placeholder="Tìm theo tên bài hoặc nội dung công thức toán..." style="width: 100%; box-sizing: border-box; padding: 7px 11px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.88rem;" oninput="renderHubTopicProblems()">
+        </div>
+
+        <div id="hubTopicProblemsList" style="max-height: 380px; overflow-y: auto;">
+          <em>Đang tải các bài toán từ cơ sở dữ liệu...</em>
         </div>
       </div>
 

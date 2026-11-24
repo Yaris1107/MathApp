@@ -359,8 +359,10 @@ export async function getContentRevisions(problemId) {
   return normalizeList(await request('content_revisions', { problemId }));
 }
 
-export async function getMathSupportProblems(page = 1, q = '') {
-  const data = await apiFetch(`${DATA_API_URL}?${new URLSearchParams({ resource: 'math_support', page: String(page), q })}`);
+export async function getMathSupportProblems(page = 1, q = '', topic = '') {
+  const params = { resource: 'math_support', page: String(page), q };
+  if (topic) params.topic = topic;
+  const data = await apiFetch(`${DATA_API_URL}?${new URLSearchParams(params)}`);
   return { items: normalizeList(data.items), pagination: data.pagination };
 }
 export async function createMathSupport(payload) { return normalize(await mutate('create_math_support', payload)); }
@@ -469,6 +471,7 @@ export async function getSubmissionsPage(filters = {}) {
     page: filters.page || 1,
     limit: filters.limit || 10,
     q: filters.q,
+    topic: filters.topic,
     username: filters.username,
     sourceGroup: filters.sourceGroup,
     evaluation: filters.evaluation,

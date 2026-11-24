@@ -1,6 +1,6 @@
 (() => {
   const byId = id => document.getElementById(id);
-  const state = { image: '', uploadKey: '', confidence: '', busy: false, loaded: false, page: 1, pages: 1, loadToken: 0 };
+  const state = { image: '', uploadKey: '', confidence: '', busy: false, loaded: false, page: 1, pages: 1, loadToken: 0, selectedTopic: '' };
   const isEn = () => window.currentLang === 'en';
   const t = (vi, en) => (isEn() ? en : vi);
   const status = (id, message) => { if (byId(id)) byId(id).textContent = message; };
@@ -145,17 +145,36 @@
     article.querySelector('.exam-header').append(imageButton);
     return article;
   }
+  window.selectSupportTopicFilter = function(topic) {
+    state.selectedTopic = topic || '';
+    state.page = 1;
+    document.querySelectorAll('.topic-chip-btn').forEach(btn => {
+      const match = (btn.dataset.topic || '') === state.selectedTopic;
+      btn.classList.toggle('active', match);
+      btn.style.background = match ? '#0284c7' : '#ffffff';
+      btn.style.color = match ? '#ffffff' : '#334155';
+      btn.style.borderColor = match ? '#0284c7' : '#cbd5e1';
+    });
+    const badge = byId('supportTopicBadge');
+    if (badge) {
+      badge.textContent = state.selectedTopic || t('Tất cả', 'All');
+    }
+    window.loadMathSupportProblems(1, true);
+  };
+
   window.loadMathSupportProblems = async function(page = state.page, force = false) {
-    if (!byId('supportProblems') || (!force && state.loaded && page === state.page)) return;
+    if (!byId('supportProblems') || (!force && state.loaded && page === state.page && state.selectedTopic === (state.lastLoadedTopic || ''))) return;
     const token = ++state.loadToken;
+    state.lastLoadedTopic = state.selectedTopic || '';
     status('supportListStatus', t('Đang tải bài toán...','Loading problems…'));
     try {
-      const result = await window.VMODataService.getMathSupportProblems(page, byId('supportSearch').value.trim());
+      const result = await window.VMODataService.getMathSupportProblems(page, byId('supportSearch').value.trim(), state.selectedTopic || '');
       if (token !== state.loadToken) return;
       state.page = result.pagination.page; state.pages = result.pagination.pages; state.loaded = true;
       const root = byId('supportProblems'); root.replaceChildren(...result.items.map(renderProblem));
       await window.enhanceMathSupportProblems(root, result.items);
-      status('supportListStatus', result.items.length ? `${result.pagination.total} ${t('bài toán đã lưu','saved problems')}` : t('Chưa có bài toán phù hợp. Tải ảnh lên để bắt đầu.','No matching problems yet. Upload an image to start.'));
+      const topicSuffix = state.selectedTopic ? ` (${t('Chuyên đề: ', 'Topic: ') + state.selectedTopic})` : '';
+      status('supportListStatus', result.items.length ? `${result.pagination.total} ${t('bài toán đã lưu','saved problems')}${topicSuffix}` : t('Chưa có bài toán phù hợp. Tải ảnh lên để bắt đầu.','No matching problems yet. Upload an image to start.'));
       byId('supportPageLabel').textContent = `${t('Trang','Page')} ${state.page}/${state.pages}`;
       byId('supportPrevious').disabled = state.page <= 1; byId('supportNext').disabled = state.page >= state.pages;
     } catch (error) { if (token === state.loadToken) status('supportListStatus', error.message || t('Không tải được bài toán. Hãy bấm Tải lại.','Could not load problems. Please retry.')); }

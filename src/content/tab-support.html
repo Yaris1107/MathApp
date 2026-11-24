@@ -38,6 +38,24 @@
       <label for="supportSearch">Tìm bài toán đã lưu<input id="supportSearch" type="search" placeholder="Tên bài, chuyên đề hoặc nội dung..."></label>
       <button id="supportReload" type="button" class="btn-secondary">↻ Tải lại</button>
     </div>
+    <div class="support-topic-filter-bar" id="supportTopicFilterBar" role="tablist" aria-label="Phân loại bài lưu theo chủ đề" style="margin: 10px 0 14px; padding: 12px 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 6px;">
+        <span style="font-weight: 700; font-size: 0.88rem; color: #1e293b; display: inline-flex; align-items: center; gap: 6px;">
+          <span>🏷️</span><span id="supportTopicBarTitle">Chuyên đề bài lưu:</span>
+        </span>
+        <span id="supportTopicBadge" style="font-size: 0.75rem; padding: 2px 8px; border-radius: 999px; background: #e0f2fe; color: #0369a1; font-weight: 700;">Tất cả</span>
+      </div>
+      <div class="topic-chips-container" style="display: flex; gap: 6px; flex-wrap: wrap;">
+        <button type="button" class="topic-chip-btn active" data-topic="" onclick="window.selectSupportTopicFilter('')" style="padding: 5px 12px; border-radius: 999px; border: 1px solid #0284c7; background: #0284c7; color: #fff; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.2s;">🌐 Tất cả</button>
+        <button type="button" class="topic-chip-btn" data-topic="Dãy số" onclick="window.selectSupportTopicFilter('Dãy số')" style="padding: 5px 12px; border-radius: 999px; border: 1px solid #cbd5e1; background: #fff; color: #334155; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.2s;">🔢 Dãy số</button>
+        <button type="button" class="topic-chip-btn" data-topic="Hàm số" onclick="window.selectSupportTopicFilter('Hàm số')" style="padding: 5px 12px; border-radius: 999px; border: 1px solid #cbd5e1; background: #fff; color: #334155; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.2s;">📈 Hàm số</button>
+        <button type="button" class="topic-chip-btn" data-topic="Số học" onclick="window.selectSupportTopicFilter('Số học')" style="padding: 5px 12px; border-radius: 999px; border: 1px solid #cbd5e1; background: #fff; color: #334155; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.2s;">🔢 Số học</button>
+        <button type="button" class="topic-chip-btn" data-topic="Hình học" onclick="window.selectSupportTopicFilter('Hình học')" style="padding: 5px 12px; border-radius: 999px; border: 1px solid #cbd5e1; background: #fff; color: #334155; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.2s;">📐 Hình học</button>
+        <button type="button" class="topic-chip-btn" data-topic="Đa thức" onclick="window.selectSupportTopicFilter('Đa thức')" style="padding: 5px 12px; border-radius: 999px; border: 1px solid #cbd5e1; background: #fff; color: #334155; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.2s;">📊 Đa thức</button>
+        <button type="button" class="topic-chip-btn" data-topic="Tổ hợp" onclick="window.selectSupportTopicFilter('Tổ hợp')" style="padding: 5px 12px; border-radius: 999px; border: 1px solid #cbd5e1; background: #fff; color: #334155; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.2s;">🧩 Tổ hợp</button>
+        <button type="button" class="topic-chip-btn" data-topic="Bất đẳng thức" onclick="window.selectSupportTopicFilter('Bất đẳng thức')" style="padding: 5px 12px; border-radius: 999px; border: 1px solid #cbd5e1; background: #fff; color: #334155; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.2s;">⚖️ Bất đẳng thức</button>
+      </div>
+    </div>
     <p id="supportListStatus" role="status" aria-live="polite"></p>
     <div id="supportProblems"></div>
     <nav class="math-support-pagination" aria-label="Trang bài toán">

@@ -340,5 +340,15 @@ const systemStats = await call({ query: { resource: 'home_stats' } });
 assert.equal(systemStats.code, 200);
 assert.equal(systemStats.body.items[0].supportScope, 'all');
 assert.equal(systemStats.body.items[0].standaloneProblems, rows.get('problems').filter(row => row.sourceGroup === 'math_support' && row.status === 'published').length);
+
+// Topic filter in math support
+assert.ok(window.document.getElementById('supportTopicFilterBar'));
+assert.equal(window.document.querySelectorAll('.topic-chip-btn').length, 8);
+window.selectSupportTopicFilter('Dãy số');
+assert.equal(window.document.getElementById('supportTopicBadge').textContent, 'Dãy số');
+await tick(); await tick();
+const topicReq = await call({ query: { resource: 'math_support', topic: 'Dãy số' } });
+assert.equal(topicReq.code, 200);
+
 window.close();
 console.log('Math support: OCR -> client service -> route -> DB -> actions, owner isolation, revisions, pagination and retry safety: OK');

@@ -2503,6 +2503,9 @@ Vậy giới hạn cần tìm là $\\sqrt{2}$.`;
       <select id="hubSubSource" style="min-width:0;padding:7px;border:1px solid #cbd5e1;border-radius:6px;">
         <option value="">Tất cả nguồn</option><option value="specialty">Chuyên đề</option><option value="mock_exam">Thi thử</option><option value="tst">TST</option><option value="danang_quangnam">Đà Nẵng–Quảng Nam</option><option value="vmo_official">VMO</option><option value="imo_olympic">IMO–Olympic</option><option value="olympic_30_4">Olympic 30/4</option><option value="duyen_hai_bac">Duyên hải miền Bắc</option><option value="math_support">Hỗ trợ giải toán</option>
       </select>
+      <select id="hubSubTopic" style="min-width:0;padding:7px;border:1px solid #cbd5e1;border-radius:6px;">
+        <option value="">Tất cả chuyên đề</option><option value="Dãy số">Dãy số</option><option value="Hàm số">Hàm số</option><option value="Số học">Số học</option><option value="Hình học">Hình học</option><option value="Đa thức">Đa thức</option><option value="Tổ hợp">Tổ hợp</option><option value="Bất đẳng thức">Bất đẳng thức</option>
+      </select>
       <select id="hubSubEvaluation" style="min-width:0;padding:7px;border:1px solid #cbd5e1;border-radius:6px;">
         <option value="">Mọi trạng thái AI</option><option value="yes">Có đánh giá AI</option><option value="no">Chưa đánh giá AI</option>
       </select>
@@ -3759,7 +3762,7 @@ Vậy giới hạn cần tìm là $\\sqrt{2}$.`;
   window.switchHubTab = function(tabName) {
     const policy = window.MathAppEducation, session = window.VMOAuth?.getSession?.();
     if (policy && ((['exams', 'trends'].includes(tabName) && !policy.allows(session, 'upper_secondary')) || (tabName === 'docs' && !policy.allows(session, 'upper_secondary') && !policy.allows(session, 'lower_secondary') && !policy.allows(session, 'university')))) return;
-    ['events', 'docs', 'exams', 'catalog', 'subs', 'progress', 'trends'].forEach(t => {
+    ['events', 'docs', 'exams', 'catalog', 'subs', 'progress', 'trends', 'topics'].forEach(t => {
       const btn = document.getElementById('hub-tab-' + t);
       const panel = document.getElementById('hub-panel-' + t);
       if (btn) btn.classList.toggle('active', t === tabName);
@@ -3773,6 +3776,7 @@ Vậy giới hạn cần tìm là $\\sqrt{2}$.`;
     if (tabName === 'subs') loadAllSubmissions();
     if (tabName === 'progress') window.loadLearningDashboard();
     if (tabName === 'trends') window.loadExamTrendReports();
+    if (tabName === 'topics') window.loadHubTopicProblems();
   };
 
   window.hubSubmissionState = { page: 1, limit: 10, total: 0, pages: 1 };
@@ -3784,6 +3788,7 @@ Vậy giới hạn cần tìm là $\\sqrt{2}$.`;
       q: document.getElementById('hubSubSearch')?.value?.trim() || '',
       username: document.getElementById('hubSubUsername')?.value?.trim() || '',
       sourceGroup: document.getElementById('hubSubSource')?.value || '',
+      topic: document.getElementById('hubSubTopic')?.value || '',
       evaluation: document.getElementById('hubSubEvaluation')?.value || '',
       adminVerified: document.getElementById('hubSubVerified')?.value || '',
       dateFrom: document.getElementById('hubSubDateFrom')?.value || '',
@@ -3797,7 +3802,7 @@ Vậy giới hạn cần tìm là $\\sqrt{2}$.`;
   };
 
   window.resetSubmissionFilters = function() {
-    ['hubSubSearch', 'hubSubUsername', 'hubSubSource', 'hubSubEvaluation', 'hubSubVerified', 'hubSubDateFrom', 'hubSubDateTo']
+    ['hubSubSearch', 'hubSubUsername', 'hubSubSource', 'hubSubTopic', 'hubSubEvaluation', 'hubSubVerified', 'hubSubDateFrom', 'hubSubDateTo']
       .forEach(id => {
         const field = document.getElementById(id);
         if (field) field.value = '';
@@ -3955,6 +3960,133 @@ Vậy giới hạn cần tìm là $\\sqrt{2}$.`;
       await loadAllSubmissions();
     } catch (err) {
       showToast(`Không thể ${actionLabel} bài nộp: ${err?.message || 'Lỗi không xác định'}`, false);
+    }
+  };
+
+  window.hubTopicState = { topic: '', query: '', loaded: false, problems: [], counts: {} };
+
+  function categorizeTopicName(rawTopic) {
+    const s = String(rawTopic || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+    if (/day so|gioi han|truy hoi|hoi tu/.test(s)) return 'Dãy số';
+    if (/phuong trinh ham|ham so|da thuc va ham|anh xa/.test(s)) return 'Hàm số';
+    if (/so hoc|dong du|chia het|nguyen to|diophant/.test(s)) return 'Số học';
+    if (/hinh hoc|hinh phang|duong tron|tam giac|tu giac/.test(s)) return 'Hình học';
+    if (/da thuc|nghiem huu ti/.test(s)) return 'Đa thức';
+    if (/to hop|tro choi|do thi|to mau|bang o|cuc tri|xau nhi phan/.test(s)) return 'Tổ hợp';
+    if (/bat dang thuc|cuc tri/.test(s)) return 'Bất đẳng thức';
+    return 'Khác';
+  }
+
+  window.loadHubTopicProblems = async function(force = false) {
+    const list = document.getElementById('hubTopicProblemsList');
+    if (!list) return;
+    if (window.hubTopicState.loaded && !force) {
+      window.renderHubTopicProblems();
+      return;
+    }
+    list.innerHTML = '<em>Đang tải danh sách bài toán từ cơ sở dữ liệu...</em>';
+    try {
+      const [mathSupp, catProblems] = await Promise.all([
+        window.VMODataService?.getMathSupportProblems ? window.VMODataService.getMathSupportProblems(1, '', '') : { items: [] },
+        window.VMODataService?.getCatalogProblems ? window.VMODataService.getCatalogProblems() : []
+      ]);
+      const rawList = [
+        ...(Array.isArray(mathSupp?.items) ? mathSupp.items : []),
+        ...(Array.isArray(catProblems) ? catProblems : [])
+      ];
+
+      const counts = { 'Dãy số': 0, 'Hàm số': 0, 'Số học': 0, 'Hình học': 0, 'Đa thức': 0, 'Tổ hợp': 0, 'Bất đẳng thức': 0, 'Khác': 0 };
+      const processed = rawList.map(p => {
+        const cat = categorizeTopicName(p.topic || p.rawTopic || '');
+        if (counts[cat] !== undefined) counts[cat]++;
+        else counts['Khác']++;
+        return {
+          id: p.id || p._id || p.contentKey,
+          contentKey: p.contentKey || p.id || '',
+          title: p.title || p.shortLabel || 'Bài toán',
+          topic: p.topic || cat,
+          category: cat,
+          content: p.content || '',
+          maxScore: p.maxScore || 5,
+          sourceGroup: p.sourceGroup || 'database'
+        };
+      });
+
+      window.hubTopicState.problems = processed;
+      window.hubTopicState.counts = counts;
+      window.hubTopicState.loaded = true;
+
+      document.querySelectorAll('.hub-topic-chip-btn').forEach(btn => {
+        const top = btn.dataset.topic;
+        if (!top) {
+          btn.textContent = `🌐 Tất cả (${processed.length})`;
+        } else if (counts[top] !== undefined) {
+          const icon = top === 'Dãy số' ? '🔢' : top === 'Hàm số' ? '📈' : top === 'Số học' ? '🔢' : top === 'Hình học' ? '📐' : top === 'Đa thức' ? '📊' : top === 'Tổ hợp' ? '🧩' : '⚖️';
+          btn.textContent = `${icon} ${top} (${counts[top]})`;
+        }
+      });
+
+      window.renderHubTopicProblems();
+    } catch (err) {
+      list.innerHTML = `<div style="color:#b91c1c;padding:12px;">Không thể tải bài toán: ${escapeHtmlText(err?.message || 'Lỗi không xác định')}</div>`;
+    }
+  };
+
+  window.filterHubTopicProblems = function(topic) {
+    window.hubTopicState.topic = topic || '';
+    document.querySelectorAll('.hub-topic-chip-btn').forEach(btn => {
+      const match = (btn.dataset.topic || '') === window.hubTopicState.topic;
+      btn.classList.toggle('active', match);
+      btn.style.background = match ? '#0284c7' : '#ffffff';
+      btn.style.color = match ? '#ffffff' : '#334155';
+      btn.style.borderColor = match ? '#0284c7' : '#cbd5e1';
+    });
+    const badge = document.getElementById('hubTopicSelectedBadge');
+    if (badge) {
+      badge.textContent = window.hubTopicState.topic || 'Tất cả';
+    }
+    window.renderHubTopicProblems();
+  };
+
+  window.renderHubTopicProblems = function() {
+    const list = document.getElementById('hubTopicProblemsList');
+    if (!list) return;
+    const query = (document.getElementById('hubTopicSearchInput')?.value || '').trim().toLowerCase();
+    const selTopic = window.hubTopicState.topic || '';
+    const filtered = (window.hubTopicState.problems || []).filter(p => {
+      if (selTopic && p.category !== selTopic && !String(p.topic || '').toLowerCase().includes(selTopic.toLowerCase())) return false;
+      if (query && !`${p.title} ${p.content} ${p.topic}`.toLowerCase().includes(query)) return false;
+      return true;
+    });
+
+    if (!filtered.length) {
+      list.innerHTML = `<div style="padding:20px;text-align:center;color:#64748b;font-style:italic;">Chưa có bài toán nào phù hợp với chuyên đề ${selTopic ? '<b>' + escapeHtmlText(selTopic) + '</b>' : ''}.</div>`;
+      return;
+    }
+
+    list.innerHTML = filtered.map(p => {
+      const preview = p.content ? p.content.slice(0, 300) + (p.content.length > 300 ? '...' : '') : 'Nội dung bài toán lưu trữ trong database.';
+      return `
+        <div class="hub-topic-problem-card" style="border:1px solid #e2e8f0;border-radius:8px;padding:12px;margin-bottom:10px;background:#ffffff;box-shadow:0 1px 2px rgba(0,0,0,0.03);">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px;flex-wrap:wrap;">
+            <div>
+              <strong style="color:#0f172a;font-size:0.95rem;">${escapeHtmlText(p.title)}</strong>
+              <span style="display:inline-block;margin-left:6px;padding:2px 7px;border-radius:999px;font-size:0.75rem;font-weight:700;background:#e0f2fe;color:#0369a1;">${escapeHtmlText(p.category || p.topic)}</span>
+              <span style="font-size:0.75rem;color:#64748b;margin-left:4px;">(${p.maxScore}đ)</span>
+            </div>
+            <div style="display:flex;gap:4px;">
+              <button type="button" onclick="navigator.clipboard.writeText(decodeURIComponent('${encodeURIComponent(p.content || p.title)}'));showToast('Đã sao chép nội dung bài toán!', true);" style="padding:4px 8px;border:1px solid #cbd5e1;background:#f8fafc;border-radius:4px;font-size:0.75rem;cursor:pointer;">📋 Sao chép</button>
+            </div>
+          </div>
+          <div class="problem-content" style="font-size:0.88rem;color:#334155;line-height:1.6;margin-bottom:4px;max-height:140px;overflow-y:auto;background:#fafafa;padding:8px;border-radius:6px;">
+            ${escapeHtmlText(preview)}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    if (window.MathJax && window.MathJax.typesetPromise) {
+      window.MathJax.typesetPromise([list]).catch(() => {});
     }
   };
 

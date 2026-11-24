@@ -695,6 +695,13 @@ export default async function handler(req, res) {
         }
         if (req.query?.sourceGroup) filter.sourceGroup = cleanText(req.query.sourceGroup, 80);
         if (req.query?.contentKey) filter.contentKey = cleanKey(req.query.contentKey);
+        if (req.query?.topic && req.query.topic !== 'all') {
+          const topicQuery = cleanText(req.query.topic, 120);
+          let pattern = escapeRegex(topicQuery);
+          if (/dãy số|day so/i.test(topicQuery)) pattern = 'dãy số|day so';
+          else if (/hàm số|ham so|phương trình hàm/i.test(topicQuery)) pattern = 'hàm|phương trình hàm';
+          filter.topic = { $regex: pattern, $options: 'i' };
+        }
         if (req.query?.view === 'runtime') {
           projection = {
             contentKey: 1,
@@ -772,6 +779,16 @@ export default async function handler(req, res) {
 
         if (req.query?.paged === '1') {
           if (req.query?.sourceGroup) filter.sourceGroup = cleanText(req.query.sourceGroup, 80);
+          if (req.query?.topic && req.query.topic !== 'all') {
+            const topicQuery = cleanText(req.query.topic, 120);
+            let pattern = escapeRegex(topicQuery);
+            if (/dãy số|day so/i.test(topicQuery)) pattern = 'dãy số|day so';
+            else if (/hàm số|ham so|phương trình hàm/i.test(topicQuery)) pattern = 'hàm|phương trình hàm';
+            filter.$or = [
+              { topic: { $regex: pattern, $options: 'i' } },
+              { 'problemSnapshot.topic': { $regex: pattern, $options: 'i' } }
+            ];
+          }
           if (['admin', 'teacher'].includes(session.role) && req.query?.username) {
             const username = cleanText(req.query.username, 80);
             filter.username = { $regex: `^${escapeRegex(username)}$`, $options: 'i' };

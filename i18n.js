@@ -426,6 +426,7 @@
       ['hub-tab-docs', '📚 Tài liệu & Kỷ yếu', '📚 Materials & Yearbooks'],
       ['hub-tab-exams', '📑 Đề thi mới', '📑 New Exams'],
       ['hub-tab-subs', '✍️ Bài nộp học sinh', '✍️ Student Submissions'],
+      ['hub-tab-topics', '🏷️ Bài lưu theo chủ đề', '🏷️ Topics & Saved Problems'],
       ['hub-tab-progress', '📊 Hoạt động & kết quả', '📊 Activity & Results']
     ];
     hubTabs.forEach(([id, vi, en]) => {
